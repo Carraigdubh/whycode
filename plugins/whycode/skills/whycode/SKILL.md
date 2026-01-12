@@ -156,17 +156,31 @@ This keeps the orchestrator's context clean for coordination.
 
 4. DISCOVER integrations:
 
-   # Check for Linear (MCP or API key)
-   IF mcp__linear__* tools available:
+   # Check for Linear (in order of priority)
+   # 1. First check .env.local for LINEAR_API_KEY
+   IF exists(.env.local):
+     envLocal = READ .env.local
+     IF envLocal contains "LINEAR_API_KEY=":
+       LINEAR_API_KEY = extract value from envLocal
+       SHOW: "✓ Linear API key found in .env.local"
+       linearEnabled = true
+       linearMethod = "api"
+
+   # 2. Then check for Linear MCP
+   ELIF mcp__linear__* tools available:
      SHOW: "✓ Linear MCP detected"
      linearEnabled = true
      linearMethod = "mcp"
+
+   # 3. Finally check environment variable
    ELIF env.LINEAR_API_KEY exists:
-     SHOW: "✓ Linear API key found"
+     SHOW: "✓ Linear API key found in environment"
      linearEnabled = true
      linearMethod = "api"
+
    ELSE:
      SHOW: "○ Linear not configured (optional)"
+     SHOW: "  Add LINEAR_API_KEY to .env.local to enable"
      linearEnabled = false
 
    # If Linear enabled, get teams list
@@ -526,9 +540,15 @@ Triggered by `/whycode fix` or on resume with errors.
 
 ## Linear Integration
 
-Linear is auto-detected during startup. No manual configuration needed if:
-- Linear MCP is installed (`.mcp.json` has linear server), OR
-- `LINEAR_API_KEY` environment variable is set
+Linear is auto-detected during startup. Detection order:
+1. **`.env.local`** - Checks for `LINEAR_API_KEY=xxx` (recommended)
+2. **Linear MCP** - Checks if `mcp__linear__*` tools available
+3. **Environment variable** - Checks for `LINEAR_API_KEY` in env
+
+To enable Linear, add to your `.env.local`:
+```
+LINEAR_API_KEY=lin_api_xxxxxxxxxxxxx
+```
 
 ```
 # Detection (happens in STARTUP step 4)
