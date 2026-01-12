@@ -2,6 +2,8 @@
 
 Development orchestrator with multi-agent workflows. Uses GSD+ methodology and ralph-wiggum for autonomous iteration.
 
+**[Full Documentation](docs/WHYCODE.md)** - Comprehensive guide with all phases, agents, and troubleshooting.
+
 ## Installation
 
 ```bash
