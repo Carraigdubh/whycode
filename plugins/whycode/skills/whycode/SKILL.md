@@ -156,16 +156,37 @@ This keeps the orchestrator's context clean for coordination.
 
 4. DISCOVER integrations:
 
-   # Check for Linear MCP
+   # Check for Linear (MCP or API key)
    IF mcp__linear__* tools available:
      SHOW: "✓ Linear MCP detected"
      linearEnabled = true
+     linearMethod = "mcp"
+   ELIF env.LINEAR_API_KEY exists:
+     SHOW: "✓ Linear API key found"
+     linearEnabled = true
+     linearMethod = "api"
    ELSE:
-     SHOW: "○ Linear MCP not found (optional)"
+     SHOW: "○ Linear not configured (optional)"
      linearEnabled = false
 
+   # If Linear enabled, get teams list
+   IF linearEnabled:
+     IF linearMethod == "mcp":
+       teams = mcp__linear__get_teams()
+     ELSE:
+       teams = curl -H "Authorization: $LINEAR_API_KEY" https://api.linear.app/graphql ...
+
+     IF teams.length == 1:
+       linearTeamId = teams[0].id
+       SHOW: "  Using team: {teams[0].name}"
+     ELIF teams.length > 1:
+       ASK user to select team from list
+       linearTeamId = selected team
+
+     Store linearTeamId in whycode-state.json
+
    # Check for Context7
-   IF mcp__context7__* tools available:
+   IF mcp__plugin_context7__* tools available:
      SHOW: "✓ Context7 detected"
      context7Enabled = true
    ELSE:
@@ -308,10 +329,12 @@ INITIALIZE:
     → Returns plan count and IDs only
 
   # Use linear-agent for batch issue creation
-  IF linear enabled:
-    # 1. First, get team ID from user or use default
-    ASK user: "Enter Linear team ID (or press enter to skip Linear):"
-    IF team provided:
+  IF linearEnabled:
+    # Get team ID from state (set during startup discovery)
+    state = READ docs/whycode-state.json
+    teamId = state.linearTeamId
+
+    IF teamId:
       # 2. Read plans from index
       plans = READ docs/plans/index.json
 
@@ -322,7 +345,7 @@ INITIALIZE:
           "data": {
             "title": "WhyCode: {project_name}",
             "description": "Auto-generated project from WhyCode orchestrator",
-            "team": "{team_id}"
+            "team": "teamId"
           }
         }
       → Returns { "issueId": "ABC-100" } = parentIssueId
@@ -333,7 +356,7 @@ INITIALIZE:
         issues.append({
           "title": "Plan {plan.id}: {plan.name}",
           "description": "Tasks: {plan.tasks.join(', ')}",
-          "team": "{team_id}",
+          "team": "teamId",
           "parentId": parentIssueId
         })
 
@@ -341,7 +364,7 @@ INITIALIZE:
         {
           "action": "create-batch",
           "data": {
-            "team": "{team_id}",
+            "team": "teamId",
             "parentId": parentIssueId,
             "issues": issues
           }
@@ -351,7 +374,7 @@ INITIALIZE:
       # 5. Save mapping for later updates
       WRITE docs/decisions/linear-mapping.json:
         {
-          "teamId": "{team_id}",
+          "teamId": "teamId",
           "parentIssueId": "ABC-100",
           "planIssues": { "01-01": "ABC-101", "01-02": "ABC-102", ... }
         }
@@ -503,17 +526,31 @@ Triggered by `/whycode fix` or on resume with errors.
 
 ## Linear Integration
 
+Linear is auto-detected during startup. No manual configuration needed if:
+- Linear MCP is installed (`.mcp.json` has linear server), OR
+- `LINEAR_API_KEY` environment variable is set
+
 ```
-IF LINEAR_API_KEY in environment OR linear MCP available:
+# Detection (happens in STARTUP step 4)
+IF mcp__linear__* tools available OR env.LINEAR_API_KEY:
   linearEnabled = true
+  # Auto-fetch teams, use first team or ask user to select
+  linearTeamId = detected team ID
+  # Store in whycode-state.json
 
-  # Create issues via MCP or curl
-  IF mcp available:
-    mcp__linear__create_issue(...)
-  ELSE:
-    curl -X POST -H "Authorization: $LINEAR_API_KEY" ...
+# Usage (all via whycode:linear-agent)
+- Issue creation: whycode:linear-agent { "action": "create-issue", ... }
+- Status updates: whycode:linear-agent { "action": "update-issue", ... }
+- Comments: whycode:linear-agent { "action": "add-comment", ... }
 
-  # Rate limiting: 1 second between calls
+# Issue mapping stored in: docs/decisions/linear-mapping.json
+{
+  "teamId": "TEAM-123",
+  "parentIssueId": "ABC-100",
+  "planIssues": { "01-01": "ABC-101", "01-02": "ABC-102" }
+}
+
+# Rate limiting: 1 second between API calls (handled by linear-agent)
 ```
 
 ---
