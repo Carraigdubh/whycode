@@ -154,9 +154,26 @@ This keeps the orchestrator's context clean for coordination.
 3. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as ralphMaxIterations
 
-4. DISCOVER integrations (Linear, Context7, skills)
-   Ask which to enable
-   Store in whycode-state.json
+4. DISCOVER integrations:
+
+   # Check for Linear MCP
+   IF mcp__linear__* tools available:
+     SHOW: "✓ Linear MCP detected"
+     linearEnabled = true
+   ELSE:
+     SHOW: "○ Linear MCP not found (optional)"
+     linearEnabled = false
+
+   # Check for Context7
+   IF mcp__context7__* tools available:
+     SHOW: "✓ Context7 detected"
+     context7Enabled = true
+   ELSE:
+     SHOW: "○ Context7 not found (optional)"
+     context7Enabled = false
+
+   # Store in state
+   Store integrations in whycode-state.json
 ```
 
 ---
@@ -292,9 +309,52 @@ INITIALIZE:
 
   # Use linear-agent for batch issue creation
   IF linear enabled:
-    SPAWN whycode:linear-agent:
-      { "action": "create-batch", "data": { "issues": [...] } }
-      → Returns issue IDs only
+    # 1. First, get team ID from user or use default
+    ASK user: "Enter Linear team ID (or press enter to skip Linear):"
+    IF team provided:
+      # 2. Read plans from index
+      plans = READ docs/plans/index.json
+
+      # 3. Create parent project issue
+      SPAWN whycode:linear-agent:
+        {
+          "action": "create-issue",
+          "data": {
+            "title": "WhyCode: {project_name}",
+            "description": "Auto-generated project from WhyCode orchestrator",
+            "team": "{team_id}"
+          }
+        }
+      → Returns { "issueId": "ABC-100" } = parentIssueId
+
+      # 4. Create issues for each plan
+      issues = []
+      FOR EACH plan in plans:
+        issues.append({
+          "title": "Plan {plan.id}: {plan.name}",
+          "description": "Tasks: {plan.tasks.join(', ')}",
+          "team": "{team_id}",
+          "parentId": parentIssueId
+        })
+
+      SPAWN whycode:linear-agent:
+        {
+          "action": "create-batch",
+          "data": {
+            "team": "{team_id}",
+            "parentId": parentIssueId,
+            "issues": issues
+          }
+        }
+      → Returns { "issueIds": ["ABC-101", "ABC-102", ...] }
+
+      # 5. Save mapping for later updates
+      WRITE docs/decisions/linear-mapping.json:
+        {
+          "teamId": "{team_id}",
+          "parentIssueId": "ABC-100",
+          "planIssues": { "01-01": "ABC-101", "01-02": "ABC-102", ... }
+        }
 
   # Use state-agent to initialize state files
   SPAWN whycode:state-agent:
@@ -312,9 +372,11 @@ FOR EACH plan in plans:
   See reference/TEMPLATES.md for XML format.
 
   # 2. UPDATE LINEAR (via linear-agent)
-  IF linear enabled:
+  IF linear enabled AND exists(docs/decisions/linear-mapping.json):
+    linearMapping = READ docs/decisions/linear-mapping.json
+    issueId = linearMapping.planIssues[plan.id]
     SPAWN whycode:linear-agent:
-      { "action": "update-issue", "data": { "issueId": plan.linear-id, "state": "in_progress" } }
+      { "action": "update-issue", "data": { "issueId": issueId, "state": "in_progress" } }
 
   # 3. SPAWN IMPLEMENTATION AGENT (Fresh 200k context)
   SPAWN subagent_type based on plan.type:
@@ -336,9 +398,11 @@ FOR EACH plan in plans:
     { "action": "mark-complete", "data": { "type": "plan", "id": plan.id } }
     → Updates ROADMAP.md, STATE.md, whycode-state.json
 
-  IF linear enabled:
+  IF linear enabled AND exists(docs/decisions/linear-mapping.json):
+    linearMapping = READ docs/decisions/linear-mapping.json
+    issueId = linearMapping.planIssues[plan.id]
     SPAWN whycode:linear-agent:
-      { "action": "update-issue", "data": { "issueId": plan.linear-id, "state": "done" } }
+      { "action": "update-issue", "data": { "issueId": issueId, "state": "done" } }
 
   # 6. VALIDATION (every 3 plans) - via validation-agent
   IF plan_count % 3 == 0:
