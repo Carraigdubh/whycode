@@ -1,6 +1,8 @@
 ---
 name: backend-agent
 description: Implements backend APIs, database schemas, and server-side logic
+model: opus
+color: blue
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__linear__update_issue, mcp__linear__create_comment
 ---
 

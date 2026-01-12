@@ -1,6 +1,8 @@
 ---
 name: test-agent
 description: Writes and runs tests, validates implementation
+model: haiku
+color: yellow
 tools: Read, Bash, Glob, Grep, mcp__linear__update_issue
 ---
 

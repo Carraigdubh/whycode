@@ -1,6 +1,8 @@
 ---
 name: review-agent
 description: Reviews code for quality, bugs, and security
+model: opus
+color: red
 tools: Read, Grep, Glob, mcp__linear__create_issue, mcp__linear__create_comment
 ---
 

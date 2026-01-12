@@ -1,6 +1,8 @@
 ---
 name: frontend-agent
 description: Implements UI components, pages, and client-side logic with distinctive aesthetics
+model: opus
+color: green
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__linear__update_issue
 ---
 

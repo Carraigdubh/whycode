@@ -19,6 +19,44 @@ Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMP
 
 ---
 
+## CRITICAL: Agent Namespace
+
+**ALWAYS use the `whycode:` prefix when spawning agents.** Anthropic has built-in agents with similar names. Without the prefix, you may accidentally invoke the wrong agent.
+
+### Implementation Agents (Heavy Work)
+| Agent | Model | Color |
+|-------|-------|-------|
+| `whycode:backend-agent` | opus | blue |
+| `whycode:frontend-agent` | opus | green |
+| `whycode:test-agent` | haiku | yellow |
+| `whycode:e2e-agent` | haiku | orange |
+| `whycode:review-agent` | opus | red |
+| `whycode:tech-stack-setup-agent` | sonnet | purple |
+| `whycode:docs-agent` | haiku | cyan |
+
+### Utility Agents (Lightweight - Keep Orchestrator Context Clean)
+| Agent | Model | Color | Purpose |
+|-------|-------|-------|---------|
+| `whycode:dependency-agent` | haiku | pink | Install packages, verify lockfiles |
+| `whycode:validation-agent` | haiku | teal | Run build/typecheck/lint/test |
+| `whycode:linear-agent` | haiku | indigo | Linear API interactions |
+| `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
+| `whycode:state-agent` | haiku | brown | Update state files |
+
+Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
+
+### Context Management Rule
+**The orchestrator should NEVER:**
+- Load full file contents directly (use `whycode:context-loader-agent`)
+- Run npm/pnpm/yarn commands directly (use `whycode:dependency-agent`)
+- Run build/test commands directly (use `whycode:validation-agent`)
+- Call Linear API directly (use `whycode:linear-agent`)
+- Update state files directly (use `whycode:state-agent`)
+
+This keeps the orchestrator's context clean for coordination.
+
+---
+
 ## Phases Overview
 
 | Phase | Name | Mode | Documentation |
@@ -194,7 +232,7 @@ IF NOT skip:
    { "install": "...", "addDep": "...", "build": "...", "test": "..." }
 5. ASK framework choice
 6. ASK service providers (database, auth, etc.)
-7. SPAWN tech-stack-setup-agent to configure
+7. SPAWN whycode:tech-stack-setup-agent to configure
 8. VERIFY build passes
 9. WRITE docs/decisions/tech-stack.json
 10. WRITE docs/audit/tech-decisions.md
@@ -226,7 +264,7 @@ IF NOT skip:
    - Clean: Best maintainability
    - Balanced: Pragmatic middle
 2. ASK user to choose
-3. SPAWN code-architect agent to design
+3. SPAWN feature-dev:code-architect agent to design
 4. WRITE docs/adr/ADR-002-architecture.md
 5. WRITE docs/architecture/OVERVIEW.md
 6. GENERATE plans from task graph (MAX 3 TASKS PER PLAN)
@@ -239,12 +277,28 @@ IF NOT skip:
 
 **This is the core execution loop. No user interaction.**
 
+**CRITICAL: Use utility agents to keep orchestrator context clean.**
+
 ```
 INITIALIZE:
-  LOAD docs/decisions/tech-stack.json
-  LOAD docs/plans/index.json
-  CREATE Linear issues for all plans (if enabled)
-  WRITE docs/PROJECT.md, ROADMAP.md, STATE.md
+  # Use context-loader-agent instead of loading files directly
+  SPAWN whycode:context-loader-agent:
+    { "action": "extract-field", "target": "docs/decisions/tech-stack.json", "field": "all" }
+    → Returns summary, not full content
+
+  SPAWN whycode:context-loader-agent:
+    { "action": "read-summary", "target": "docs/plans/index.json" }
+    → Returns plan count and IDs only
+
+  # Use linear-agent for batch issue creation
+  IF linear enabled:
+    SPAWN whycode:linear-agent:
+      { "action": "create-batch", "data": { "issues": [...] } }
+      → Returns issue IDs only
+
+  # Use state-agent to initialize state files
+  SPAWN whycode:state-agent:
+    { "action": "update-state", "data": { "phase": 5, "status": "in_progress" } }
 
 FOR EACH plan in plans:
 
@@ -257,16 +311,17 @@ FOR EACH plan in plans:
 
   See reference/TEMPLATES.md for XML format.
 
-  # 2. UPDATE LINEAR
+  # 2. UPDATE LINEAR (via linear-agent)
   IF linear enabled:
-    mcp__linear__update_issue(plan.linear-id, state: "in_progress")
+    SPAWN whycode:linear-agent:
+      { "action": "update-issue", "data": { "issueId": plan.linear-id, "state": "in_progress" } }
 
-  # 3. SPAWN AGENT (Fresh 200k context)
+  # 3. SPAWN IMPLEMENTATION AGENT (Fresh 200k context)
   SPAWN subagent_type based on plan.type:
     - "standard" or "auto" → "general-purpose"
-    - "tdd" → "test-agent"
-    - "frontend" → "frontend-agent"
-    - "backend" → "backend-agent"
+    - "tdd" → "whycode:test-agent"
+    - "frontend" → "whycode:frontend-agent"
+    - "backend" → "whycode:backend-agent"
 
   PROMPT:
     /ralph-loop 'Execute plan from docs/PLAN.md.
@@ -276,19 +331,26 @@ FOR EACH plan in plans:
 
   # 4. WAIT for PLAN_COMPLETE
 
-  # 5. POST-PLAN
-  UPDATE docs/ROADMAP.md (mark plan complete)
-  UPDATE docs/STATE.md (living memory)
-  IF linear enabled:
-    mcp__linear__update_issue(plan.linear-id, state: "done")
+  # 5. POST-PLAN (via utility agents)
+  SPAWN whycode:state-agent:
+    { "action": "mark-complete", "data": { "type": "plan", "id": plan.id } }
+    → Updates ROADMAP.md, STATE.md, whycode-state.json
 
-  # 6. VALIDATION (every 3 plans)
+  IF linear enabled:
+    SPAWN whycode:linear-agent:
+      { "action": "update-issue", "data": { "issueId": plan.linear-id, "state": "done" } }
+
+  # 6. VALIDATION (every 3 plans) - via validation-agent
   IF plan_count % 3 == 0:
-    RUN build validation
-    IF fails: CREATE fix task, retry
+    SPAWN whycode:validation-agent:
+      { "validations": ["build"] }
+    IF result.status == "fail":
+      CREATE fix task, retry
 
 AFTER ALL PLANS:
-  RUN integration validation (build, start, health check)
+  # Integration validation via validation-agent
+  SPAWN whycode:validation-agent:
+    { "validations": ["typecheck", "lint", "test", "build"] }
   IF fails: CREATE fix tasks, re-enter loop
 ```
 
@@ -297,7 +359,7 @@ AFTER ALL PLANS:
 ## Phase 6: Quality Review (Autonomous)
 
 ```
-SPAWN review-agent:
+SPAWN whycode:review-agent:
   /ralph-loop 'Review code quality.
   Read docs/whycode/reference/AGENTS.md for protocol.
   Categories: Quality, Bugs, Conventions, Security.
@@ -316,7 +378,7 @@ IF critical issues found:
 ## Phase 7: Documentation (Autonomous)
 
 ```
-SPAWN docs-agent:
+SPAWN whycode:docs-agent:
   /ralph-loop 'Generate project documentation.
   Read docs/whycode/reference/AGENTS.md for protocol.
   Read docs/whycode/reference/TEMPLATES.md for formats.

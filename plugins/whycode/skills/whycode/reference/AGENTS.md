@@ -3,22 +3,43 @@
 This file contains execution protocols for WhyCode.
 Agents read this file AND their specific definition file when spawned.
 
+## CRITICAL: Always Use `whycode:` Prefix
+
+**Anthropic has built-in agents with similar names.** Always use the `whycode:` prefix to ensure you invoke WhyCode's agents, not built-in alternatives.
+
+```
+✅ CORRECT: whycode:frontend-agent
+❌ WRONG:   frontend-agent (may invoke Anthropic's built-in)
+```
+
+---
+
 ## Agent Definition Files
 
 Full agent definitions are in `../../../agents/`:
 
-| Agent | Definition File | Description |
-|-------|-----------------|-------------|
-| `backend-agent` | `agents/backend-agent.md` | Backend APIs, database, server logic |
-| `frontend-agent` | `agents/frontend-agent.md` | UI components, pages, client logic |
-| `test-agent` | `agents/test-agent.md` | Unit/integration testing |
-| `e2e-agent` | `agents/e2e-agent.md` | E2E UI testing (Chrome for web, Maestro for Expo) |
-| `review-agent` | `agents/review-agent.md` | Code quality, bugs, security |
-| `tech-stack-setup-agent` | `agents/tech-stack-setup-agent.md` | Project setup, configuration |
-| `docs-agent` | `agents/docs-agent.md` | Documentation generation |
+### Implementation Agents (Heavy Work)
+| Agent (invoke as) | Model | Color | Description |
+|-------------------|-------|-------|-------------|
+| `whycode:backend-agent` | opus | blue | Backend APIs, database, server logic |
+| `whycode:frontend-agent` | opus | green | UI components, pages, client logic |
+| `whycode:test-agent` | haiku | yellow | Unit/integration testing |
+| `whycode:e2e-agent` | haiku | orange | E2E UI testing (Chrome for web, Maestro for Expo) |
+| `whycode:review-agent` | opus | red | Code quality, bugs, security |
+| `whycode:tech-stack-setup-agent` | sonnet | purple | Project setup, configuration |
+| `whycode:docs-agent` | haiku | cyan | Documentation generation |
+
+### Utility Agents (Keep Orchestrator Context Clean)
+| Agent (invoke as) | Model | Color | Description |
+|-------------------|-------|-------|-------------|
+| `whycode:dependency-agent` | haiku | pink | Install packages, verify lockfiles |
+| `whycode:validation-agent` | haiku | teal | Run build/typecheck/lint/test |
+| `whycode:linear-agent` | haiku | indigo | Linear API interactions |
+| `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
+| `whycode:state-agent` | haiku | brown | Update state files |
 
 Each agent file contains:
-- **Frontmatter**: `name`, `description`, `tools` (scoped)
+- **Frontmatter**: `name`, `description`, `model`, `color`, `tools` (scoped)
 - **IMMUTABLE_DECISIONS enforcement**: Rules agents MUST follow
 - **Workflow**: Step-by-step execution
 - **Artifact format**: Output structure
@@ -250,10 +271,10 @@ mcp__linear__create_comment({
 | Agent | Use Case | Special Capabilities |
 |-------|----------|---------------------|
 | `general-purpose` | Standard implementation | All enabled tools |
-| `test-agent` | TDD plans | Test runners, TDD protocol |
-| `frontend-agent` | UI work | frontend-design skill |
-| `backend-agent` | API/DB work | Database tools |
-| `docs-agent` | Documentation | Document generation |
+| `whycode:test-agent` | TDD plans | Test runners, TDD protocol |
+| `whycode:frontend-agent` | UI work | frontend-design skill |
+| `whycode:backend-agent` | API/DB work | Database tools |
+| `whycode:docs-agent` | Documentation | Document generation |
 
 All agents follow the same XML plan format and execution protocol.
 

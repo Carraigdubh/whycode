@@ -1,6 +1,8 @@
 ---
 name: e2e-agent
 description: Runs end-to-end UI tests using Chrome for web projects and Maestro for Expo/React Native
+model: haiku
+color: orange
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__find, mcp__claude-in-chrome__form_input, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__read_network_requests, mcp__claude-in-chrome__gif_creator, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__linear__update_issue, mcp__linear__create_comment
 ---
 

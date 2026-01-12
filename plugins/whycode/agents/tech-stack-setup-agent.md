@@ -1,6 +1,8 @@
 ---
 name: tech-stack-setup-agent
 description: Configures project setup for ANY tech stack by fetching current best practices from official documentation
+model: sonnet
+color: purple
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, WebSearch
 ---
 

@@ -1,6 +1,8 @@
 ---
 name: docs-agent
 description: Generates project documentation including README, CHANGELOG, API docs, and deployment guides
+model: haiku
+color: cyan
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__linear__update_issue, mcp__linear__create_comment
 ---
 
