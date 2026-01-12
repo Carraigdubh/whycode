@@ -6,21 +6,67 @@ Development orchestrator with multi-agent workflows. Uses GSD+ methodology and r
 
 ## Installation
 
+### Method 1: Using the Plugin UI (Recommended)
+
+The most reliable method inside Claude Code:
+
 ```bash
-# Add marketplace (global)
+# Step 1: Add the marketplace
 /plugin marketplace add Carraigdubh/whycode
 
-# Install plugin (project-scoped recommended)
-/plugin install whycode@whycode-marketplace --scope project
+# Step 2: Open plugin manager
+/plugin
 
-# Also requires ralph-wiggum
-/plugin install ralph-wiggum@claude-plugins-official
+# Step 3: Go to "Discover" tab → Select "whycode" → Press Enter to install
+# Step 4: Choose "project" scope when prompted
+
+# Step 5: Install ralph-wiggum dependency (same process)
+# Go to "Discover" tab → Select "ralph-wiggum" → Install
 ```
 
-**For local development/testing:**
+### Method 2: Using Terminal Commands
+
+Run these commands in your terminal **before** starting Claude Code:
+
 ```bash
-/plugin install /Users/martinquinlan/dev/whycode-marketplace/plugins/whycode --scope project
+# Add marketplace
+claude plugin marketplace add Carraigdubh/whycode
+
+# Install whycode
+claude plugin install whycode@whycode-marketplace --scope project
+
+# Install required dependency
+claude plugin install ralph-wiggum@claude-plugins-official --scope project
+
+# Start Claude Code
+claude
 ```
+
+### Known Issues
+
+**`/plugin install` returns conversational response instead of installing:**
+
+This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issues). The slash command sometimes triggers a conversational response instead of executing.
+
+**Workarounds:**
+1. Use the `/plugin` UI method (Method 1 above)
+2. Use terminal commands (Method 2 above)
+3. Try running the command again
+
+**Plugin shows "already installed" but `/whycode` not available:**
+
+```bash
+# Restart Claude Code after installation
+# The slash command registers on restart
+```
+
+### Dependencies
+
+| Dependency | Required | Purpose |
+|------------|----------|---------|
+| ralph-wiggum | **Yes** | Provides `/ralph-loop` for autonomous iteration |
+| Linear MCP | No | Issue tracking integration |
+| Chrome extension | No | E2E testing for web projects |
 
 ## Usage
 

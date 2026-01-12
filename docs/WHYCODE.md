@@ -31,19 +31,136 @@ The WhyCode is a **project-type agnostic** workflow orchestration system for bui
 
 ## Table of Contents
 
-1. [Quick Start](#quick-start)
-2. [Architecture Overview](#architecture-overview)
-3. [State Persistence & Recovery](#state-persistence--recovery)
-4. [Fix and Learn (Self-Improvement)](#fix-and-learn-self-improvement)
-5. [Phases](#phases)
-6. [Agents](#agents)
-7. [IMMUTABLE_DECISIONS](#immutable_decisions)
-8. [Validation System](#validation-system)
-9. [Context Management](#context-management)
-10. [Linear Integration](#linear-integration)
-11. [File Structure](#file-structure)
-12. [Commands Reference](#commands-reference)
-13. [Troubleshooting](#troubleshooting)
+1. [Installation](#installation)
+2. [Quick Start](#quick-start)
+3. [Architecture Overview](#architecture-overview)
+4. [State Persistence & Recovery](#state-persistence--recovery)
+5. [Fix and Learn (Self-Improvement)](#fix-and-learn-self-improvement)
+6. [Phases](#phases)
+7. [Agents](#agents)
+8. [IMMUTABLE_DECISIONS](#immutable_decisions)
+9. [Validation System](#validation-system)
+10. [Context Management](#context-management)
+11. [Linear Integration](#linear-integration)
+12. [File Structure](#file-structure)
+13. [Commands Reference](#commands-reference)
+14. [Troubleshooting](#troubleshooting)
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Claude Code v1.0.33 or later (`claude --version` to check)
+- GitHub access (for marketplace)
+
+### Method 1: Plugin UI (Recommended)
+
+The most reliable installation method inside Claude Code:
+
+```bash
+# Step 1: Add the whycode marketplace
+/plugin marketplace add Carraigdubh/whycode
+
+# Step 2: Open the plugin manager
+/plugin
+
+# Step 3: Navigate to "Discover" tab
+# Step 4: Select "whycode" and press Enter
+# Step 5: Choose "project" scope when prompted
+
+# Step 6: Install ralph-wiggum (required dependency)
+# In "Discover" tab, find "ralph-wiggum" and install it
+```
+
+### Method 2: Terminal Commands
+
+Run these in your terminal **before** starting Claude Code:
+
+```bash
+# Add the marketplace (one-time)
+claude plugin marketplace add Carraigdubh/whycode
+
+# Install whycode for your project
+claude plugin install whycode@whycode-marketplace --scope project
+
+# Install required dependency
+claude plugin install ralph-wiggum@claude-plugins-official --scope project
+
+# Start Claude Code
+claude
+
+# Verify installation
+/whycode
+```
+
+### Installation Scopes
+
+| Scope | Description | When to Use |
+|-------|-------------|-------------|
+| `user` | Installed globally for all projects | Personal use across all work |
+| `project` | Installed in `.claude/settings.json` | Team projects (committed to repo) |
+| `local` | Installed locally, not committed | Testing without affecting others |
+
+**Recommended:** Use `project` scope so team members get the plugin automatically.
+
+### Known Issues & Workarounds
+
+#### Issue: `/plugin install` shows conversational response
+
+**Symptom:** Instead of installing, Claude responds with text about the plugin.
+
+**Cause:** Known Claude Code bug where slash commands sometimes trigger conversation.
+
+**Workarounds:**
+1. Use the `/plugin` UI method (Method 1)
+2. Use terminal commands (Method 2)
+3. Run the command again - it sometimes works on retry
+
+#### Issue: Plugin installed but `/whycode` not available
+
+**Symptom:** Plugin shows as installed in `/plugin` UI, but `/whycode` command doesn't appear.
+
+**Solution:** Restart Claude Code. Slash commands register on startup.
+
+```bash
+# Exit Claude Code (Ctrl+C or /exit)
+# Start again
+claude
+```
+
+#### Issue: "Plugin not found in any marketplace"
+
+**Symptom:** Installation fails with marketplace not found error.
+
+**Solution:** Add the marketplace first:
+```bash
+/plugin marketplace add Carraigdubh/whycode
+```
+
+#### Issue: Marketplace fails to clone
+
+**Symptom:** SSH authentication error when adding marketplace.
+
+**Solution:** Claude Code uses HTTPS by default. If you see SSH errors:
+```bash
+# The marketplace should auto-fallback to HTTPS
+# If not, check your network connection
+```
+
+### Verifying Installation
+
+After installation and restart:
+
+```bash
+# Should show whycode in the list
+/whycode
+
+# You should see:
+# 🔧 WhyCode v2.0.0
+# ✓ Up to date
+```
 
 ---
 
