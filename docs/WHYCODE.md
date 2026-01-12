@@ -59,6 +59,37 @@ claude
 /whycode
 ```
 
+### What Happens on Startup
+
+When you run `/whycode`, it performs these checks:
+
+```
+🔧 WhyCode v2.0.0
+✓ Up to date
+
+# Or if an update is available:
+🔧 WhyCode v2.0.0
+⬆️  Update available: v2.1.0
+
+What's new in v2.1.0:
+- Added: New feature X
+- Fixed: Bug Y
+
+Run: /plugin update whycode@whycode-marketplace
+```
+
+**Startup Checks:**
+1. **Version Check** - Displays current version, checks GitHub for updates
+2. **Changelog Display** - Shows what's new if update available
+3. **State Recovery** - Checks for existing `whycode-state.json` to resume
+4. **ralph-wiggum Check** - Verifies ralph-wiggum plugin is installed (required)
+5. **Integration Discovery** - Detects Linear MCP, Context7, Chrome extension
+
+**Dependencies:**
+- **ralph-wiggum** (required) - Provides `/ralph-loop` for autonomous iteration
+- **Linear MCP** (optional) - Issue tracking integration
+- **Chrome extension** (optional) - E2E testing for web projects
+
 WhyCode will guide you through:
 1. **Document Intake** - Provide your project documents, answer clarifying questions
 2. **Tech Stack Setup** - Choose frameworks, set up services, provide API keys
@@ -76,7 +107,7 @@ WhyCode automatically saves state and can resume from interruptions:
 /whycode
 
 # If state exists, you'll see:
-# "Found existing whycode state at Phase 4, Step 4c. Resume from where we left off? [Y/n]"
+# "Found existing whycode state at Phase 5, Step 5c. Resume from where we left off? [Y/n]"
 ```
 
 If you've already completed the planning phases:
@@ -386,7 +417,50 @@ Ensures sufficient disk space is available for dependencies and build artifacts 
 
 ---
 
-### Phase 1: Tech Stack Setup (Interactive, Dynamic)
+### Phase 0.5: Codebase Mapping (Brownfield Only)
+
+**Purpose:** Analyze existing codebase before making changes.
+
+**When Triggered:** Only for brownfield projects (existing codebase detected).
+
+**What Happens:**
+1. Explore agent analyzes file structure
+2. Detects tech stack already in use
+3. Identifies architecture patterns
+4. Maps entry points
+
+**Output:**
+- `docs/codebase/SUMMARY.md` - Overview
+- `docs/codebase/STACK.md` - Technologies detected
+- `docs/codebase/ARCHITECTURE.md` - Patterns identified
+
+**Gate:** Automatic (no user interaction required).
+
+---
+
+### Phase 1: Discovery (Optional)
+
+**Purpose:** Research libraries and services you want to integrate.
+
+**What Happens:**
+1. You're asked: "Run discovery to learn about libraries/services? [verify/standard/deep/skip]"
+2. If not skipped, WhyCode researches each unknown technology
+3. Uses Context7 if available, otherwise web search
+4. Documents findings for implementation reference
+
+**Discovery Levels:**
+- **verify** - Quick check that tools exist and are accessible
+- **standard** - Gather basic usage patterns and API references
+- **deep** - Comprehensive research including edge cases and best practices
+- **skip** - Skip discovery phase entirely
+
+**Output:** `docs/discovery/DISCOVERY.md`
+
+**Gate:** Optional - you choose the discovery level or skip.
+
+---
+
+### Phase 2: Tech Stack Setup (Interactive, Dynamic)
 
 **Purpose:** Configure your development environment based on the detected project type.
 
@@ -539,7 +613,7 @@ Different technology combinations require specific configurations. Rather than h
 
 ---
 
-### Phase 2: Specification Synthesis (Semi-Interactive)
+### Phase 3: Specification Synthesis (Semi-Interactive)
 
 **Purpose:** Transform your requirements into actionable specifications.
 
@@ -559,7 +633,7 @@ Different technology combinations require specific configurations. Rather than h
 
 ---
 
-### Phase 3: Architecture Design (Semi-Interactive)
+### Phase 4: Architecture Design (Semi-Interactive)
 
 **Purpose:** Design the implementation approach.
 
@@ -580,7 +654,7 @@ Different technology combinations require specific configurations. Rather than h
 
 ---
 
-### Phase 4: Autonomous Implementation (Fully Autonomous)
+### Phase 5: Autonomous Implementation (Fully Autonomous)
 
 **Purpose:** Build the entire project without user interaction.
 
@@ -641,7 +715,7 @@ Different technology combinations require specific configurations. Rather than h
 
 ---
 
-### Phase 5: Quality Review (Autonomous)
+### Phase 6: Quality Review (Autonomous)
 
 **Purpose:** Validate implementation quality.
 
@@ -654,13 +728,32 @@ Different technology combinations require specific configurations. Rather than h
 **What Happens:**
 - Review agents analyze implemented code
 - Issues logged to Linear
-- Critical issues trigger fixes (re-enters Phase 4)
+- Critical issues trigger fixes (re-enters Phase 5)
 
 **Output:** `docs/review/quality-report.md`
 
 ---
 
-### Phase 6: Summary & Handoff (Autonomous)
+### Phase 7: Documentation (Autonomous)
+
+**Purpose:** Generate comprehensive project documentation.
+
+**Agent Used:** `docs-agent`
+
+**What Gets Generated:**
+- `README.md` - Project overview, installation, usage
+- `CHANGELOG.md` - Version history with semantic versioning
+- `CONTRIBUTING.md` - Guidelines for contributors
+- `docs/api/*.md` - API documentation from code analysis
+- `docs/DEPLOYMENT.md` - Environment-specific deployment instructions
+
+**CRITICAL:** All commands use IMMUTABLE_DECISIONS (package manager, framework, etc.)
+
+**Output:** Documentation files in project root and `/docs`
+
+---
+
+### Phase 8: Summary & Handoff (Autonomous)
 
 **Purpose:** Document completed work with CORRECT package manager commands.
 
@@ -864,11 +957,111 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 
 ---
 
+### Docs Agent (`docs-agent`)
+
+**Purpose:** Generate comprehensive project documentation autonomously.
+
+**When Used:** Phase 7 (Documentation) - after implementation and review are complete.
+
+**Tools:** Read, Write, Glob, Grep, Bash (for version commands)
+
+**Capabilities:**
+- README.md generation with project overview, installation, usage
+- CHANGELOG.md with semantic versioning
+- CONTRIBUTING.md with project-specific guidelines
+- API documentation from code analysis
+- DEPLOYMENT.md with environment-specific instructions
+
+**Input:**
+```json
+{
+  "taskId": "docs-001",
+  "objective": "Generate project documentation",
+  "type": "documentation",
+  "scope": ["README", "CHANGELOG", "API", "DEPLOYMENT"],
+
+  "IMMUTABLE_DECISIONS": {
+    "packageManager": "yarn",
+    "framework": "next"
+  },
+
+  "projectContext": {
+    "name": "my-project",
+    "description": "A web application for...",
+    "version": "1.0.0"
+  }
+}
+```
+
+**Output:**
+- Generated documentation files in project root and `/docs`
+- Consistent formatting matching project conventions
+- Accurate commands reflecting IMMUTABLE_DECISIONS
+
+---
+
+### E2E Agent (`e2e-agent`)
+
+**Purpose:** End-to-end UI testing using browser automation or mobile testing tools.
+
+**When Used:** Phase 6 (Quality Review) - for comprehensive UI flow testing.
+
+**Tools:**
+- **Web projects:** Chrome MCP tools (mcp__claude-in-chrome__*)
+- **Expo/React Native:** Maestro CLI
+- Common: Read, Write, Glob, Grep, Bash
+
+**Project Detection:**
+```
+IF package.json contains "expo" → Use Maestro
+ELSE IF has web entry point → Use Chrome
+```
+
+**Chrome MCP Capabilities (Web):**
+- `navigate` - Go to URLs
+- `computer` - Click, type, screenshot, scroll
+- `read_page` - Get accessibility tree
+- `find` - Locate elements by description
+- `form_input` - Fill form fields
+- `javascript_tool` - Execute JS in page context
+
+**Maestro Capabilities (Expo/React Native):**
+- Flow YAML generation for test scenarios
+- Automatic Maestro installation if not present
+- Device/emulator management
+
+**Input:**
+```json
+{
+  "taskId": "e2e-001",
+  "objective": "Test complete checkout flow",
+  "type": "e2e",
+
+  "testScenarios": [
+    "User can add item to cart",
+    "User can complete checkout",
+    "Error states display correctly"
+  ],
+
+  "IMMUTABLE_DECISIONS": {
+    "framework": "next",
+    "testRunner": "playwright"
+  }
+}
+```
+
+**Output:**
+- E2E test files (spec files or Maestro flows)
+- Screenshot evidence of test runs
+- Test execution results
+
+---
+
 ## IMMUTABLE_DECISIONS
 
 ### What Are They?
 
-IMMUTABLE_DECISIONS are **user-specified technology choices** that agents must follow exactly. They are captured in Phase 1 and enforced throughout implementation.
+IMMUTABLE_DECISIONS are **user-specified technology choices** that agents must follow exactly. They are captured in Phase 2 and enforced throughout implementation.
 
 ### Why They Matter
 
@@ -985,7 +1178,7 @@ Based on research into multi-agent validation best practices, WhyCode uses a **h
 |-----------|-------------------|-----------|----------------|
 | Agent Self-Validation | Yes | After each task | TypeCheck, Lint, Tests, Build |
 | Orchestrator Black-Box | No | Every 5 tasks | Build, Lockfile consistency |
-| Integration Validation | No | End of Phase 4 | Full app smoke test |
+| Integration Validation | No | End of Phase 5 | Full app smoke test |
 
 ### Agent Self-Validation (MANDATORY)
 
@@ -1402,7 +1595,7 @@ WhyCode runs Integration Validation before completing. If you still have issues:
 
 #### Integration issues
 
-The tech-stack-setup-agent configures integrations during Phase 1 by fetching current documentation.
+The tech-stack-setup-agent configures integrations during Phase 2 by fetching current documentation.
 
 If you have integration issues:
 1. Check `docs/decisions/integration-setup.md` for what was configured
