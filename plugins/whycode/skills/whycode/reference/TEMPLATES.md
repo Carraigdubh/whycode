@@ -8,11 +8,21 @@ This file contains XML plan formats and document templates for the Development H
 
 Plans use XML format. **Maximum 3 tasks per plan.**
 
+**CRITICAL: Plans are executed in a whycode-loop (fresh context per iteration). Include clear completion criteria.**
+
 ```xml
 <plan id="01-02" linear-id="ABC-104">
   <name>Auth API Endpoints</name>
   <type>standard</type>
   <phase>1</phase>
+
+  <!-- WHYCODE-LOOP CONTRACT: Agent must iterate until ALL criteria pass (fresh context each iteration) -->
+  <completion-contract>
+    <rule>You CANNOT output PLAN_COMPLETE until ALL verifications pass</rule>
+    <rule>If any verification fails, FIX IT and try again</rule>
+    <rule>You have multiple iterations - USE THEM</rule>
+    <rule>The orchestrator verifies externally - lying = sent back to fix</rule>
+  </completion-contract>
 
   <immutable-decisions>
     <!-- NEVER substitute these -->
@@ -27,12 +37,30 @@ Plans use XML format. **Maximum 3 tasks per plan.**
     <add-dep>pnpm add</add-dep>
     <build>pnpm run build</build>
     <test>pnpm run test</test>
+    <typecheck>pnpm run typecheck</typecheck>
+    <lint>pnpm run lint</lint>
+    <dev>pnpm run dev</dev>
   </pm-commands>
 
   <available-tools>
     <linear enabled="true">Update issues after each task</linear>
-    <context7 enabled="true">Look up library docs</context7>
+    <context7 enabled="true">Look up library docs BEFORE using any API</context7>
   </available-tools>
+
+  <!-- FINAL VERIFICATION: ALL must pass before PLAN_COMPLETE -->
+  <final-verification>
+    <check name="typecheck" command="pnpm run typecheck" required="true"/>
+    <check name="lint" command="pnpm run lint" required="true"/>
+    <check name="test" command="pnpm run test" required="true"/>
+    <check name="build" command="pnpm run build" required="true"/>
+    <check name="smoke" command="timeout 10s pnpm run dev 2>&amp;1 | head -50" required="true">
+      <fail-if-contains>Error:</fail-if-contains>
+      <fail-if-contains>Exception</fail-if-contains>
+      <fail-if-contains>TypeError</fail-if-contains>
+      <fail-if-contains>AttributeError</fail-if-contains>
+      <description>App must start without crashing</description>
+    </check>
+  </final-verification>
 
   <tasks>
     <task type="auto" linear-id="ABC-105">
@@ -47,8 +75,31 @@ Plans use XML format. **Maximum 3 tasks per plan.**
     </task>
     <!-- Max 3 tasks per plan -->
   </tasks>
+
+  <!-- Remind agent of the contract -->
+  <on-complete>
+    BEFORE outputting PLAN_COMPLETE, verify:
+    □ All task &lt;verify&gt; commands passed
+    □ typecheck passed (exit code 0)
+    □ lint passed (exit code 0)
+    □ test passed (all green)
+    □ build passed (exit code 0)
+    □ smoke test passed (app starts, no crashes)
+
+    If ANY failed: FIX and re-verify. Do NOT output PLAN_COMPLETE.
+  </on-complete>
 </plan>
 ```
+
+### Plan Generation Guidelines
+
+When generating plans, ensure:
+
+1. **Clear <verify> commands** - Each task needs a concrete verification command
+2. **Measurable <done> criteria** - Agent knows exactly what success looks like
+3. **Complete <pm-commands>** - Include ALL commands the agent might need
+4. **<final-verification>** - Always include the full verification checklist
+5. **<completion-contract>** - Remind agent this is a whycode-loop (fresh context per iteration)
 
 ---
 

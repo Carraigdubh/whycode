@@ -19,6 +19,46 @@ Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMP
 
 ---
 
+## CRITICAL: Trust No Agent (Non-Negotiable)
+
+**AGENTS CAN HALLUCINATE SUCCESS. THE ORCHESTRATOR MUST VERIFY.**
+
+The orchestrator NEVER trusts an agent's claim of completion. Every PLAN_COMPLETE triggers external verification:
+
+```
+Agent says "done" → Orchestrator runs validation-agent → Verification passes? → THEN mark complete
+                                                       → Verification fails? → SEND BACK TO AGENT
+```
+
+### Verification Flow (Mandatory After Every Plan)
+
+1. **Agent outputs PLAN_COMPLETE**
+2. **Orchestrator spawns validation-agent** with `["typecheck", "build", "smoke"]`
+3. **IF verification fails:**
+   - DO NOT mark plan complete
+   - Re-spawn agent with the error message
+   - Agent must fix and output PLAN_COMPLETE again
+   - Loop until verification passes
+4. **ONLY after verification passes:** Mark plan complete
+
+### Why Agents Can't Be Trusted
+
+- Agents can claim "tests pass" without running them
+- Agents can hallucinate methods that don't exist (e.g., `action_submit`)
+- Agents can output PLAN_COMPLETE with broken code
+- Static analysis misses runtime errors
+
+### The Smoke Test
+
+The smoke test ACTUALLY RUNS THE APP and checks for:
+- `AttributeError: 'X' object has no attribute 'Y'`
+- `TypeError: X is not a function`
+- Any stack trace = FAIL
+
+**If an agent says "complete" but the app crashes, the agent is WRONG.**
+
+---
+
 ## CRITICAL: Agent Namespace
 
 **ALWAYS use the `whycode:` prefix when spawning agents.** Anthropic has built-in agents with similar names. Without the prefix, you may accidentally invoke the wrong agent.
@@ -38,7 +78,7 @@ Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMP
 | Agent | Model | Color | Purpose |
 |-------|-------|-------|---------|
 | `whycode:dependency-agent` | haiku | pink | Install packages, verify lockfiles |
-| `whycode:validation-agent` | haiku | teal | Run build/typecheck/lint/test |
+| `whycode:validation-agent` | haiku | teal | Run build/typecheck/lint/test/smoke (smoke = run app, catch crashes) |
 | `whycode:linear-agent` | haiku | indigo | Linear API interactions |
 | `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
 | `whycode:state-agent` | haiku | brown | Update state files |
@@ -50,6 +90,7 @@ Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 - Load full file contents directly (use `whycode:context-loader-agent`)
 - Run npm/pnpm/yarn commands directly (use `whycode:dependency-agent`)
 - Run build/test commands directly (use `whycode:validation-agent`)
+- Skip smoke tests - EVERY validation MUST include "smoke" to catch runtime errors
 - Call Linear API directly (use `whycode:linear-agent`)
 - Update state files directly (use `whycode:state-agent`)
 
@@ -94,7 +135,7 @@ This keeps the orchestrator's context clean for coordination.
   "status": "in_progress",
   "currentPhase": 5,
   "currentPlan": "01-02",
-  "ralphMaxIterations": 30,
+  "loopMaxIterations": 30,
   "integrations": {
     "linearEnabled": true,
     "context7Enabled": true
@@ -146,13 +187,13 @@ This keeps the orchestrator's context clean for coordination.
      Show: "Found WhyCode at Phase {X}, Plan {Y}. Resume? [Y/n]"
      IF yes: Jump to saved position
 
-2. CHECK for ralph-wiggum plugin
-   IF NOT installed:
-     ERROR: "ralph-wiggum required. Install: /plugin install ralph-wiggum@claude-plugins-official"
-     STOP
+2. ASK user for max iterations (20/30/50/custom)
+   Store in whycode-state.json as loopMaxIterations
 
-3. ASK user for max iterations (20/30/50/custom)
-   Store in whycode-state.json as ralphMaxIterations
+3. ENSURE loop-state directory exists
+   CREATE docs/loop-state/ if not exists
+   # This directory stores iteration state for whycode-loop
+   # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
 4. DISCOVER integrations:
 
@@ -320,6 +361,18 @@ IF NOT skip:
 4. WRITE docs/adr/ADR-002-architecture.md
 5. WRITE docs/architecture/OVERVIEW.md
 6. GENERATE plans from task graph (MAX 3 TASKS PER PLAN)
+
+   **CRITICAL: Plans must be whycode-loop-aware**
+   Each plan MUST include:
+   - <completion-contract>: Rules for whycode-loop iteration
+   - <final-verification>: Checklist of ALL verifications
+   - <verify> per task: Concrete command to verify task success
+   - <done> per task: Measurable success criteria
+   - <on-complete>: Reminder to verify before PLAN_COMPLETE
+
+   **Why?** Agents execute in whycode-loop with fresh context per iteration.
+   Clear criteria = agent iterates until success. Vague criteria = agent claims "done" prematurely.
+
 7. WRITE docs/plans/index.json
 ```
 
@@ -399,14 +452,22 @@ INITIALIZE:
 
 FOR EACH plan in plans:
 
-  # 1. CREATE PLAN XML
+  # 1. CREATE PLAN XML (whycode-loop Aware)
   WRITE docs/PLAN.md with:
+    - <completion-contract> (whycode-loop rules - agent must iterate until pass)
     - <immutable-decisions> from tech-stack.json
-    - <pm-commands> from pm-commands.json
+    - <pm-commands> from pm-commands.json (include ALL: install, build, test, typecheck, lint, dev)
     - <available-tools> from integrations
-    - <tasks> (max 3)
+    - <final-verification> checklist (typecheck, lint, test, build, smoke)
+    - <tasks> (max 3) - each with clear <verify> and <done>
+    - <on-complete> reminder of verification checklist
 
-  See reference/TEMPLATES.md for XML format.
+  **CRITICAL**: Every plan must include:
+  1. <completion-contract> - Tells agent this is a whycode-loop, must iterate until pass
+  2. <final-verification> - Lists ALL checks that must pass before PLAN_COMPLETE
+  3. <on-complete> - Reminds agent to verify before outputting PLAN_COMPLETE
+
+  See reference/TEMPLATES.md for full XML format.
 
   # 2. UPDATE LINEAR (via linear-agent)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
@@ -415,44 +476,225 @@ FOR EACH plan in plans:
     SPAWN whycode:linear-agent:
       { "action": "update-issue", "data": { "issueId": issueId, "state": "in_progress" } }
 
-  # 3. SPAWN IMPLEMENTATION AGENT (Fresh 200k context)
-  SPAWN subagent_type based on plan.type:
+  # 3. EXECUTE WHYCODE-LOOP (Fresh context per iteration)
+  #
+  # This replaces ralph-wiggum. Each iteration spawns a FRESH agent context.
+  # Memory persists ONLY through filesystem (PLAN.md, loop-state/, git).
+  #
+  # Benefits:
+  # - No context degradation across iterations
+  # - No external plugin dependency
+  # - No cross-session hook bugs
+
+  agentType = SELECT based on plan.type:
     - "standard" or "auto" → "general-purpose"
     - "tdd" → "whycode:test-agent"
     - "frontend" → "whycode:frontend-agent"
     - "backend" → "whycode:backend-agent"
 
-  PROMPT:
-    /ralph-loop 'Execute plan from docs/PLAN.md.
-    Read docs/whycode/reference/AGENTS.md for protocol.
-    Output PLAN_COMPLETE when done.
-    ' --completion-promise PLAN_COMPLETE --max-iterations {ralphMaxIterations}
+  # Initialize loop state
+  loopState = {
+    "planId": plan.id,
+    "planName": plan.name,
+    "agentType": agentType,
+    "maxIterations": loopMaxIterations,
+    "currentIteration": 0,
+    "status": "starting",
+    "iterations": [],
+    "lastVerificationFailure": null
+  }
+  WRITE docs/loop-state/{plan.id}.json = loopState
 
-  # 4. WAIT for PLAN_COMPLETE
+  # The whycode-loop
+  WHILE loopState.currentIteration < loopMaxIterations:
 
-  # 5. POST-PLAN (via utility agents)
+    # Increment iteration
+    loopState.currentIteration += 1
+    iterationRecord = {
+      "iteration": loopState.currentIteration,
+      "startedAt": NOW(),
+      "outcome": null
+    }
+    loopState.iterations.append(iterationRecord)
+    loopState.status = "iterating"
+    WRITE docs/loop-state/{plan.id}.json = loopState
+
+    # Delete previous result file to ensure fresh result
+    DELETE docs/loop-state/{plan.id}-result.json (if exists)
+
+    # Spawn agent in fresh context via Task tool
+    SPAWN Task(
+      description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
+      subagent_type: agentType,
+      prompt: """
+      You are executing plan {plan.id}, iteration {loopState.currentIteration}.
+
+      ⛔ FRESH CONTEXT - You must read ALL state from files. You have no memory of previous iterations.
+
+      ## MANDATORY SETUP (DO NOT SKIP)
+
+      1. READ docs/PLAN.md - Your task specification
+      2. READ docs/loop-state/{plan.id}.json - Iteration history and any previous failures
+      3. READ your agent definition from agents/{agentType}.md
+      4. READ docs/whycode/reference/AGENTS.md - Execution protocol
+      5. CHECK git log --oneline -10 - See what previous iterations committed
+
+      ## PREVIOUS ITERATION INFO
+      {IF loopState.lastVerificationFailure:}
+      ⚠️ PREVIOUS ITERATION FAILED VERIFICATION:
+      - Error: {loopState.lastVerificationFailure.error}
+      - Type: {loopState.lastVerificationFailure.type}
+      - Fix Hint: {loopState.lastVerificationFailure.fixHint}
+
+      FIX THIS ERROR FIRST. The orchestrator verified externally and found this problem.
+      {ENDIF}
+
+      ## EXECUTION
+
+      1. Check what tasks are complete (via git log, loop-state)
+      2. Continue from where the last iteration left off
+      3. For each incomplete task:
+         a. Implement the task
+         b. Run <verify> command - MUST pass
+         c. If fails, fix and retry
+         d. Commit when passing
+
+      ## MANDATORY VERIFICATION (BEFORE CLAIMING COMPLETE)
+
+      Run ALL of these - they MUST pass:
+      □ {pm} run typecheck  → exit code 0
+      □ {pm} run lint       → exit code 0
+      □ {pm} run test       → all tests passing
+      □ {pm} run build      → exit code 0
+      □ SMOKE TEST: Run app for 5-10 seconds - must not crash
+
+      ## MANDATORY OUTPUT (BEFORE EXITING)
+
+      You MUST write docs/loop-state/{plan.id}-result.json with:
+      {
+        "planId": "{plan.id}",
+        "iteration": {loopState.currentIteration},
+        "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
+        "tasksCompleted": [...],
+        "tasksPending": [...],
+        "selfValidation": {
+          "typecheck": { "status": "pass|fail", "exitCode": N },
+          "lint": { "status": "pass|fail", "exitCode": N },
+          "test": { "status": "pass|fail", "passed": N, "failed": N },
+          "build": { "status": "pass|fail", "exitCode": N },
+          "smoke": { "status": "pass|fail", "appStarted": true|false }
+        },
+        "filesChanged": { "created": [...], "modified": [...] },
+        "notes": "..."
+      }
+
+      The orchestrator VERIFIES externally after you claim PLAN_COMPLETE.
+      If verification fails, you'll be spawned again with the error.
+      """
+    )
+
+    # Read agent result
+    IF NOT exists(docs/loop-state/{plan.id}-result.json):
+      # Agent crashed or failed to write result
+      iterationRecord.outcome = "crashed"
+      iterationRecord.errorSummary = "Agent did not write result file"
+      WRITE docs/loop-state/{plan.id}.json = loopState
+      CONTINUE  # Try again next iteration
+
+    result = READ docs/loop-state/{plan.id}-result.json
+    iterationRecord.completedAt = NOW()
+    iterationRecord.outcome = result.outcome
+    iterationRecord.tasksAttempted = result.tasksCompleted
+
+    IF result.outcome == "PLAN_COMPLETE":
+      # Agent claims completion - VERIFY EXTERNALLY
+      SPAWN whycode:validation-agent:
+        { "validations": ["typecheck", "build", "smoke"] }
+
+      IF verification.status == "pass":
+        # SUCCESS!
+        iterationRecord.verificationResult = verification
+        loopState.status = "completed"
+        WRITE docs/loop-state/{plan.id}.json = loopState
+        LOG: "Plan {plan.id} completed in {loopState.currentIteration} iterations"
+        BREAK  # Exit loop - plan complete
+
+      ELSE:
+        # Verification failed - record and continue
+        iterationRecord.verificationResult = verification
+        iterationRecord.outcome = "verification_failed"
+        loopState.lastVerificationFailure = {
+          "iteration": loopState.currentIteration,
+          "error": verification.error,
+          "type": verification.failedCheck,
+          "fixHint": verification.error
+        }
+        SHOW: "Plan {plan.id} claimed complete but verification failed:"
+        SHOW: verification.error
+        WRITE docs/loop-state/{plan.id}.json = loopState
+        # Continue to next iteration - agent will see the error
+
+    ELIF result.outcome == "blocked":
+      # Agent hit an architectural blocker - stop and escalate
+      loopState.status = "blocked"
+      WRITE docs/loop-state/{plan.id}.json = loopState
+      SHOW: "Plan {plan.id} blocked: {result.notes}"
+      ESCALATE to user (Deviation Rule 4)
+      BREAK
+
+    ELSE:
+      # Agent incomplete but not blocked - continue
+      WRITE docs/loop-state/{plan.id}.json = loopState
+      # Continue to next iteration
+
+  # END WHILE
+
+  # Check if we hit max iterations without completion
+  IF loopState.status != "completed" AND loopState.status != "blocked":
+    loopState.status = "max_iterations_reached"
+    WRITE docs/loop-state/{plan.id}.json = loopState
+    WARN: "Plan {plan.id} hit max iterations ({loopMaxIterations}) - may be incomplete"
+    # Still proceed - orchestrator can decide what to do
+
+  # Sanity check: 1 iteration for 3+ tasks is suspicious
+  IF loopState.currentIteration == 1 AND plan.tasks.length >= 3:
+    WARN: "Plan {plan.id} completed {plan.tasks.length} tasks in 1 iteration - SUSPICIOUS"
+
+  # 4. POST-PLAN (only after loop completes successfully)
   SPAWN whycode:state-agent:
     { "action": "mark-complete", "data": { "type": "plan", "id": plan.id } }
     → Updates ROADMAP.md, STATE.md, whycode-state.json
 
+  # 8. UPDATE LINEAR (only after verification passes)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
     linearMapping = READ docs/decisions/linear-mapping.json
     issueId = linearMapping.planIssues[plan.id]
     SPAWN whycode:linear-agent:
       { "action": "update-issue", "data": { "issueId": issueId, "state": "done" } }
 
-  # 6. VALIDATION (every 3 plans) - via validation-agent
+  # 9. FULL TEST SUITE (every 3 plans)
+  # Step 5 verification catches build/smoke failures
+  # This runs the full test suite periodically
   IF plan_count % 3 == 0:
     SPAWN whycode:validation-agent:
-      { "validations": ["build"] }
+      { "validations": ["test"] }
     IF result.status == "fail":
-      CREATE fix task, retry
+      # Tests failing - need to fix before continuing
+      CREATE fix task with error details
+      RE-SPAWN agent to fix tests
 
 AFTER ALL PLANS:
-  # Integration validation via validation-agent
+  # CRITICAL: Final validation MUST include smoke test
+  # A project that builds but crashes on startup is NOT complete
   SPAWN whycode:validation-agent:
-    { "validations": ["typecheck", "lint", "test", "build"] }
-  IF fails: CREATE fix tasks, re-enter loop
+    { "validations": ["typecheck", "lint", "test", "build", "smoke"] }
+  IF fails:
+    IF result.results.smoke.status == "fail":
+      # RUNTIME ERROR - App crashes on startup
+      # This is a critical failure that MUST be fixed
+      SHOW: "CRITICAL: App crashes on startup. This must be fixed."
+      CREATE urgent fix tasks
+    RE-ENTER Phase 5 for fixes
 ```
 
 ---
@@ -460,14 +702,48 @@ AFTER ALL PLANS:
 ## Phase 6: Quality Review (Autonomous)
 
 ```
-SPAWN whycode:review-agent:
-  /ralph-loop 'Review code quality.
-  Read docs/whycode/reference/AGENTS.md for protocol.
-  Categories: Quality, Bugs, Conventions, Security.
-  Write docs/review/quality-report.md.
-  Create Linear issues for critical findings.
-  Output PLAN_COMPLETE when done.
-  ' --completion-promise PLAN_COMPLETE --max-iterations {ralphMaxIterations}
+# Use whycode-loop for review agent (simpler single-task loop)
+loopState = {
+  "planId": "phase6-review",
+  "agentType": "whycode:review-agent",
+  "maxIterations": loopMaxIterations,
+  "currentIteration": 0,
+  "status": "starting"
+}
+WRITE docs/loop-state/phase6-review.json = loopState
+
+WHILE loopState.currentIteration < loopMaxIterations:
+  loopState.currentIteration += 1
+  DELETE docs/loop-state/phase6-review-result.json (if exists)
+
+  SPAWN Task(
+    subagent_type: "whycode:review-agent",
+    prompt: """
+    You are executing a code review (iteration {loopState.currentIteration}).
+
+    ⛔ FRESH CONTEXT - Read all state from files.
+
+    SETUP:
+    1. READ docs/whycode/reference/AGENTS.md for protocol
+    2. READ docs/loop-state/phase6-review.json for iteration history
+
+    TASK:
+    Review code quality in categories: Quality, Bugs, Conventions, Security.
+    Write docs/review/quality-report.md.
+    Create Linear issues for critical findings (if Linear enabled).
+
+    OUTPUT (MANDATORY):
+    Write docs/loop-state/phase6-review-result.json with:
+    { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
+    """
+  )
+
+  result = READ docs/loop-state/phase6-review-result.json
+  IF result.outcome == "PLAN_COMPLETE":
+    BREAK
+
+loopState.status = "completed"
+WRITE docs/loop-state/phase6-review.json = loopState
 
 IF critical issues found:
   CREATE fix plans
@@ -479,13 +755,52 @@ IF critical issues found:
 ## Phase 7: Documentation (Autonomous)
 
 ```
-SPAWN whycode:docs-agent:
-  /ralph-loop 'Generate project documentation.
-  Read docs/whycode/reference/AGENTS.md for protocol.
-  Read docs/whycode/reference/TEMPLATES.md for formats.
-  Generate: README.md, CHANGELOG.md, CONTRIBUTING.md, docs/api/*.md, docs/DEPLOYMENT.md.
-  Output PLAN_COMPLETE when done.
-  ' --completion-promise PLAN_COMPLETE --max-iterations {ralphMaxIterations}
+# Use whycode-loop for docs agent
+loopState = {
+  "planId": "phase7-docs",
+  "agentType": "whycode:docs-agent",
+  "maxIterations": loopMaxIterations,
+  "currentIteration": 0,
+  "status": "starting"
+}
+WRITE docs/loop-state/phase7-docs.json = loopState
+
+WHILE loopState.currentIteration < loopMaxIterations:
+  loopState.currentIteration += 1
+  DELETE docs/loop-state/phase7-docs-result.json (if exists)
+
+  SPAWN Task(
+    subagent_type: "whycode:docs-agent",
+    prompt: """
+    You are generating documentation (iteration {loopState.currentIteration}).
+
+    ⛔ FRESH CONTEXT - Read all state from files.
+
+    SETUP:
+    1. READ docs/whycode/reference/AGENTS.md for protocol
+    2. READ docs/whycode/reference/TEMPLATES.md for formats
+    3. READ docs/loop-state/phase7-docs.json for iteration history
+
+    TASK:
+    Generate project documentation:
+    - README.md (project overview, setup, usage)
+    - CHANGELOG.md (Keep a Changelog format)
+    - CONTRIBUTING.md (dev setup, standards)
+    - docs/api/*.md (API documentation)
+    - docs/DEPLOYMENT.md (deployment guide)
+
+    OUTPUT (MANDATORY):
+    Write docs/loop-state/phase7-docs-result.json with:
+    { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
+    """
+  )
+
+  result = READ docs/loop-state/phase7-docs-result.json
+  IF result.outcome == "PLAN_COMPLETE":
+    BREAK
+
+loopState.status = "completed"
+WRITE docs/loop-state/phase7-docs.json = loopState
 ```
 
 ---
@@ -584,6 +899,9 @@ project/
 │   ├── PROJECT.md, ROADMAP.md, STATE.md, PLAN.md  # GSD+
 │   ├── SUMMARY.md, ISSUES.md                       # GSD+
 │   ├── whycode-state.json, plans/index.json        # State
+│   ├── loop-state/                                 # whycode-loop iteration state
+│   │   ├── {plan-id}.json                          # Orchestrator state per plan
+│   │   └── {plan-id}-result.json                   # Agent result per iteration
 │   ├── api/, architecture/, adr/, features/        # Documentation
 │   ├── tasks/, audit/                              # Records
 │   ├── intake/, decisions/, specs/                 # Planning
@@ -610,5 +928,5 @@ project/
 ## References
 
 - [GSD: Get Shit Done](https://github.com/glittercowboy/get-shit-done)
-- [ralph-wiggum](https://github.com/natebrain/claude-code-plugins)
+- [The Ralph Wiggum Playbook](https://paddo.dev/blog/ralph-wiggum-playbook/) - Inspiration for whycode-loop's fresh-context-per-iteration pattern
 - [Anthropic: Multi-agent best practices](https://www.anthropic.com/engineering/multi-agent-research-system)

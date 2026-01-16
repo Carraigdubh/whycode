@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-WhyCode is a Claude Code plugin that provides a development orchestrator with multi-agent workflows. It uses GSD+ methodology and ralph-wiggum for autonomous iteration. This repository is the **marketplace distribution** for the WhyCode plugin.
+WhyCode is a Claude Code plugin that provides a development orchestrator with multi-agent workflows. It uses GSD+ methodology and **whycode-loop** for autonomous iteration with fresh context per iteration. This repository is the **marketplace distribution** for the WhyCode plugin.
 
 ## Repository Structure
 
@@ -101,12 +101,11 @@ Agents must be referenced with the `whycode:` namespace prefix when spawning.
 - Calling Linear API → use `whycode:linear-agent`
 - Updating state files → use `whycode:state-agent`
 
-Agents are spawned via `/ralph-loop` with a completion promise:
-```
-/ralph-loop 'Execute plan from docs/PLAN.md...' --completion-promise PLAN_COMPLETE --max-iterations {N}
-```
+Agents are spawned via **whycode-loop** with fresh context per iteration:
+- Each iteration spawns a fresh agent via the Task tool
+- Memory persists only through filesystem (git, docs/loop-state/, PLAN.md)
+- No external plugin dependency
 
 ### Dependencies
-- **ralph-wiggum** (required) - Provides `/ralph-loop` for autonomous iteration
 - **Linear MCP** (optional) - Issue tracking integration
 - **Context7** (optional) - Library documentation lookup

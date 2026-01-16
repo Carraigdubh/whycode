@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-01-16
+
+### Changed
+- **BREAKING**: Replaced `ralph-wiggum` dependency with native `whycode-loop`
+  - Each iteration now spawns in a **fresh 200k token context** (no context degradation)
+  - Memory persists only through filesystem (`docs/loop-state/`, git, PLAN.md)
+  - No external plugin dependency required
+  - Based on [The Ralph Wiggum Playbook](https://humanlayer.dev/blog/ralph-wiggum-playbook)
+
+### Added
+- New state file pattern: `docs/loop-state/{plan-id}.json` for iteration tracking
+- Result file pattern: `docs/loop-state/{plan-id}-result.json` for agent results
+- All agents now read state from files at start (fresh context awareness)
+- External validation after `PLAN_COMPLETE` (orchestrator verifies independently)
+
+### Fixed
+- Context degradation over iterations (each iteration now starts fresh)
+- Cross-session hook issues (#15047 workaround)
+- Agents now properly document their work in result files
+
+### Removed
+- Dependency on `ralph-wiggum` plugin
+- `/ralph-loop` command usage
+
 ## [2.0.0] - 2025-01-12
 
 ### Added

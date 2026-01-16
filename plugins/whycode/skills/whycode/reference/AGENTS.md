@@ -47,34 +47,112 @@ Each agent file contains:
 
 ---
 
-## Autonomous Execution via ralph-wiggum
+## Autonomous Execution via whycode-loop
 
-All agents execute autonomously using `/ralph-loop` from the **ralph-wiggum** plugin.
+All agents execute autonomously using **whycode-loop** - a native iteration system that spawns each iteration in a **fresh Claude context**.
 
-**What ralph-wiggum provides:**
-- `/ralph-loop` command wraps agent execution
-- **Stop hook** prevents agents from exiting prematurely
-- Automatic re-prompting until completion marker is output
-- Configurable max iterations
+**What whycode-loop provides:**
+- Each iteration gets a **fresh 200k token context** (no degradation)
+- Memory persists ONLY through **filesystem** (git, markdown, JSON state files)
+- No external plugin dependency
+- No cross-session bugs
 
-**Invocation format:**
-```bash
-/ralph-loop '<prompt>' --completion-promise PLAN_COMPLETE --max-iterations {configured}
+**How it works:**
+```
+Orchestrator writes state → docs/loop-state/{plan-id}.json
+         ↓
+Task tool spawns agent (fresh context)
+         ↓
+Agent reads state from files (PLAN.md, loop-state/)
+         ↓
+Agent works, writes result → docs/loop-state/{plan-id}-result.json
+         ↓
+Orchestrator reads result, verifies, loops or completes
 ```
 
 **Key principles:**
-1. The prompt **never changes** between iterations
-2. Claude sees its previous work in files/git history
-3. `--completion-promise` uses **exact string matching**
-4. `--max-iterations` is the safety net
+1. **Fresh context per iteration** - you have NO memory of previous iterations
+2. **Read ALL state from files** - PLAN.md, loop-state/, git log
+3. **Write result file before exiting** - orchestrator reads it
+4. **Orchestrator verifies externally** - don't lie about completion
+
+---
+
+## CRITICAL: Fresh Context Pattern
+
+**You have NO MEMORY of previous iterations.** Every iteration starts with a clean context.
+
+### At Start of Each Iteration (MANDATORY)
+
+```
+1. READ docs/loop-state/{plan-id}.json
+   - See iteration history
+   - Check lastVerificationFailure (fix this first!)
+
+2. READ docs/PLAN.md
+   - Your task specification
+   - immutable-decisions, pm-commands
+
+3. CHECK git log --oneline -10
+   - See what previous iterations committed
+   - Continue from where they left off
+
+4. READ your agent definition
+   - agents/{agent-type}.md
+```
+
+### At End of Each Iteration (MANDATORY - Before Exiting)
+
+```
+WRITE docs/loop-state/{plan-id}-result.json with:
+{
+  "planId": "{plan-id}",
+  "iteration": {N},
+  "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
+  "tasksCompleted": ["task-001", "task-002"],
+  "tasksPending": ["task-003"],
+  "selfValidation": {
+    "typecheck": { "status": "pass|fail", "exitCode": N },
+    "lint": { "status": "pass|fail", "exitCode": N },
+    "test": { "status": "pass|fail", "passed": N, "failed": N },
+    "build": { "status": "pass|fail", "exitCode": N },
+    "smoke": { "status": "pass|fail", "appStarted": true|false }
+  },
+  "filesChanged": { "created": [...], "modified": [...] },
+  "notes": "Summary of what was done this iteration"
+}
+```
+
+**IF YOU DON'T WRITE THE RESULT FILE, THE ORCHESTRATOR ASSUMES YOU CRASHED.**
+
+### Red Flags (Orchestrator Detects)
+
+| Iterations | Task Count | Verdict |
+|------------|------------|---------|
+| 1 | 3+ tasks | SUSPICIOUS - too fast |
+| = max | Any | HIT LIMIT - incomplete? |
+| 1 | Complex task | SUSPICIOUS - verify output |
+| No result file | Any | CRASHED - respawn |
 
 ---
 
 ## Agent Execution Protocol
 
-All agents follow this protocol within `/ralph-loop`:
+All agents follow this protocol within **whycode-loop** (fresh context per iteration):
 
 ```
+0. FRESH CONTEXT SETUP (MANDATORY - You have NO memory)
+
+   a. READ docs/loop-state/{plan-id}.json
+      - Check currentIteration, lastVerificationFailure
+      - IF lastVerificationFailure exists: FIX THIS FIRST
+
+   b. CHECK git log --oneline -10
+      - See what previous iterations committed
+      - Continue from where they left off
+
+   c. READ your agent definition: agents/{agent-type}.md
+
 1. READ docs/PLAN.md (XML format)
 
 2. PARSE CONFIGURATION:
@@ -93,14 +171,18 @@ All agents follow this protocol within `/ralph-loop`:
    b. IF <context7 enabled="true">:
       - resolve-library-id("library-name")
       - get-library-docs(library-id)
+      - VERIFY methods exist before using them
 
    c. IMPLEMENT the task per <action>
 
-   d. RUN <verify> command
-      - IF passes: Continue
-      - IF fails: Fix and retry
+   d. RUN <verify> command - MANDATORY, NOT OPTIONAL
+      - CAPTURE exit code
+      - IF exit_code != 0: DO NOT CONTINUE
+      - Fix the issue and run <verify> again
+      - REPEAT until <verify> passes
 
-   e. COMMIT:
+   e. ONLY AFTER <verify> passes:
+      COMMIT:
       git add [<files>]
       git commit -m "feat({plan-id}): {task-name}"
 
@@ -119,99 +201,215 @@ All agents follow this protocol within `/ralph-loop`:
       - Rule 4: STOP for architectural changes
       - Rule 5: Log enhancements to docs/ISSUES.md
 
-4. AFTER ALL TASKS:
+4. FINAL VERIFICATION (MANDATORY BEFORE PLAN_COMPLETE):
+
+   YOU MUST RUN ALL OF THESE. YOU CANNOT OUTPUT PLAN_COMPLETE UNTIL ALL PASS.
+
+   a. TYPE CHECK:
+      RUN: {pm} run typecheck OR tsc --noEmit
+      REQUIRED: exit_code == 0
+      IF FAILS: Fix and retry. DO NOT proceed.
+
+   b. LINT:
+      RUN: {pm} run lint
+      REQUIRED: exit_code == 0
+      IF FAILS: Fix and retry. DO NOT proceed.
+
+   c. BUILD:
+      RUN: {pm} run build
+      REQUIRED: exit_code == 0
+      IF FAILS: Fix and retry. DO NOT proceed.
+
+   d. TESTS:
+      RUN: {pm} run test
+      REQUIRED: exit_code == 0, all tests pass
+      IF FAILS: Fix and retry. DO NOT proceed.
+
+   e. SMOKE TEST (CRITICAL - CATCHES RUNTIME ERRORS):
+      RUN: Start the app with timeout (5-10 seconds)
+      - Next.js: timeout 10s {pm} run dev 2>&1
+      - Node: timeout 10s node {entrypoint} 2>&1
+      - Python: timeout 10s python -m {module} 2>&1
+
+      CHECK OUTPUT FOR:
+      - "Error:" or "error:"
+      - "Exception" or "exception"
+      - "AttributeError", "TypeError", "ReferenceError"
+      - "Cannot read property", "undefined is not"
+      - Stack traces (lines with "at " followed by paths)
+
+      REQUIRED: App starts without crashing
+      IF CRASHES: Fix and retry. DO NOT proceed.
+
+5. ONLY AFTER ALL VERIFICATIONS PASS:
    - Append summary to docs/SUMMARY.md
    - UPDATE docs/features/{feature}.md
-   - Output exactly: PLAN_COMPLETE
+
+6. WRITE RESULT FILE (MANDATORY - Before exiting):
+
+   WRITE docs/loop-state/{plan-id}-result.json:
+   {
+     "planId": "{plan-id}",
+     "iteration": {currentIteration},
+     "outcome": "PLAN_COMPLETE",
+     "tasksCompleted": [...],
+     "tasksPending": [],
+     "selfValidation": {
+       "typecheck": { "status": "pass", "exitCode": 0 },
+       "lint": { "status": "pass", "exitCode": 0 },
+       "test": { "status": "pass", "passed": N, "failed": 0 },
+       "build": { "status": "pass", "exitCode": 0 },
+       "smoke": { "status": "pass", "appStarted": true }
+     },
+     "filesChanged": { "created": [...], "modified": [...] },
+     "notes": "All tasks complete, all verifications pass"
+   }
+
+   ╔════════════════════════════════════════════════════════════════╗
+   ║  YOU MAY ONLY SET outcome="PLAN_COMPLETE" IF ALL ARE TRUE:    ║
+   ║                                                                ║
+   ║  □ Every <verify> command returned exit_code 0                ║
+   ║  □ Type check passed                                          ║
+   ║  □ Lint passed                                                ║
+   ║  □ Build succeeded                                            ║
+   ║  □ All tests passed                                           ║
+   ║  □ App runs without crashing (smoke test)                     ║
+   ║                                                                ║
+   ║  IF ANY VERIFICATION FAILS: FIX IT. DO NOT OUTPUT PLAN_COMPLETE║
+   ║  You have {max_iterations} iterations. Use them.              ║
+   ╚════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## Standard Agent Prompt
+## Standard Agent Prompt (whycode-loop)
+
+This is the prompt agents receive when spawned via whycode-loop. Each iteration gets fresh context.
 
 ```
-/ralph-loop 'You are executing a plan. Read docs/PLAN.md for XML specification.
+You are executing plan {plan-id}, iteration {N}.
 
-FIRST:
-1. Read your agent definition: agents/{agent-type}.md (e.g., agents/backend-agent.md)
-2. Read docs/whycode/reference/AGENTS.md for execution protocol
+⛔ FRESH CONTEXT - You must read ALL state from files. You have no memory of previous iterations.
 
-EXECUTION:
-1. Read docs/PLAN.md - tasks in XML format
-2. Read <immutable-decisions> - use ONLY these technologies
-3. Read <available-tools> - your allowed integrations
+## MANDATORY SETUP (DO NOT SKIP)
 
-FOR EACH <task>:
-  a. Read <action> for implementation steps
-  b. IF context7 enabled: Look up library docs first
-  c. Implement the task
-  d. Run <verify> command
-  e. IF passes: commit and update Linear
-  f. IF fails: fix and retry
-  g. Document: Create docs/tasks/{plan-id}-{task-id}.md
-  h. Append to docs/audit/log.md
-  i. Update CHANGELOG.md
+1. READ docs/loop-state/{plan-id}.json - Iteration history, previous failures
+2. READ docs/PLAN.md - Your task specification
+3. READ your agent definition from agents/{agent-type}.md
+4. READ docs/whycode/reference/AGENTS.md - Execution protocol
+5. CHECK git log --oneline -10 - See what previous iterations committed
 
-AFTER ALL TASKS:
-  - Append to docs/SUMMARY.md
-  - Update docs/features/{feature}.md
-  - Output exactly: PLAN_COMPLETE
+## PREVIOUS ITERATION INFO (if applicable)
 
-' --completion-promise PLAN_COMPLETE --max-iterations {MAX_ITERATIONS}
+⚠️ If lastVerificationFailure exists in loop-state, FIX THAT FIRST.
+
+## EXECUTION
+
+1. Check what tasks are complete (via git log, loop-state)
+2. Continue from where the last iteration left off
+3. For each incomplete task:
+   a. Implement the task per <action>
+   b. Run <verify> command - MUST pass
+   c. If fails, fix and retry
+   d. Commit when passing
+
+## MANDATORY VERIFICATION (BEFORE CLAIMING COMPLETE)
+
+Run ALL of these - they MUST pass:
+□ {pm} run typecheck  → exit code 0
+□ {pm} run lint       → exit code 0
+□ {pm} run test       → all tests passing
+□ {pm} run build      → exit code 0
+□ SMOKE TEST: Run app for 5-10 seconds - must not crash
+
+## MANDATORY OUTPUT (BEFORE EXITING)
+
+You MUST write docs/loop-state/{plan-id}-result.json with:
+{
+  "planId": "{plan-id}",
+  "iteration": {N},
+  "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
+  "tasksCompleted": [...],
+  "tasksPending": [...],
+  "selfValidation": { ... },
+  "filesChanged": { "created": [...], "modified": [...] },
+  "notes": "..."
+}
+
+The orchestrator VERIFIES externally after you claim PLAN_COMPLETE.
+If verification fails, you'll be spawned again with the error in lastVerificationFailure.
 ```
 
 ---
 
-## TDD Agent Prompt
+## TDD Agent Prompt (whycode-loop)
+
+TDD agents follow the same fresh-context pattern with Red-Green-Refactor protocol.
 
 ```
-/ralph-loop 'You are executing a TDD plan. Read docs/PLAN.md for specification.
+You are executing a TDD plan {plan-id}, iteration {N}.
 
-FIRST:
-1. Read your agent definition: agents/test-agent.md
-2. Read docs/whycode/reference/AGENTS.md for execution protocol
+⛔ FRESH CONTEXT - Read ALL state from files.
 
-TDD PROTOCOL (Red-Green-Refactor):
-FOR EACH <task>:
+## MANDATORY SETUP
+
+1. READ docs/loop-state/{plan-id}.json - Check lastVerificationFailure
+2. READ docs/PLAN.md - Task specification
+3. READ agents/test-agent.md - Your agent definition
+4. CHECK git log --oneline -10 - See previous work
+
+## TDD PROTOCOL (Red-Green-Refactor)
+
+FOR EACH incomplete <task>:
 
   RED:
   - Write failing test based on <done> criteria
-  - Run tests - MUST fail
+  - RUN tests - MUST fail (confirms test is valid)
   - git commit -m "test({plan-id}): add failing test for {task-name}"
 
   GREEN:
   - Implement minimal code from <action>
-  - Run tests - MUST pass
+  - RUN tests - MUST pass
+  - IF tests fail: FIX and retry
   - git commit -m "feat({plan-id}): implement {task-name}"
 
   REFACTOR:
   - Clean up if needed
-  - Run tests - MUST still pass
+  - RUN tests - MUST still pass
   - git commit -m "refactor({plan-id}): clean up {task-name}"
 
-  - Update Linear: task.linear-id → done
-  - Document: Create docs/tasks/{plan-id}-{task-id}.md
-  - Update CHANGELOG.md
+## MANDATORY VERIFICATION
 
-AFTER ALL TASKS:
-  - Append to docs/SUMMARY.md
-  - Output exactly: PLAN_COMPLETE
+□ {pm} run typecheck → must pass
+□ {pm} run lint      → must pass
+□ {pm} run test      → ALL tests must pass
+□ {pm} run build     → must pass
+□ SMOKE TEST         → App runs without crashing
 
-' --completion-promise PLAN_COMPLETE --max-iterations {MAX_ITERATIONS}
+## MANDATORY OUTPUT
+
+WRITE docs/loop-state/{plan-id}-result.json with outcome and selfValidation.
 ```
 
 ---
 
-## Documentation Agent Prompt
+## Documentation Agent Prompt (whycode-loop)
+
+Documentation agents verify all code examples work before claiming completion.
 
 ```
-/ralph-loop 'You are a documentation agent. Generate SE documentation.
+You are a documentation agent executing iteration {N}.
 
-FIRST:
-1. Read your agent definition: agents/docs-agent.md
-2. Read docs/whycode/reference/TEMPLATES.md for document formats
+⛔ FRESH CONTEXT - Read ALL state from files.
 
-DOCUMENTATION PROTOCOL:
+## MANDATORY SETUP
+
+1. READ docs/loop-state/{plan-id}.json - Check previous iteration status
+2. READ docs/whycode/reference/TEMPLATES.md - Document formats
+3. READ agents/docs-agent.md - Your agent definition
+
+## DOCUMENTATION PROTOCOL
+
 1. Read context from:
    - docs/PROJECT.md (vision)
    - docs/ROADMAP.md (phases)
@@ -222,7 +420,7 @@ DOCUMENTATION PROTOCOL:
    a. Gather relevant information
    b. Generate/update the document
    c. Use templates from TEMPLATES.md
-   d. Cross-reference related docs
+   d. VERIFY any code examples or commands work
    e. git commit -m "docs({scope}): {description}"
 
 DOCUMENTS TO GENERATE:
@@ -232,11 +430,16 @@ DOCUMENTS TO GENERATE:
 - docs/api/*.md (API documentation)
 - docs/DEPLOYMENT.md (deployment guide)
 
-AFTER ALL TASKS:
-  - Update docs/SUMMARY.md
-  - Output exactly: PLAN_COMPLETE
+## VERIFICATION
 
-' --completion-promise PLAN_COMPLETE --max-iterations {MAX_ITERATIONS}
+□ All install commands work
+□ All run commands work
+□ Code examples are syntactically correct
+□ Links are valid
+
+## MANDATORY OUTPUT
+
+WRITE docs/loop-state/{plan-id}-result.json with outcome.
 ```
 
 ---

@@ -1,6 +1,6 @@
 # WhyCode
 
-Development orchestrator with multi-agent workflows. Uses GSD+ methodology and ralph-wiggum for autonomous iteration.
+Development orchestrator with multi-agent workflows. Uses GSD+ methodology and whycode-loop for autonomous iteration.
 
 **[Full Documentation](docs/WHYCODE.md)** - Comprehensive guide with all phases, agents, and troubleshooting.
 
@@ -19,10 +19,9 @@ The most reliable method inside Claude Code:
 
 # Step 3: Go to "Discover" tab → Select "whycode" → Press Enter to install
 # Step 4: Choose "project" scope when prompted
-
-# Step 5: Install ralph-wiggum dependency (same process)
-# Go to "Discover" tab → Select "ralph-wiggum" → Install
 ```
+
+**Note:** WhyCode includes its own loop mechanism (whycode-loop) - no external plugins needed.
 
 ### Method 2: Using Terminal Commands
 
@@ -35,12 +34,11 @@ claude plugin marketplace add Carraigdubh/whycode
 # Install whycode
 claude plugin install whycode@whycode-marketplace --scope project
 
-# Install required dependency
-claude plugin install ralph-wiggum@claude-plugins-official --scope project
-
 # Start Claude Code
 claude
 ```
+
+**Note:** WhyCode includes its own loop mechanism - no additional setup needed.
 
 ### Known Issues
 
@@ -64,8 +62,8 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 
 | Dependency | Required | Purpose |
 |------------|----------|---------|
-| ralph-wiggum | **Yes** | Provides `/ralph-loop` for autonomous iteration |
 | Linear MCP | No | Issue tracking integration |
+| Context7 | No | Library documentation lookup |
 | Chrome extension | No | E2E testing for web projects |
 
 ## Usage
@@ -109,7 +107,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 
 - **IMMUTABLE_DECISIONS**: User technology choices are never substituted
 - **GSD+ Methodology**: Fresh 200k context per plan, max 3 tasks per plan
-- **ralph-wiggum Integration**: Autonomous iteration with `/ralph-loop`
+- **whycode-loop**: Autonomous iteration with fresh context per iteration
 - **Linear Integration**: Issue tracking (optional)
 - **Version Checking**: Shows updates on startup with changelog
 
@@ -167,12 +165,12 @@ git push
 
 ## Dependencies
 
-- **ralph-wiggum**: Required for `/ralph-loop` autonomous iteration
 - **Linear MCP** (optional): For issue tracking integration
+- **Context7** (optional): For library documentation lookup
 - **Chrome extension** (optional): For E2E testing of web projects
 
 ## References
 
 - [GSD: Get Shit Done](https://github.com/glittercowboy/get-shit-done)
-- [ralph-wiggum](https://github.com/anthropics/claude-plugins-official)
+- [The Ralph Wiggum Playbook](https://humanlayer.dev/blog/ralph-wiggum-playbook) - Inspiration for whycode-loop
 - [Anthropic: Multi-agent best practices](https://www.anthropic.com/engineering/multi-agent-research-system)
