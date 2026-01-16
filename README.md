@@ -4,6 +4,8 @@ Development orchestrator with multi-agent workflows. Uses GSD+ methodology and w
 
 **[Full Documentation](docs/WHYCODE.md)** - Comprehensive guide with all phases, agents, and troubleshooting.
 
+> **v2.1.0**: WhyCode no longer requires the `ralph-wiggum` plugin. The new `whycode-loop` provides fresh 200k context per iteration with no external dependencies.
+
 ## Installation
 
 ### Method 1: Using the Plugin UI (Recommended)
