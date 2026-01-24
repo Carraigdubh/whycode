@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-01-25
+
+### Fixed
+- Removed MCP dependencies from agent definitions
+- Hardened whycode-loop for more reliable iteration
+
 ## [2.1.0] - 2025-01-16
 
 ### Changed
