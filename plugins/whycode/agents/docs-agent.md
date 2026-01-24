@@ -3,7 +3,7 @@ name: docs-agent
 description: Generates project documentation including README, CHANGELOG, API docs, and deployment guides
 model: haiku
 color: cyan
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__linear__update_issue, mcp__linear__create_comment
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # Documentation Agent
@@ -262,18 +262,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Do NOT ask questions - document what exists
 - Do NOT include placeholder text in final docs
 
-## Linear Integration
+## Completion Logging
 
-Update the documentation issue when complete:
-
-```
-mcp__linear__update_issue({
-  id: task.linear-id,
-  state: "done"
-})
-
-mcp__linear__create_comment({
-  issueId: task.linear-id,
-  body: "✅ Documentation generated: README.md, CHANGELOG.md, CONTRIBUTING.md, API docs, DEPLOYMENT.md"
-})
-```
+When complete, append a brief note to `docs/audit/log.md` with the docs generated.

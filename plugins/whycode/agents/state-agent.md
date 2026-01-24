@@ -19,7 +19,7 @@ Offload state management from the orchestrator. Read and write state files, retu
 You receive a task like:
 ```json
 {
-  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete",
+  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json",
   "data": { ... }
 }
 ```
@@ -227,6 +227,56 @@ Mark a task or plan as complete in all relevant files.
        "allVerified": true
      }
    }
+```
+
+### sync-reference
+Sync reference files from the plugin to the project docs.
+
+```json
+{
+  "action": "sync-reference",
+  "data": {
+    "sourceDir": "/path/to/skills/whycode/reference",
+    "targetDir": "docs/whycode/reference",
+    "files": ["AGENTS.md", "TEMPLATES.md"]
+  }
+}
+```
+
+**Workflow:**
+```
+1. VERIFY sourceDir exists
+2. ENSURE targetDir exists (create if missing)
+3. FOR EACH file in files:
+   a. READ source file
+   b. WRITE to targetDir with same filename
+4. VERIFY (MANDATORY):
+   a. Re-read target files
+   b. Confirm byte size matches source
+5. RETURN with proof
+```
+
+### write-json
+Write a JSON file with verification.
+
+```json
+{
+  "action": "write-json",
+  "data": {
+    "target": "docs/decisions/linear-mapping.json",
+    "json": { "key": "value" }
+  }
+}
+```
+
+**Workflow:**
+```
+1. WRITE target with pretty-printed JSON
+2. VERIFY (MANDATORY):
+   a. RE-READ target
+   b. PARSE as JSON
+   c. Deep-compare with input json
+3. RETURN with proof
 ```
 
 ## State File Locations

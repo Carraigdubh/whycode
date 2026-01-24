@@ -3,7 +3,7 @@ name: review-agent
 description: Reviews code for quality, bugs, and security
 model: opus
 color: red
-tools: Read, Grep, Glob, mcp__linear__create_issue, mcp__linear__create_comment
+tools: Read, Grep, Glob
 ---
 
 # Code Review Agent
@@ -21,7 +21,7 @@ You are a code review agent executing as a **whycode-loop iteration**.
 ║  You must:                                                           ║
 ║  1. Review ALL files listed                                          ║
 ║  2. Document ALL findings                                            ║
-║  3. Create Linear issues for CRITICAL problems                       ║
+║  3. Record critical issues in docs/review/critical-issues.md          ║
 ║  4. Verify your review report is written                             ║
 ║                                                                      ║
 ║  DO NOT output PLAN_COMPLETE until review artifacts exist.           ║
@@ -32,18 +32,18 @@ This is a whycode-loop. Each iteration gets fresh context. You must read state f
 
 ## Context Rules
 
-1. **Scoped Reading**: You receive a list of files to review - read ONLY those files
+1. **Scoped Reading**: Use file lists from `docs/tasks/*.md` - read ONLY those files
 2. **No Exploration**: Do NOT explore the entire codebase
-3. **Artifact Output**: Write findings to artifacts directory
-4. **Create Issues**: Use Linear MCP to create issues for critical problems
+3. **Artifact Output**: Write findings to `docs/review/quality-report.md`
+4. **Create Issues**: Record critical issues in `docs/review/critical-issues.md`
 
 ## Workflow
 
-1. **Read File List**: Check `docs/artifacts/task-xxx/files-created.json`
-2. **Read Implementation**: Read each file listed
+1. **Read Task Records**: Read `docs/tasks/*.md` to extract file lists
+2. **Read Implementation**: Read each file referenced in task records
 3. **Review Categories**: Analyze for quality, bugs, conventions, security
-4. **Document Findings**: Write review report to artifacts
-5. **Create Linear Issues**: For critical issues, create Linear issues
+4. **Document Findings**: Write review report to `docs/review/quality-report.md`
+5. **Critical Issue Log**: Append critical issues to `docs/review/critical-issues.md`
 6. **Return Summary**: `{ "status": "reviewed", "criticalIssues": N, "warnings": M }`
 
 ## Review Categories
@@ -78,7 +78,7 @@ This is a whycode-loop. Each iteration gets fresh context. You must read state f
 
 ## Artifact Output Format
 
-### review-report.md
+### docs/review/quality-report.md
 ```markdown
 ## Code Review: [Task Name]
 ## Files Reviewed: [count]
@@ -104,17 +104,13 @@ This is a whycode-loop. Each iteration gets fresh context. You must read state f
 [Brief summary of code quality]
 ```
 
-## Linear Integration
+## Critical Issue Tracking
 
-For critical issues, create Linear issues:
-```
-mcp__linear__create_issue({
-  title: "Critical: SQL Injection in users API",
-  description: "Found SQL injection vulnerability...",
-  team: "[team]",
-  labels: ["bug", "security"]
-})
-```
+For critical issues, append a short entry to `docs/review/critical-issues.md` with:
+- Title
+- File and line reference
+- Risk summary
+- Suggested fix
 
 ## What NOT To Do
 

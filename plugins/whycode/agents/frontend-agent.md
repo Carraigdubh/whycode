@@ -3,7 +3,7 @@ name: frontend-agent
 description: Implements UI components, pages, and client-side logic with distinctive aesthetics
 model: opus
 color: green
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__linear__update_issue
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # Frontend Implementation Agent
@@ -132,7 +132,7 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
    **NEVER assume a method exists. ALWAYS verify first.**
    ```
 
-7. **Update Linear**: Set issue status to "Done" using `mcp__linear__update_issue`
+7. **Log Completion**: Append a brief completion note to `docs/audit/log.md` (orchestrator handles Linear)
 8. **Write Summary**: Include validation results in `summary.md`:
    ```
    ## Validation Results

@@ -63,7 +63,7 @@ Plans use XML format. **Maximum 3 tasks per plan.**
   </final-verification>
 
   <tasks>
-    <task type="auto" linear-id="ABC-105">
+    <task id="task-001" type="auto" linear-id="ABC-105">
       <name>Create login endpoint</name>
       <files>src/app/api/auth/login/route.ts</files>
       <action>Use jose for JWT. Validate credentials. Return httpOnly cookie.</action>

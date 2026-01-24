@@ -3,7 +3,7 @@ name: backend-agent
 description: Implements backend APIs, database schemas, and server-side logic
 model: opus
 color: blue
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__linear__update_issue, mcp__linear__create_comment
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # Backend Implementation Agent
@@ -133,7 +133,7 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
    **NEVER assume a method exists. ALWAYS verify first.**
    ```
 
-7. **Update Linear**: Set issue status to "Done" using `mcp__linear__update_issue`
+7. **Log Completion**: Append a brief completion note to `docs/audit/log.md` (orchestrator handles Linear)
 8. **Write Summary**: Include validation results in `summary.md`:
    ```
    ## Validation Results

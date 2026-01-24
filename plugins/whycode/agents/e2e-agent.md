@@ -3,7 +3,7 @@ name: e2e-agent
 description: Runs end-to-end UI tests using Chrome for web projects and Maestro for Expo/React Native
 model: haiku
 color: orange
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__find, mcp__claude-in-chrome__form_input, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__read_network_requests, mcp__claude-in-chrome__gif_creator, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__linear__update_issue, mcp__linear__create_comment
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__find, mcp__claude-in-chrome__form_input, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__read_network_requests, mcp__claude-in-chrome__gif_creator, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp
 ---
 
 # E2E Testing Agent
@@ -279,26 +279,6 @@ None
 
 ---
 
-## Linear Integration
+## Completion Logging
 
-```
-# After E2E tests complete:
-mcp__linear__update_issue({
-  id: task.linear-id,
-  state: "done"  # or keep "in_progress" if failures
-})
-
-mcp__linear__create_comment({
-  issueId: task.linear-id,
-  body: "E2E Tests: 4/5 passing\n\nFailed: Form validation\nSee artifacts for details."
-})
-
-# For critical failures, create new issue:
-IF critical_failure:
-  mcp__linear__create_issue({
-    title: "E2E: {test_name} failing",
-    description: "...",
-    team: "{team}",
-    labels: ["bug", "e2e"]
-  })
-```
+After E2E tests complete, append a brief result summary to `docs/audit/log.md`.\nIf there are critical failures, also append a short entry to `docs/review/critical-issues.md`.

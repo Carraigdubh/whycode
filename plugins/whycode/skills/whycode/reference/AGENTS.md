@@ -169,9 +169,11 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
       - <done>: Success criteria
 
    b. IF <context7 enabled="true">:
-      - resolve-library-id("library-name")
-      - get-library-docs(library-id)
+      - mcp__context7__resolve-library-id("library-name")
+      - mcp__context7__query-docs(library-id)
       - VERIFY methods exist before using them
+      ELSE:
+      - Proceed without Context7 and rely on local code/docs
 
    c. IMPLEMENT the task per <action>
 
@@ -186,15 +188,22 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
       git add [<files>]
       git commit -m "feat({plan-id}): {task-name}"
 
-   f. UPDATE LINEAR (if enabled):
-      mcp__linear__update_issue(task.linear-id, state: "done")
+   f. UPDATE loop-state task tracking:
+      - READ docs/loop-state/{plan-id}.json
+      - SET task.status = "done"
+      - SET task.lastVerified = "{ISO timestamp}"
+      - WRITE docs/loop-state/{plan-id}.json
 
-   g. DOCUMENT THE TASK:
+   g. UPDATE LINEAR (if enabled):
+      - Append a brief note to docs/audit/log.md
+      - The orchestrator will update Linear
+
+   h. DOCUMENT THE TASK:
       - CREATE docs/tasks/{plan-id}-{task-id}.md
       - APPEND to docs/audit/log.md
       - UPDATE CHANGELOG.md (unreleased section)
 
-   h. APPLY DEVIATION RULES if needed:
+   i. APPLY DEVIATION RULES if needed:
       - Rule 1: Auto-fix bugs, document in task record
       - Rule 2: Auto-add security/correctness
       - Rule 3: Auto-fix blockers
@@ -254,6 +263,9 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
      "outcome": "PLAN_COMPLETE",
      "tasksCompleted": [...],
      "tasksPending": [],
+     "taskStatus": [
+       { "id": "task-001", "status": "done", "verifiedBy": "<verify>", "verifiedAt": "ISO" }
+     ],
      "selfValidation": {
        "typecheck": { "status": "pass", "exitCode": 0 },
        "lint": { "status": "pass", "exitCode": 0 },
@@ -449,22 +461,9 @@ WRITE docs/loop-state/{plan-id}-result.json with outcome.
 When `<linear enabled="true">` in the plan:
 
 ```
-# Before starting task:
-mcp__linear__update_issue({
-  id: task.linear-id,
-  state: "in_progress"
-})
-
-# After completing task:
-mcp__linear__update_issue({
-  id: task.linear-id,
-  state: "done"
-})
-
-mcp__linear__create_comment({
-  issueId: task.linear-id,
-  body: "✅ Completed: {<done> text}"
-})
+# Agents do NOT call Linear directly in this build.
+# Log task start/finish to docs/audit/log.md and include the linear-id.
+# The orchestrator handles Linear updates.
 ```
 
 ---

@@ -19,7 +19,7 @@ The orchestrator should NOT load full file contents into its context. Instead, i
 You receive a task like:
 ```json
 {
-  "action": "read-summary" | "extract-field" | "list-files" | "search",
+  "action": "read-summary" | "extract-field" | "read-json" | "list-files" | "search",
   "target": "path/to/file.md" | "path/to/directory",
   "field": "optional - specific field to extract",
   "query": "optional - search query"
@@ -77,6 +77,38 @@ Extract a specific field from a JSON/structured file.
   "action": "extract-field",
   "target": "docs/decisions/tech-stack.json",
   "field": "packageManager"
+}
+```
+
+### read-json
+Read and parse a JSON file. Use only for small files where the orchestrator needs structured fields.
+
+```json
+{
+  "action": "read-json",
+  "target": "docs/plans/index.json"
+}
+```
+
+**Workflow:**
+```
+1. CHECK: Does file exist?
+2. READ file content
+3. PARSE as JSON
+4. RETURN parsed object with proof
+```
+
+**Output:**
+```json
+{
+  "status": "success",
+  "file": "docs/plans/index.json",
+  "json": { "plans": [...] },
+  "proof": {
+    "fileExists": true,
+    "validJson": true,
+    "byteSize": 1234
+  }
 }
 ```
 

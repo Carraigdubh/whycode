@@ -94,6 +94,9 @@ Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 - Call Linear API directly (use `whycode:linear-agent`)
 - Update state files directly (use `whycode:state-agent`)
 
+**HARD RULE (Autonomous Phases 5-8):** Any read/write outside of `docs/PLAN.md` and `docs/loop-state/*.json` must be done via a subagent.
+The orchestrator can only touch PLAN and loop-state files directly for iteration control.
+
 This keeps the orchestrator's context clean for coordination.
 
 ---
@@ -138,7 +141,7 @@ This keeps the orchestrator's context clean for coordination.
   "loopMaxIterations": 30,
   "integrations": {
     "linearEnabled": true,
-    "context7Enabled": true
+    "context7Enabled": false
   }
 }
 ```
@@ -163,24 +166,8 @@ This keeps the orchestrator's context clean for coordination.
    SHOW: "🔧 WhyCode v{version}"
 
    CHECK FOR UPDATES:
-   WebFetch(
-     url: "https://raw.githubusercontent.com/Carraigdubh/whycode/main/.claude-plugin/plugin.json",
-     prompt: "Extract the version number"
-   )
-   IF remote_version > local_version:
-     SHOW: "⬆️  Update available: v{remote_version}"
-
-     FETCH CHANGELOG:
-     WebFetch(
-       url: "https://raw.githubusercontent.com/Carraigdubh/whycode/main/CHANGELOG.md",
-       prompt: "Extract changes for version {remote_version} only. Show Added/Changed/Fixed sections briefly."
-     )
-     SHOW: "What's new in v{remote_version}:"
-     SHOW: {changelog_summary}
-     SHOW: ""
-     SHOW: "Run: /plugin update whycode@Carraigdubh"
-   ELSE:
-     SHOW: "✓ Up to date"
+   If WebFetch is available, check remote version and changelog.
+   Otherwise show: "○ Update check skipped (no WebFetch)"
 
 1. CHECK for docs/whycode-state.json
    IF exists AND status == "in_progress":
@@ -195,7 +182,18 @@ This keeps the orchestrator's context clean for coordination.
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
-4. DISCOVER integrations:
+4. SYNC REFERENCE FILES (once per run)
+   SPAWN whycode:state-agent:
+     {
+       "action": "sync-reference",
+       "data": {
+         "sourceDir": "${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference",
+         "targetDir": "docs/whycode/reference",
+         "files": ["AGENTS.md", "TEMPLATES.md"]
+       }
+     }
+
+5. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY
@@ -207,13 +205,7 @@ This keeps the orchestrator's context clean for coordination.
        linearEnabled = true
        linearMethod = "api"
 
-   # 2. Then check for Linear MCP
-   ELIF mcp__linear__* tools available:
-     SHOW: "✓ Linear MCP detected"
-     linearEnabled = true
-     linearMethod = "mcp"
-
-   # 3. Finally check environment variable
+   # 2. Finally check environment variable
    ELIF env.LINEAR_API_KEY exists:
      SHOW: "✓ Linear API key found in environment"
      linearEnabled = true
@@ -226,27 +218,17 @@ This keeps the orchestrator's context clean for coordination.
 
    # If Linear enabled, get teams list
    IF linearEnabled:
-     IF linearMethod == "mcp":
-       teams = mcp__linear__get_teams()
-     ELSE:
-       teams = curl -H "Authorization: $LINEAR_API_KEY" https://api.linear.app/graphql ...
+     teams = whycode:linear-agent { "action": "list-teams", "data": {} }
 
-     IF teams.length == 1:
-       linearTeamId = teams[0].id
-       SHOW: "  Using team: {teams[0].name}"
-     ELIF teams.length > 1:
-       ASK user to select team from list
+     IF teams.length >= 1:
+       ASK user to select team from list (always prompt)
        linearTeamId = selected team
 
      Store linearTeamId in whycode-state.json
 
-   # Check for Context7
-   IF mcp__plugin_context7__* tools available:
-     SHOW: "✓ Context7 detected"
-     context7Enabled = true
-   ELSE:
-     SHOW: "○ Context7 not found (optional)"
-     context7Enabled = false
+   # Context7 is optional and disabled by default in this marketplace build
+   SHOW: "○ Context7 disabled (no MCP in marketplace build)"
+   context7Enabled = false
 
    # Store in state
    Store integrations in whycode-state.json
@@ -357,7 +339,7 @@ IF NOT skip:
    - Clean: Best maintainability
    - Balanced: Pragmatic middle
 2. ASK user to choose
-3. SPAWN feature-dev:code-architect agent to design
+3. SPAWN general-purpose agent to design
 4. WRITE docs/adr/ADR-002-architecture.md
 5. WRITE docs/architecture/OVERVIEW.md
 6. GENERATE plans from task graph (MAX 3 TASKS PER PLAN)
@@ -366,6 +348,7 @@ IF NOT skip:
    Each plan MUST include:
    - <completion-contract>: Rules for whycode-loop iteration
    - <final-verification>: Checklist of ALL verifications
+   - <task id="task-001">: Stable task IDs for tracking
    - <verify> per task: Concrete command to verify task success
    - <done> per task: Measurable success criteria
    - <on-complete>: Reminder to verify before PLAN_COMPLETE
@@ -388,7 +371,7 @@ IF NOT skip:
 INITIALIZE:
   # Use context-loader-agent instead of loading files directly
   SPAWN whycode:context-loader-agent:
-    { "action": "extract-field", "target": "docs/decisions/tech-stack.json", "field": "all" }
+    { "action": "read-summary", "target": "docs/decisions/tech-stack.json" }
     → Returns summary, not full content
 
   SPAWN whycode:context-loader-agent:
@@ -398,12 +381,16 @@ INITIALIZE:
   # Use linear-agent for batch issue creation
   IF linearEnabled:
     # Get team ID from state (set during startup discovery)
-    state = READ docs/whycode-state.json
-    teamId = state.linearTeamId
+    SPAWN whycode:context-loader-agent:
+      { "action": "extract-field", "target": "docs/whycode-state.json", "field": "linearTeamId" }
+      → Returns teamId
 
     IF teamId:
-      # 2. Read plans from index
-      plans = READ docs/plans/index.json
+      # 2. Read plans from index (via context-loader)
+      SPAWN whycode:context-loader-agent:
+        { "action": "read-json", "target": "docs/plans/index.json" }
+        → Returns parsed plan list
+      plans = result.json.plans
 
       # 3. Create parent project issue
       SPAWN whycode:linear-agent:
@@ -412,7 +399,7 @@ INITIALIZE:
           "data": {
             "title": "WhyCode: {project_name}",
             "description": "Auto-generated project from WhyCode orchestrator",
-            "team": "teamId"
+            "teamId": "teamId"
           }
         }
       → Returns { "issueId": "ABC-100" } = parentIssueId
@@ -423,7 +410,7 @@ INITIALIZE:
         issues.append({
           "title": "Plan {plan.id}: {plan.name}",
           "description": "Tasks: {plan.tasks.join(', ')}",
-          "team": "teamId",
+          "teamId": "teamId",
           "parentId": parentIssueId
         })
 
@@ -431,7 +418,7 @@ INITIALIZE:
         {
           "action": "create-batch",
           "data": {
-            "team": "teamId",
+            "teamId": "teamId",
             "parentId": parentIssueId,
             "issues": issues
           }
@@ -439,18 +426,30 @@ INITIALIZE:
       → Returns { "issueIds": ["ABC-101", "ABC-102", ...] }
 
       # 5. Save mapping for later updates
-      WRITE docs/decisions/linear-mapping.json:
+      SPAWN whycode:state-agent:
         {
-          "teamId": "teamId",
-          "parentIssueId": "ABC-100",
-          "planIssues": { "01-01": "ABC-101", "01-02": "ABC-102", ... }
+          "action": "write-json",
+          "data": {
+            "target": "docs/decisions/linear-mapping.json",
+            "json": {
+              "teamId": "teamId",
+              "parentIssueId": "UUID",
+              "parentIssueIdentifier": "ABC-100",
+              "planIssues": {
+                "01-01": { "issueId": "UUID", "issueIdentifier": "ABC-101" },
+                "01-02": { "issueId": "UUID", "issueIdentifier": "ABC-102" }
+              }
+            }
+          }
         }
 
   # Use state-agent to initialize state files
   SPAWN whycode:state-agent:
-    { "action": "update-state", "data": { "phase": 5, "status": "in_progress" } }
+    { "action": "update-state", "data": { "currentPhase": 5, "status": "in_progress" } }
 
+planIndex = 0
 FOR EACH plan in plans:
+  planIndex += 1
 
   # 1. CREATE PLAN XML (whycode-loop Aware)
   WRITE docs/PLAN.md with:
@@ -471,10 +470,12 @@ FOR EACH plan in plans:
 
   # 2. UPDATE LINEAR (via linear-agent)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
-    linearMapping = READ docs/decisions/linear-mapping.json
-    issueId = linearMapping.planIssues[plan.id]
+    SPAWN whycode:context-loader-agent:
+      { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
+      → Returns planIssues
+    issue = planIssues[plan.id]
     SPAWN whycode:linear-agent:
-      { "action": "update-issue", "data": { "issueId": issueId, "state": "in_progress" } }
+      { "action": "update-issue", "data": { "issueId": issue.issueId, "stateName": "In Progress" } }
 
   # 3. EXECUTE WHYCODE-LOOP (Fresh context per iteration)
   #
@@ -500,6 +501,12 @@ FOR EACH plan in plans:
     "maxIterations": loopMaxIterations,
     "currentIteration": 0,
     "status": "starting",
+    "tasks": plan.tasks.map(task => ({
+      "id": task.id,
+      "name": task.name,
+      "status": "pending",
+      "lastVerified": null
+    })),
     "iterations": [],
     "lastVerificationFailure": null
   }
@@ -558,6 +565,7 @@ FOR EACH plan in plans:
          b. Run <verify> command - MUST pass
          c. If fails, fix and retry
          d. Commit when passing
+         e. Update docs/loop-state/{plan.id}.json task status to "done" with timestamp
 
       ## MANDATORY VERIFICATION (BEFORE CLAIMING COMPLETE)
 
@@ -577,6 +585,9 @@ FOR EACH plan in plans:
         "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
         "tasksCompleted": [...],
         "tasksPending": [...],
+        "taskStatus": [
+          { "id": "task-001", "status": "done", "verifiedBy": "<verify>", "verifiedAt": "ISO" }
+        ],
         "selfValidation": {
           "typecheck": { "status": "pass|fail", "exitCode": N },
           "lint": { "status": "pass|fail", "exitCode": N },
@@ -606,10 +617,24 @@ FOR EACH plan in plans:
     iterationRecord.outcome = result.outcome
     iterationRecord.tasksAttempted = result.tasksCompleted
 
+    # Log task progress for visibility
+    IF result.tasksCompleted.length > 0:
+      FOR EACH taskId in result.tasksCompleted:
+        SPAWN whycode:state-agent:
+          {
+            "action": "update-progress",
+            "data": {
+              "plan": plan.id,
+              "task": taskId,
+              "status": "complete",
+              "summary": result.notes
+            }
+          }
+
     IF result.outcome == "PLAN_COMPLETE":
       # Agent claims completion - VERIFY EXTERNALLY
       SPAWN whycode:validation-agent:
-        { "validations": ["typecheck", "build", "smoke"] }
+        { "validations": ["typecheck", "lint", "test", "build", "smoke"] }
 
       IF verification.status == "pass":
         # SUCCESS!
@@ -623,14 +648,16 @@ FOR EACH plan in plans:
         # Verification failed - record and continue
         iterationRecord.verificationResult = verification
         iterationRecord.outcome = "verification_failed"
+        failedCheck = first check in verification.results where status == "fail"
+        errorSummary = verification.results[failedCheck].error OR verification.summary
         loopState.lastVerificationFailure = {
           "iteration": loopState.currentIteration,
-          "error": verification.error,
-          "type": verification.failedCheck,
-          "fixHint": verification.error
+          "error": errorSummary,
+          "type": failedCheck,
+          "fixHint": errorSummary
         }
         SHOW: "Plan {plan.id} claimed complete but verification failed:"
-        SHOW: verification.error
+        SHOW: errorSummary
         WRITE docs/loop-state/{plan.id}.json = loopState
         # Continue to next iteration - agent will see the error
 
@@ -667,15 +694,17 @@ FOR EACH plan in plans:
 
   # 8. UPDATE LINEAR (only after verification passes)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
-    linearMapping = READ docs/decisions/linear-mapping.json
-    issueId = linearMapping.planIssues[plan.id]
+    SPAWN whycode:context-loader-agent:
+      { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
+      → Returns planIssues
+    issue = planIssues[plan.id]
     SPAWN whycode:linear-agent:
-      { "action": "update-issue", "data": { "issueId": issueId, "state": "done" } }
+      { "action": "update-issue", "data": { "issueId": issue.issueId, "stateName": "Done" } }
 
   # 9. FULL TEST SUITE (every 3 plans)
   # Step 5 verification catches build/smoke failures
   # This runs the full test suite periodically
-  IF plan_count % 3 == 0:
+  IF planIndex % 3 == 0:
     SPAWN whycode:validation-agent:
       { "validations": ["test"] }
     IF result.status == "fail":
@@ -730,7 +759,7 @@ WHILE loopState.currentIteration < loopMaxIterations:
     TASK:
     Review code quality in categories: Quality, Bugs, Conventions, Security.
     Write docs/review/quality-report.md.
-    Create Linear issues for critical findings (if Linear enabled).
+    Append critical findings to docs/review/critical-issues.md.
 
     OUTPUT (MANDATORY):
     Write docs/loop-state/phase6-review-result.json with:
@@ -857,8 +886,7 @@ Triggered by `/whycode fix` or on resume with errors.
 
 Linear is auto-detected during startup. Detection order:
 1. **`.env.local`** - Checks for `LINEAR_API_KEY=xxx` (recommended)
-2. **Linear MCP** - Checks if `mcp__linear__*` tools available
-3. **Environment variable** - Checks for `LINEAR_API_KEY` in env
+2. **Environment variable** - Checks for `LINEAR_API_KEY` in env
 
 To enable Linear, add to your `.env.local`:
 ```
@@ -866,8 +894,8 @@ LINEAR_API_KEY=lin_api_xxxxxxxxxxxxx
 ```
 
 ```
-# Detection (happens in STARTUP step 4)
-IF mcp__linear__* tools available OR env.LINEAR_API_KEY:
+# Detection (happens in STARTUP step 5)
+IF env.LINEAR_API_KEY:
   linearEnabled = true
   # Auto-fetch teams, use first team or ask user to select
   linearTeamId = detected team ID
@@ -881,8 +909,9 @@ IF mcp__linear__* tools available OR env.LINEAR_API_KEY:
 # Issue mapping stored in: docs/decisions/linear-mapping.json
 {
   "teamId": "TEAM-123",
-  "parentIssueId": "ABC-100",
-  "planIssues": { "01-01": "ABC-101", "01-02": "ABC-102" }
+  "parentIssueId": "UUID",
+  "parentIssueIdentifier": "ABC-100",
+  "planIssues": { "01-01": { "issueId": "UUID", "issueIdentifier": "ABC-101" } }
 }
 
 # Rate limiting: 1 second between API calls (handled by linear-agent)
