@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.7] - 2026-01-25
+
+### Added
+- Run listing at startup
+- Friendly run names (suggested + editable)
+
+### Changed
+- Completed runs are archived automatically at startup
+
 ## [2.1.6] - 2026-01-25
 
 ### Added

@@ -19,7 +19,7 @@ Offload state management from the orchestrator. Read and write state files, retu
 You receive a task like:
 ```json
 {
-  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json" | "archive-run" | "init-run",
+  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json" | "archive-run" | "init-run" | "list-runs" | "update-run",
   "data": { ... }
 }
 ```
@@ -327,6 +327,45 @@ Initialize a new run directory and record run metadata.
 1. CREATE targetDir if missing
 2. WRITE targetDir/run.json with meta
 3. VERIFY run.json exists and matches
+```
+
+### list-runs
+List previous runs from `docs/runs/*/run.json`.
+
+```json
+{
+  "action": "list-runs",
+  "data": { "targetDir": "docs/runs" }
+}
+```
+
+**Workflow:**
+```
+1. CHECK targetDir exists
+2. LIST subdirectories
+3. READ each run.json (if present)
+4. RETURN array sorted by startedAt desc
+```
+
+### update-run
+Update run metadata (e.g., friendly name).
+
+```json
+{
+  "action": "update-run",
+  "data": {
+    "runId": "2026-01-25T14-33-05Z",
+    "targetDir": "docs/runs/2026-01-25T14-33-05Z",
+    "patch": { "name": "SMS Notifications Run" }
+  }
+}
+```
+
+**Workflow:**
+```
+1. READ targetDir/run.json
+2. MERGE patch into existing JSON
+3. WRITE and VERIFY
 ```
 
 ## State File Locations

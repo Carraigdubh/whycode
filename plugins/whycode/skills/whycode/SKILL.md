@@ -186,6 +186,7 @@ This keeps the orchestrator's context clean for coordination.
 
 0.1 GENERATE RUN ID
    runId = ISO timestamp with ":" replaced by "-" (e.g., 2026-01-25T14-33-05Z)
+   suggestedRunName = "Run {YYYY-MM-DD HH:MM}"
 
 1. CHECK for docs/whycode-state.json
    IF exists AND status == "in_progress":
@@ -202,16 +203,35 @@ This keeps the orchestrator's context clean for coordination.
              "targetDir": "docs/runs/{runId}"
            }
          }
+   IF exists AND status == "completed":
+      USE Task tool with subagent_type "whycode:state-agent":
+        {
+          "action": "archive-run",
+          "data": {
+            "runId": runId,
+            "sourceState": "docs/whycode-state.json",
+            "sourceLoopDir": "docs/loop-state",
+            "targetDir": "docs/runs/{runId}"
+          }
+        }
 
-2. ASK user for max iterations (20/30/50/custom)
+2. SHOW previous runs (if any)
+   USE Task tool with subagent_type "whycode:state-agent":
+     { "action": "list-runs", "data": { "targetDir": "docs/runs" } }
+   SHOW last 5 runs with name + startedAt
+
+3. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as loopMaxIterations
 
-3. ENSURE loop-state directory exists
+4. ASK user to confirm or edit run name (default: {suggestedRunName})
+   Store in run meta
+
+5. ENSURE loop-state directory exists
    CREATE docs/loop-state/ if not exists
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
-4. INIT RUN RECORD
+6. INIT RUN RECORD
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "init-run",
@@ -221,12 +241,13 @@ This keeps the orchestrator's context clean for coordination.
          "meta": {
            "startedAt": NOW(),
            "version": "{version}",
-           "flags": []
+           "flags": [],
+           "name": "{runName}"
          }
        }
      }
 
-5. SYNC REFERENCE FILES (once per run)
+7. SYNC REFERENCE FILES (once per run)
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
@@ -237,7 +258,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-6. DISCOVER integrations:
+8. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY
