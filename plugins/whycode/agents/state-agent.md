@@ -3,7 +3,7 @@ name: state-agent
 description: Updates whycode-state.json and progress tracking files
 model: haiku
 color: brown
-tools: Read, Write, Edit
+tools: Read, Write, Edit, Bash
 ---
 
 # State Management Agent
@@ -19,7 +19,7 @@ Offload state management from the orchestrator. Read and write state files, retu
 You receive a task like:
 ```json
 {
-  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json",
+  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json" | "archive-run" | "init-run",
   "data": { ... }
 }
 ```
@@ -277,6 +277,56 @@ Write a JSON file with verification.
    b. PARSE as JSON
    c. Deep-compare with input json
 3. RETURN with proof
+```
+
+### archive-run
+Archive an existing run state so new runs do not overwrite it.
+
+```json
+{
+  "action": "archive-run",
+  "data": {
+    "runId": "2026-01-25T14-33-05Z",
+    "sourceState": "docs/whycode-state.json",
+    "sourceLoopDir": "docs/loop-state",
+    "targetDir": "docs/runs/2026-01-25T14-33-05Z"
+  }
+}
+```
+
+**Workflow:**
+```
+1. CREATE targetDir if missing
+2. IF sourceState exists: MOVE to targetDir/whycode-state.json
+3. IF sourceLoopDir exists: MOVE to targetDir/loop-state/
+4. VERIFY (MANDATORY):
+   a. targetDir exists
+   b. moved files/dirs exist in targetDir
+```
+
+### init-run
+Initialize a new run directory and record run metadata.
+
+```json
+{
+  "action": "init-run",
+  "data": {
+    "runId": "2026-01-25T14-33-05Z",
+    "targetDir": "docs/runs/2026-01-25T14-33-05Z",
+    "meta": {
+      "startedAt": "ISO",
+      "version": "2.1.x",
+      "flags": []
+    }
+  }
+}
+```
+
+**Workflow:**
+```
+1. CREATE targetDir if missing
+2. WRITE targetDir/run.json with meta
+3. VERIFY run.json exists and matches
 ```
 
 ## State File Locations

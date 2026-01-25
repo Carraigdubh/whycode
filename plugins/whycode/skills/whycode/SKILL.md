@@ -184,10 +184,24 @@ This keeps the orchestrator's context clean for coordination.
    If WebFetch is available, check remote version and changelog.
    Otherwise show: "○ Update check skipped (no WebFetch)"
 
+0.1 GENERATE RUN ID
+   runId = ISO timestamp with ":" replaced by "-" (e.g., 2026-01-25T14-33-05Z)
+
 1. CHECK for docs/whycode-state.json
    IF exists AND status == "in_progress":
      Show: "Found WhyCode at Phase {X}, Plan {Y}. Resume? [Y/n]"
      IF yes: Jump to saved position
+     IF no:
+       USE Task tool with subagent_type "whycode:state-agent":
+         {
+           "action": "archive-run",
+           "data": {
+             "runId": runId,
+             "sourceState": "docs/whycode-state.json",
+             "sourceLoopDir": "docs/loop-state",
+             "targetDir": "docs/runs/{runId}"
+           }
+         }
 
 2. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as loopMaxIterations
@@ -197,7 +211,22 @@ This keeps the orchestrator's context clean for coordination.
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
-4. SYNC REFERENCE FILES (once per run)
+4. INIT RUN RECORD
+   USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "init-run",
+       "data": {
+         "runId": runId,
+         "targetDir": "docs/runs/{runId}",
+         "meta": {
+           "startedAt": NOW(),
+           "version": "{version}",
+           "flags": []
+         }
+       }
+     }
+
+5. SYNC REFERENCE FILES (once per run)
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
@@ -208,7 +237,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-5. DISCOVER integrations:
+6. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY
@@ -462,7 +491,7 @@ INITIALIZE:
 
   # Use state-agent to initialize state files
   USE Task tool with subagent_type "whycode:state-agent":
-    { "action": "update-state", "data": { "currentPhase": 5, "status": "in_progress" } }
+    { "action": "update-state", "data": { "currentPhase": 5, "status": "in_progress", "runId": runId } }
 
 planIndex = 0
 FOR EACH plan in plans:

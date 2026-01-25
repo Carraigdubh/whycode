@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.6] - 2026-01-25
+
+### Added
+- Run archive folders under docs/runs/{runId}
+- Run metadata file docs/runs/{runId}/run.json
+
+### Changed
+- Existing in-progress run is archived before starting a new run
+
 ## [2.1.5] - 2026-01-25
 
 ### Added
