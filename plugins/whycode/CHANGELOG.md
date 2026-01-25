@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-01-25
+
+### Added
+- Project documentation sync after each plan
+
+### Changed
+- docs-agent now treats docs/project documentation as source of truth
+
 ## [2.1.9] - 2026-01-25
 
 ### Added

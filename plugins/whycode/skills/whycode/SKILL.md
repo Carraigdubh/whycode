@@ -871,6 +871,15 @@ FOR EACH plan in plans:
     { "action": "mark-complete", "data": { "type": "plan", "id": plan.id } }
     → Updates ROADMAP.md, STATE.md, whycode-state.json
 
+  # 5. PROJECT DOCS SYNC (keep source-of-truth docs current)
+  USE Task tool with subagent_type "whycode:docs-agent":
+    prompt: """
+    Sync project documentation after Plan {plan.id}.
+    - Update docs/project documentation/* to reflect changes from this plan.
+    - Append a run note to docs/project documentation/INDEX.md.
+    - Keep notes concise and factual.
+    """
+
   # 8. UPDATE LINEAR (only after verification passes)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
     USE Task tool with subagent_type "whycode:context-loader-agent":

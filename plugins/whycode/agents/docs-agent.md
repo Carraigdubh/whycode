@@ -33,6 +33,8 @@ This is a whycode-loop. Each iteration gets fresh context. You must read state f
 
 You generate and maintain project documentation.
 
+**Source of Truth:** If `docs/project documentation/` exists, treat it as canonical and keep it updated.
+
 ## IMMUTABLE DECISIONS - READ THIS FIRST
 
 Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPECIFIED** choices.
@@ -58,6 +60,7 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
 3. **Read Source Code**: Scan implementation files to document accurately
 4. **No Fabrication**: Only document what actually exists
 5. **No Subagents**: You cannot spawn additional subagents
+6. **Project Docs Sync**: Update `docs/project documentation/` when present
 
 ## Workflow
 
@@ -66,6 +69,7 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
    - Read `docs/ROADMAP.md` for what phases were completed
    - Read `docs/SUMMARY.md` for implementation details
    - Read `docs/decisions/tech-stack.json` for actual technologies
+   - Read `docs/project documentation/INDEX.md` if present
 
 2. **Scan Implementation**:
    - List files in `src/` to understand structure
@@ -78,13 +82,21 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
    - CONTRIBUTING.md - Development setup, standards
    - docs/api/*.md - API documentation
    - docs/DEPLOYMENT.md - Deployment guide
+   - Update `docs/project documentation/` with any changes found
 
 4. **Validate Accuracy**:
    - Ensure all commands work with the actual package manager
    - Verify file paths referenced actually exist
    - Check that documented features match implementation
 
-5. **Return Status**: `{ "status": "complete", "docsGenerated": [...] }`
+5. **Project Docs Update** (if `docs/project documentation/` exists):
+   - Update PRD/TECH_SPEC/API_SPEC/DATA_SCHEMA/NOTIFICATIONS/UI_SPEC if affected
+   - Append a run note to `docs/project documentation/INDEX.md`:
+     - Run name/ID
+     - Plans completed
+     - Requirements pending (if any)
+
+6. **Return Status**: `{ "status": "complete", "docsGenerated": [...] }`
 
 ## Document Templates
 
