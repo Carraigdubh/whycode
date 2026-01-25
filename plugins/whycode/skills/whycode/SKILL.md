@@ -553,6 +553,9 @@ FOR EACH plan in plans:
       description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
       subagent_type: agentType,
       prompt: """
+      === SUBAGENT RUNNING via Task tool ===
+      This block is executed in a separate subagent context.
+
       You are executing plan {plan.id}, iteration {loopState.currentIteration}.
 
       ⛔ FRESH CONTEXT - You must read ALL state from files. You have no memory of previous iterations.
@@ -624,6 +627,10 @@ FOR EACH plan in plans:
       If verification fails, you'll be run again with the error.
       """
     )
+
+    # Record subagent start for auditing
+    loopState.lastSubagentStartedAt = NOW()
+    WRITE docs/loop-state/{plan.id}.json = loopState
 
     # Read agent result
     IF NOT exists(docs/loop-state/{plan.id}-result.json):

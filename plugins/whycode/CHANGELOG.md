@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-01-25
+
+### Added
+- Explicit subagent banner in Task prompts
+- Subagent start timestamp in loop-state
+
 ## [2.1.3] - 2026-01-25
 
 ### Added
