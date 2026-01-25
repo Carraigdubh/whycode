@@ -168,42 +168,51 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
       - <verify>: Validation command
       - <done>: Success criteria
 
-   b. IF <context7 enabled="true">:
+   b. PRE-FLIGHT CHECK (MANDATORY):
+      - READ all <files> listed for the task
+      - COMPARE current implementation against <done>
+      - If <done> is already satisfied:
+        * Mark task as complete in loop-state
+        * Add a note: "Skipped (already implemented)"
+        * DO NOT rewrite code
+        * CONTINUE to next task
+
+   c. IF <context7 enabled="true">:
       - mcp__context7__resolve-library-id("library-name")
       - mcp__context7__query-docs(library-id)
       - VERIFY methods exist before using them
       ELSE:
       - Proceed without Context7 and rely on local code/docs
 
-   c. IMPLEMENT the task per <action>
+   d. IMPLEMENT the task per <action>
 
-   d. RUN <verify> command - MANDATORY, NOT OPTIONAL
+   e. RUN <verify> command - MANDATORY, NOT OPTIONAL
       - CAPTURE exit code
       - IF exit_code != 0: DO NOT CONTINUE
       - Fix the issue and run <verify> again
       - REPEAT until <verify> passes
 
-   e. ONLY AFTER <verify> passes:
+   f. ONLY AFTER <verify> passes:
       COMMIT:
       git add [<files>]
       git commit -m "feat({plan-id}): {task-name}"
 
-   f. UPDATE loop-state task tracking:
+   g. UPDATE loop-state task tracking:
       - READ docs/loop-state/{plan-id}.json
       - SET task.status = "done"
       - SET task.lastVerified = "{ISO timestamp}"
       - WRITE docs/loop-state/{plan-id}.json
 
-   g. UPDATE LINEAR (if enabled):
+   h. UPDATE LINEAR (if enabled):
       - Append a brief note to docs/audit/log.md
       - The orchestrator will update Linear
 
-   h. DOCUMENT THE TASK:
+   i. DOCUMENT THE TASK:
       - CREATE docs/tasks/{plan-id}-{task-id}.md
       - APPEND to docs/audit/log.md
       - UPDATE CHANGELOG.md (unreleased section)
 
-   i. APPLY DEVIATION RULES if needed:
+   j. APPLY DEVIATION RULES if needed:
       - Rule 1: Auto-fix bugs, document in task record
       - Rule 2: Auto-add security/correctness
       - Rule 3: Auto-fix blockers

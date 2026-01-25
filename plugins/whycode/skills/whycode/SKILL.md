@@ -580,11 +580,13 @@ FOR EACH plan in plans:
       1. Check what tasks are complete (via git log, loop-state)
       2. Continue from where the last iteration left off
       3. For each incomplete task:
-         a. Implement the task
-         b. Run <verify> command - MUST pass
-         c. If fails, fix and retry
-         d. Commit when passing
-         e. Update docs/loop-state/{plan.id}.json task status to "done" with timestamp
+         a. Pre-flight check: read task files and compare to <done>
+            - If already done: mark complete and skip changes
+         b. Implement the task
+         c. Run <verify> command - MUST pass
+         d. If fails, fix and retry
+         e. Commit when passing
+         f. Update docs/loop-state/{plan.id}.json task status to "done" with timestamp
 
       ## MANDATORY VERIFICATION (BEFORE CLAIMING COMPLETE)
 
