@@ -107,5 +107,5 @@ Agents are spawned via **whycode-loop** with fresh context per iteration:
 - No external plugin dependency
 
 ### Dependencies
-- **Linear MCP** (optional) - Issue tracking integration
-- **Context7** (optional) - Library documentation lookup
+- **Linear API (LINEAR_API_KEY)** (optional) - Issue tracking integration
+- **Context7** (optional) - Library documentation lookup (disabled in marketplace build)

@@ -64,8 +64,8 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 
 | Dependency | Required | Purpose |
 |------------|----------|---------|
-| Linear MCP | No | Issue tracking integration |
-| Context7 | No | Library documentation lookup |
+| Linear API (LINEAR_API_KEY) | No | Issue tracking integration |
+| Context7 | No | Library documentation lookup (disabled in marketplace build) |
 | Chrome extension | No | E2E testing for web projects |
 
 ## Usage
@@ -167,8 +167,8 @@ git push
 
 ## Dependencies
 
-- **Linear MCP** (optional): For issue tracking integration
-- **Context7** (optional): For library documentation lookup
+- **Linear API (LINEAR_API_KEY)** (optional): For issue tracking integration
+- **Context7** (optional): For library documentation lookup (disabled in marketplace build)
 - **Chrome extension** (optional): For E2E testing of web projects
 
 ## References

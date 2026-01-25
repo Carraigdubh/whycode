@@ -200,11 +200,11 @@ Run: /plugin update whycode@whycode-marketplace
 2. **Changelog Display** - Shows what's new if update available
 3. **State Recovery** - Checks for existing `whycode-state.json` to resume
 4. **ralph-wiggum Check** - Verifies ralph-wiggum plugin is installed (required)
-5. **Integration Discovery** - Detects Linear MCP, Context7, Chrome extension
+5. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
 
 **Dependencies:**
 - **ralph-wiggum** (required) - Provides `/ralph-loop` for autonomous iteration
-- **Linear MCP** (optional) - Issue tracking integration
+- **Linear API (LINEAR_API_KEY)** (optional) - Issue tracking integration
 - **Chrome extension** (optional) - E2E testing for web projects
 
 WhyCode will guide you through:
@@ -906,8 +906,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 - `Read`, `Write`, `Edit` - File operations
 - `Bash` - Command execution
 - `Glob`, `Grep` - File search
-- `mcp__linear__update_issue` - Status updates
-- `mcp__linear__create_comment` - Add comments
+- `whycode:linear-agent` - Status updates and comments (direct Linear API)
 
 **Workflow:**
 1. Read task packet from `docs/context/task-packets/task-{id}.json`
@@ -943,7 +942,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 - `Read`, `Write`, `Edit` - File operations
 - `Bash` - Command execution
 - `Glob`, `Grep` - File search
-- `mcp__linear__update_issue` - Status updates
+- `whycode:linear-agent` - Status updates (direct Linear API)
 
 **Workflow:**
 1. Read task packet
@@ -984,7 +983,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 - `Read` - Read implemented code
 - `Bash` - Run tests
 - `Glob`, `Grep` - Find files
-- `mcp__linear__update_issue` - Status updates
+- `whycode:linear-agent` - Status updates (direct Linear API)
 
 **Workflow:**
 1. Read artifact summary from implementation task
@@ -1013,8 +1012,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 **Tools:**
 - `Read` - Read code files
 - `Grep`, `Glob` - Search patterns
-- `mcp__linear__create_issue` - Create bug issues
-- `mcp__linear__create_comment` - Add review comments
+- `whycode:linear-agent` - Create bug issues and review comments (direct Linear API)
 
 **Review Categories:**
 1. **Quality** - DRY, single responsibility, clarity
@@ -1466,35 +1464,20 @@ Each task gets a JSON packet with ONLY what it needs. The structure adapts to an
 
 ### Setup
 
-Linear MCP is configured in `.mcp.json`:
+WhyCode uses the Linear GraphQL API directly. Set a key in `.env.local`:
 
-```json
-{
-  "mcpServers": {
-    "linear": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.linear.app/sse"]
-    }
-  }
-}
+```
+LINEAR_API_KEY=lin_api_xxxxxxxxxxxxx
 ```
 
 ### Issue Creation (Sequential with Delays)
 
 **CRITICAL**: Create Linear issues SEQUENTIALLY with 1-second delays to prevent rate limiting.
 
-```javascript
-for (const task of tasks) {
-  await mcp__linear__create_issue({
-    title: task.title,
-    description: task.description,
-    team: teamId,
-    parentId: featureIssueId
-  });
-
-  // IMPORTANT: Wait 1 second between API calls
-  await sleep(1000);
-}
+```text
+for each task:
+  whycode:linear-agent { "action": "create-issue", "data": { ... } }
+  wait 1 second
 ```
 
 ### Issue Hierarchy
@@ -1633,21 +1616,9 @@ project/
 
 ### Universal Issues (All Project Types)
 
-#### "Linear MCP not found"
+#### "Linear API key not found"
 
-Ensure `.mcp.json` exists in project root:
-```json
-{
-  "mcpServers": {
-    "linear": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.linear.app/sse"]
-    }
-  }
-}
-```
-
-Then restart Claude Code.
+Add `LINEAR_API_KEY` to `.env.local` and restart Claude Code.
 
 #### "Linear rate limiting"
 

@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-01-25
+
+### Added
+- Checkpoint commit rule after repeated verification failures
+- Explicit Task tool usage language for subagents
+
+### Changed
+- Linear integration docs now reference direct API usage (no MCP)
+
 ## [2.1.1] - 2026-01-25
 
 ### Fixed

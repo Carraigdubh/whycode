@@ -1,7 +1,7 @@
 # Agent Definitions
 
 This file contains execution protocols for WhyCode.
-Agents read this file AND their specific definition file when spawned.
+Agents read this file AND their specific definition file when run.
 
 ## CRITICAL: Always Use `whycode:` Prefix
 
@@ -49,7 +49,7 @@ Each agent file contains:
 
 ## Autonomous Execution via whycode-loop
 
-All agents execute autonomously using **whycode-loop** - a native iteration system that spawns each iteration in a **fresh Claude context**.
+All agents execute autonomously using **whycode-loop** - a native iteration system that runs each iteration in a **fresh Claude context**.
 
 **What whycode-loop provides:**
 - Each iteration gets a **fresh 200k token context** (no degradation)
@@ -61,7 +61,7 @@ All agents execute autonomously using **whycode-loop** - a native iteration syst
 ```
 Orchestrator writes state → docs/loop-state/{plan-id}.json
          ↓
-Task tool spawns agent (fresh context)
+Task tool runs agent (fresh context)
          ↓
 Agent reads state from files (PLAN.md, loop-state/)
          ↓
@@ -132,7 +132,7 @@ WRITE docs/loop-state/{plan-id}-result.json with:
 | 1 | 3+ tasks | SUSPICIOUS - too fast |
 | = max | Any | HIT LIMIT - incomplete? |
 | 1 | Complex task | SUSPICIOUS - verify output |
-| No result file | Any | CRASHED - respawn |
+| No result file | Any | CRASHED - re-run |
 
 ---
 
@@ -250,6 +250,13 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
       REQUIRED: App starts without crashing
       IF CRASHES: Fix and retry. DO NOT proceed.
 
+5. CHECKPOINT COMMIT (MANDATORY IF STUCK):
+
+   If you fail verification **twice in a row** for the same plan:
+   - Create a checkpoint commit with a clear reason, e.g.:
+     `wip({plan-id}): checkpoint - typecheck failing`
+   - Write the result file with `outcome: "incomplete"` and include the failure summary
+
 5. ONLY AFTER ALL VERIFICATIONS PASS:
    - Append summary to docs/SUMMARY.md
    - UPDATE docs/features/{feature}.md
@@ -296,7 +303,7 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
 
 ## Standard Agent Prompt (whycode-loop)
 
-This is the prompt agents receive when spawned via whycode-loop. Each iteration gets fresh context.
+This is the prompt agents receive when run via whycode-loop. Each iteration gets fresh context.
 
 ```
 You are executing plan {plan-id}, iteration {N}.
@@ -349,7 +356,7 @@ You MUST write docs/loop-state/{plan-id}-result.json with:
 }
 
 The orchestrator VERIFIES externally after you claim PLAN_COMPLETE.
-If verification fails, you'll be spawned again with the error in lastVerificationFailure.
+If verification fails, you'll be run again with the error in lastVerificationFailure.
 ```
 
 ---

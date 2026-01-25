@@ -17,6 +17,9 @@ Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMP
 **Fresh Context per Plan** - Each plan runs in a new 200k token subagent context.
 **User Decisions are Immutable** - Technology choices are NEVER substituted.
 
+**Orchestrator is Coordination Only** - It MUST NOT implement tasks or edit product code directly.
+All execution is done by subagents run via Task/agent tools.
+
 ---
 
 ## CRITICAL: Trust No Agent (Non-Negotiable)
@@ -33,13 +36,21 @@ Agent says "done" → Orchestrator runs validation-agent → Verification passes
 ### Verification Flow (Mandatory After Every Plan)
 
 1. **Agent outputs PLAN_COMPLETE**
-2. **Orchestrator spawns validation-agent** with `["typecheck", "build", "smoke"]`
+2. **Orchestrator runs validation-agent via Task tool** with `["typecheck", "build", "smoke"]`
 3. **IF verification fails:**
    - DO NOT mark plan complete
-   - Re-spawn agent with the error message
+   - Re-run agent with the error message
    - Agent must fix and output PLAN_COMPLETE again
    - Loop until verification passes
 4. **ONLY after verification passes:** Mark plan complete
+
+### Checkpoint Commit Rule (Mandatory When Stuck)
+
+If verification fails for **2 consecutive iterations** on the same plan, the agent MUST:
+- Create a **checkpoint commit** with a clear message, e.g. `wip({plan-id}): checkpoint - typecheck failing`
+- Write the result file with `outcome: "incomplete"` and include the failure summary
+
+This ensures progress is preserved even when the agent can't get to green.
 
 ### Why Agents Can't Be Trusted
 
@@ -61,7 +72,7 @@ The smoke test ACTUALLY RUNS THE APP and checks for:
 
 ## CRITICAL: Agent Namespace
 
-**ALWAYS use the `whycode:` prefix when spawning agents.** Anthropic has built-in agents with similar names. Without the prefix, you may accidentally invoke the wrong agent.
+**ALWAYS use the `whycode:` prefix when invoking agents.** Anthropic has built-in agents with similar names. Without the prefix, you may accidentally invoke the wrong agent.
 
 ### Implementation Agents (Heavy Work)
 | Agent | Model | Color |
@@ -96,6 +107,9 @@ Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 
 **HARD RULE (Autonomous Phases 5-8):** Any read/write outside of `docs/PLAN.md` and `docs/loop-state/*.json` must be done via a subagent.
 The orchestrator can only touch PLAN and loop-state files directly for iteration control.
+
+**Use the Task tool to run subagents. Do not write "spawn" text; actually call Task.**
+**If Task/subagent tools are unavailable, STOP and ask the user. Do not execute tasks directly.**
 
 This keeps the orchestrator's context clean for coordination.
 
@@ -183,7 +197,7 @@ This keeps the orchestrator's context clean for coordination.
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
 4. SYNC REFERENCE FILES (once per run)
-   SPAWN whycode:state-agent:
+   USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
        "data": {
@@ -218,13 +232,15 @@ This keeps the orchestrator's context clean for coordination.
 
    # If Linear enabled, get teams list
    IF linearEnabled:
-     teams = whycode:linear-agent { "action": "list-teams", "data": {} }
-
-     IF teams.length >= 1:
-       ASK user to select team from list (always prompt)
-       linearTeamId = selected team
-
-     Store linearTeamId in whycode-state.json
+     USE Task tool with subagent_type "whycode:linear-agent" to list teams
+     IF teamsResult.status != "success":
+       SHOW: "○ Linear disabled: {teamsResult.error}"
+       linearEnabled = false
+     ELSE:
+      teams = teamsResult.teams
+      ASK user to select team from list (always prompt)
+      linearTeamId = selected team
+      Store linearTeamId in whycode-state.json
 
    # Context7 is optional and disabled by default in this marketplace build
    SHOW: "○ Context7 disabled (no MCP in marketplace build)"
@@ -270,7 +286,7 @@ This keeps the orchestrator's context clean for coordination.
 
 ```
 IF existing codebase detected:
-  SPAWN explore agent to analyze:
+  USE Task tool with subagent_type "Explore" to analyze:
     - File structure
     - Tech stack in use
     - Architecture patterns
@@ -307,7 +323,7 @@ IF NOT skip:
    { "install": "...", "addDep": "...", "build": "...", "test": "..." }
 5. ASK framework choice
 6. ASK service providers (database, auth, etc.)
-7. SPAWN whycode:tech-stack-setup-agent to configure
+7. USE Task tool with subagent_type "whycode:tech-stack-setup-agent" to configure
 8. VERIFY build passes
 9. WRITE docs/decisions/tech-stack.json
 10. WRITE docs/audit/tech-decisions.md
@@ -339,7 +355,7 @@ IF NOT skip:
    - Clean: Best maintainability
    - Balanced: Pragmatic middle
 2. ASK user to choose
-3. SPAWN general-purpose agent to design
+3. USE Task tool with subagent_type "general-purpose" to design
 4. WRITE docs/adr/ADR-002-architecture.md
 5. WRITE docs/architecture/OVERVIEW.md
 6. GENERATE plans from task graph (MAX 3 TASKS PER PLAN)
@@ -370,30 +386,30 @@ IF NOT skip:
 ```
 INITIALIZE:
   # Use context-loader-agent instead of loading files directly
-  SPAWN whycode:context-loader-agent:
+  USE Task tool with subagent_type "whycode:context-loader-agent":
     { "action": "read-summary", "target": "docs/decisions/tech-stack.json" }
     → Returns summary, not full content
 
-  SPAWN whycode:context-loader-agent:
+  USE Task tool with subagent_type "whycode:context-loader-agent":
     { "action": "read-summary", "target": "docs/plans/index.json" }
     → Returns plan count and IDs only
 
   # Use linear-agent for batch issue creation
   IF linearEnabled:
     # Get team ID from state (set during startup discovery)
-    SPAWN whycode:context-loader-agent:
+  USE Task tool with subagent_type "whycode:context-loader-agent":
       { "action": "extract-field", "target": "docs/whycode-state.json", "field": "linearTeamId" }
       → Returns teamId
 
     IF teamId:
       # 2. Read plans from index (via context-loader)
-      SPAWN whycode:context-loader-agent:
+  USE Task tool with subagent_type "whycode:context-loader-agent":
         { "action": "read-json", "target": "docs/plans/index.json" }
         → Returns parsed plan list
       plans = result.json.plans
 
       # 3. Create parent project issue
-      SPAWN whycode:linear-agent:
+      USE Task tool with subagent_type "whycode:linear-agent":
         {
           "action": "create-issue",
           "data": {
@@ -414,7 +430,7 @@ INITIALIZE:
           "parentId": parentIssueId
         })
 
-      SPAWN whycode:linear-agent:
+      USE Task tool with subagent_type "whycode:linear-agent":
         {
           "action": "create-batch",
           "data": {
@@ -426,7 +442,7 @@ INITIALIZE:
       → Returns { "issueIds": ["ABC-101", "ABC-102", ...] }
 
       # 5. Save mapping for later updates
-      SPAWN whycode:state-agent:
+  USE Task tool with subagent_type "whycode:state-agent":
         {
           "action": "write-json",
           "data": {
@@ -444,12 +460,15 @@ INITIALIZE:
         }
 
   # Use state-agent to initialize state files
-  SPAWN whycode:state-agent:
+  USE Task tool with subagent_type "whycode:state-agent":
     { "action": "update-state", "data": { "currentPhase": 5, "status": "in_progress" } }
 
 planIndex = 0
 FOR EACH plan in plans:
   planIndex += 1
+
+  USE Task tool with subagent_type "whycode:state-agent":
+    { "action": "update-state", "data": { "currentPlan": plan.id } }
 
   # 1. CREATE PLAN XML (whycode-loop Aware)
   WRITE docs/PLAN.md with:
@@ -470,16 +489,16 @@ FOR EACH plan in plans:
 
   # 2. UPDATE LINEAR (via linear-agent)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
-    SPAWN whycode:context-loader-agent:
+    USE Task tool with subagent_type "whycode:context-loader-agent":
       { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
       → Returns planIssues
     issue = planIssues[plan.id]
-    SPAWN whycode:linear-agent:
+    USE Task tool with subagent_type "whycode:linear-agent":
       { "action": "update-issue", "data": { "issueId": issue.issueId, "stateName": "In Progress" } }
 
   # 3. EXECUTE WHYCODE-LOOP (Fresh context per iteration)
   #
-  # This replaces ralph-wiggum. Each iteration spawns a FRESH agent context.
+  # This replaces ralph-wiggum. Each iteration runs in a FRESH agent context.
   # Memory persists ONLY through filesystem (PLAN.md, loop-state/, git).
   #
   # Benefits:
@@ -530,7 +549,7 @@ FOR EACH plan in plans:
     DELETE docs/loop-state/{plan.id}-result.json (if exists)
 
     # Spawn agent in fresh context via Task tool
-    SPAWN Task(
+    USE Task tool(
       description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
       subagent_type: agentType,
       prompt: """
@@ -600,7 +619,7 @@ FOR EACH plan in plans:
       }
 
       The orchestrator VERIFIES externally after you claim PLAN_COMPLETE.
-      If verification fails, you'll be spawned again with the error.
+      If verification fails, you'll be run again with the error.
       """
     )
 
@@ -620,7 +639,7 @@ FOR EACH plan in plans:
     # Log task progress for visibility
     IF result.tasksCompleted.length > 0:
       FOR EACH taskId in result.tasksCompleted:
-        SPAWN whycode:state-agent:
+        USE Task tool with subagent_type "whycode:state-agent":
           {
             "action": "update-progress",
             "data": {
@@ -633,7 +652,7 @@ FOR EACH plan in plans:
 
     IF result.outcome == "PLAN_COMPLETE":
       # Agent claims completion - VERIFY EXTERNALLY
-      SPAWN whycode:validation-agent:
+      USE Task tool with subagent_type "whycode:validation-agent":
         { "validations": ["typecheck", "lint", "test", "build", "smoke"] }
 
       IF verification.status == "pass":
@@ -688,34 +707,34 @@ FOR EACH plan in plans:
     WARN: "Plan {plan.id} completed {plan.tasks.length} tasks in 1 iteration - SUSPICIOUS"
 
   # 4. POST-PLAN (only after loop completes successfully)
-  SPAWN whycode:state-agent:
+  USE Task tool with subagent_type "whycode:state-agent":
     { "action": "mark-complete", "data": { "type": "plan", "id": plan.id } }
     → Updates ROADMAP.md, STATE.md, whycode-state.json
 
   # 8. UPDATE LINEAR (only after verification passes)
   IF linear enabled AND exists(docs/decisions/linear-mapping.json):
-    SPAWN whycode:context-loader-agent:
+    USE Task tool with subagent_type "whycode:context-loader-agent":
       { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
       → Returns planIssues
     issue = planIssues[plan.id]
-    SPAWN whycode:linear-agent:
+    USE Task tool with subagent_type "whycode:linear-agent":
       { "action": "update-issue", "data": { "issueId": issue.issueId, "stateName": "Done" } }
 
   # 9. FULL TEST SUITE (every 3 plans)
   # Step 5 verification catches build/smoke failures
   # This runs the full test suite periodically
   IF planIndex % 3 == 0:
-    SPAWN whycode:validation-agent:
+    USE Task tool with subagent_type "whycode:validation-agent":
       { "validations": ["test"] }
     IF result.status == "fail":
       # Tests failing - need to fix before continuing
       CREATE fix task with error details
-      RE-SPAWN agent to fix tests
+      RE-RUN agent via Task tool to fix tests
 
 AFTER ALL PLANS:
   # CRITICAL: Final validation MUST include smoke test
   # A project that builds but crashes on startup is NOT complete
-  SPAWN whycode:validation-agent:
+  USE Task tool with subagent_type "whycode:validation-agent":
     { "validations": ["typecheck", "lint", "test", "build", "smoke"] }
   IF fails:
     IF result.results.smoke.status == "fail":
@@ -745,7 +764,7 @@ WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
   DELETE docs/loop-state/phase6-review-result.json (if exists)
 
-  SPAWN Task(
+  USE Task tool(
     subagent_type: "whycode:review-agent",
     prompt: """
     You are executing a code review (iteration {loopState.currentIteration}).
@@ -798,7 +817,7 @@ WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
   DELETE docs/loop-state/phase7-docs-result.json (if exists)
 
-  SPAWN Task(
+  USE Task tool(
     subagent_type: "whycode:docs-agent",
     prompt: """
     You are generating documentation (iteration {loopState.currentIteration}).
@@ -897,11 +916,11 @@ LINEAR_API_KEY=lin_api_xxxxxxxxxxxxx
 # Detection (happens in STARTUP step 5)
 IF env.LINEAR_API_KEY:
   linearEnabled = true
-  # Auto-fetch teams, use first team or ask user to select
-  linearTeamId = detected team ID
+  # Fetch teams via whycode:linear-agent; always prompt for selection
+  linearTeamId = selected team ID
   # Store in whycode-state.json
 
-# Usage (all via whycode:linear-agent)
+# Usage (all via whycode:linear-agent using direct GraphQL)
 - Issue creation: whycode:linear-agent { "action": "create-issue", ... }
 - Status updates: whycode:linear-agent { "action": "update-issue", ... }
 - Comments: whycode:linear-agent { "action": "add-comment", ... }

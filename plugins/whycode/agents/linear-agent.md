@@ -46,9 +46,23 @@ If no key is found, return `status: "failed"` with proof.
 
 **Workflow:**
 ```
-1. CALL GraphQL query: teams { nodes { id name key } }
-2. VERIFY response contains at least one team
-3. RETURN list with proof
+1. Build query:
+   query Teams { teams { nodes { id name key } } }
+2. CALL:
+   curl -s -H "Authorization: $LINEAR_API_KEY" -H "Content-Type: application/json" \
+     -d '{"query":"query Teams { teams { nodes { id name key } } }"}' \
+     https://api.linear.app/graphql
+3. VERIFY response contains teams.nodes with at least one entry
+4. RETURN list with proof
+```
+
+**Output:**
+```json
+{
+  "status": "success",
+  "teams": [{ "id": "UUID", "name": "Team Name", "key": "ABC" }],
+  "proof": { "apiCalled": true, "teamCount": 1 }
+}
 ```
 
 ### create-issue
@@ -103,7 +117,8 @@ If no key is found, return `status: "failed"` with proof.
 
 **Workflow:**
 ```
-1. QUERY workflowStates to resolve stateName -> stateId
+1. QUERY workflowStates to resolve stateName -> stateId:
+   query States { workflowStates { nodes { id name } } }
 2. CALL GraphQL mutation: issueUpdate(id: issueId, input: { stateId })
 3. CAPTURE full API response
 
