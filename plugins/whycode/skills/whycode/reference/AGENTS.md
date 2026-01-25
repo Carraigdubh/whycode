@@ -104,8 +104,9 @@ Orchestrator reads result, verifies, loops or completes
 ### At End of Each Iteration (MANDATORY - Before Exiting)
 
 ```
-WRITE docs/loop-state/{plan-id}-result.json with:
+WRITE docs/loop-state/{plan-id}-result.json with JSON ONLY (no extra text). Notes <= 800 chars.
 {
+  "runId": "{runId}",
   "planId": "{plan-id}",
   "iteration": {N},
   "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
@@ -119,11 +120,12 @@ WRITE docs/loop-state/{plan-id}-result.json with:
     "smoke": { "status": "pass|fail", "appStarted": true|false }
   },
   "filesChanged": { "created": [...], "modified": [...] },
-  "notes": "Summary of what was done this iteration"
+  "notes": "Summary of what was done this iteration (<= 800 chars)"
 }
 ```
 
 **IF YOU DON'T WRITE THE RESULT FILE, THE ORCHESTRATOR ASSUMES YOU CRASHED.**
+**DO NOT include raw command output in the result file.**
 
 ### Red Flags (Orchestrator Detects)
 

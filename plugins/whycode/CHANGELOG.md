@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.5] - 2026-01-25
+
+### Added
+- Subagent runId and run log entries in loop-state
+- JSON-only subagent output with note length cap
+
+### Changed
+- Explicit subagent banner includes runId for visibility
+- Degraded mode guidance when Task tool is unavailable
+
 ## [2.1.4] - 2026-01-25
 
 ### Added

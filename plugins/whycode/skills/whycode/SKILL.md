@@ -19,6 +19,7 @@ Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMP
 
 **Orchestrator is Coordination Only** - It MUST NOT implement tasks or edit product code directly.
 All execution is done by subagents run via Task/agent tools.
+Only minimal, structured summaries should enter the orchestrator context.
 
 ---
 
@@ -109,7 +110,7 @@ Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 The orchestrator can only touch PLAN and loop-state files directly for iteration control.
 
 **Use the Task tool to run subagents. Do not write "spawn" text; actually call Task.**
-**If Task/subagent tools are unavailable, STOP and ask the user. Do not execute tasks directly.**
+**If Task/subagent tools are unavailable, continue in degraded mode and log a warning to loop-state.**
 
 This keeps the orchestrator's context clean for coordination.
 
@@ -520,6 +521,7 @@ FOR EACH plan in plans:
     "maxIterations": loopMaxIterations,
     "currentIteration": 0,
     "status": "starting",
+    "currentRunId": null,
     "tasks": plan.tasks.map(task => ({
       "id": task.id,
       "name": task.name,
@@ -549,12 +551,18 @@ FOR EACH plan in plans:
     DELETE docs/loop-state/{plan.id}-result.json (if exists)
 
     # Spawn agent in fresh context via Task tool
+    runId = "{plan.id}-{loopState.currentIteration}-{NOW()}"
+    loopState.currentRunId = runId
+    WRITE docs/loop-state/{plan.id}.json = loopState
+    APPEND docs/loop-state/{plan.id}-run.log: "{NOW()} START runId={runId} agent={agentType} iteration={loopState.currentIteration}"
+
     USE Task tool(
       description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
       subagent_type: agentType,
       prompt: """
       === SUBAGENT RUNNING via Task tool ===
       This block is executed in a separate subagent context.
+      runId: {runId}
 
       You are executing plan {plan.id}, iteration {loopState.currentIteration}.
 
@@ -602,6 +610,14 @@ FOR EACH plan in plans:
 
       ## MANDATORY OUTPUT (BEFORE EXITING)
 
+      You MUST write docs/loop-state/{plan.id}-result.json with JSON ONLY (no extra text).
+      Notes must be <= 800 chars. Do not include raw command output.
+
+      {
+        "runId": "{runId}",
+        ...
+      }
+
       You MUST write docs/loop-state/{plan.id}-result.json with:
       {
         "planId": "{plan.id}",
@@ -644,6 +660,7 @@ FOR EACH plan in plans:
     iterationRecord.completedAt = NOW()
     iterationRecord.outcome = result.outcome
     iterationRecord.tasksAttempted = result.tasksCompleted
+    APPEND docs/loop-state/{plan.id}-run.log: "{NOW()} END runId={loopState.currentRunId} outcome={result.outcome}"
 
     # Log task progress for visibility
     IF result.tasksCompleted.length > 0:
