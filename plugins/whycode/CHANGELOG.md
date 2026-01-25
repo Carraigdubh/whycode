@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.8] - 2026-01-25
+
+### Added
+- Partial completion mode with requirements tracking
+- Requirements list stored in docs/requirements/pending.json
+
+### Changed
+- Completion mode prompt added at startup
+
 ## [2.1.7] - 2026-01-25
 
 ### Added

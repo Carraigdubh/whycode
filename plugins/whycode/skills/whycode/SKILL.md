@@ -220,18 +220,21 @@ This keeps the orchestrator's context clean for coordination.
      { "action": "list-runs", "data": { "targetDir": "docs/runs" } }
    SHOW last 5 runs with name + startedAt
 
-3. ASK user for max iterations (20/30/50/custom)
+3. ASK user for completion mode (strict/partial)
+   Store in whycode-state.json as completionMode
+
+4. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as loopMaxIterations
 
-4. ASK user to confirm or edit run name (default: {suggestedRunName})
+5. ASK user to confirm or edit run name (default: {suggestedRunName})
    Store in run meta
 
-5. ENSURE loop-state directory exists
+6. ENSURE loop-state directory exists
    CREATE docs/loop-state/ if not exists
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
-6. INIT RUN RECORD
+7. INIT RUN RECORD
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "init-run",
@@ -242,12 +245,13 @@ This keeps the orchestrator's context clean for coordination.
            "startedAt": NOW(),
            "version": "{version}",
            "flags": [],
-           "name": "{runName}"
+           "name": "{runName}",
+           "completionMode": "{completionMode}"
          }
        }
      }
 
-7. SYNC REFERENCE FILES (once per run)
+8. SYNC REFERENCE FILES (once per run)
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
@@ -258,7 +262,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-8. DISCOVER integrations:
+9. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY
@@ -512,7 +516,7 @@ INITIALIZE:
 
   # Use state-agent to initialize state files
   USE Task tool with subagent_type "whycode:state-agent":
-    { "action": "update-state", "data": { "currentPhase": 5, "status": "in_progress", "runId": runId } }
+    { "action": "update-state", "data": { "currentPhase": 5, "status": "in_progress", "runId": runId, "completionMode": completionMode } }
 
 planIndex = 0
 FOR EACH plan in plans:
@@ -524,6 +528,7 @@ FOR EACH plan in plans:
   # 1. CREATE PLAN XML (whycode-loop Aware)
   WRITE docs/PLAN.md with:
     - <completion-contract> (whycode-loop rules - agent must iterate until pass)
+    - <completion-mode> from whycode-state.json
     - <immutable-decisions> from tech-stack.json
     - <pm-commands> from pm-commands.json (include ALL: install, build, test, typecheck, lint, dev)
     - <available-tools> from integrations
@@ -755,6 +760,32 @@ FOR EACH plan in plans:
         SHOW: errorSummary
         WRITE docs/loop-state/{plan.id}.json = loopState
         # Continue to next iteration - agent will see the error
+
+    ELIF result.outcome == "PARTIAL_COMPLETE":
+      # Partial complete - record requirements and continue
+      USE Task tool with subagent_type "whycode:state-agent":
+        {
+          "action": "append-requirements",
+          "data": {
+            "target": "docs/requirements/pending.json",
+            "runId": runId,
+            "planId": plan.id,
+            "requirements": result.requirements
+          }
+        }
+      loopState.status = "partial_complete"
+      WRITE docs/loop-state/{plan.id}.json = loopState
+      # Update Linear issue as blocked with requirements summary
+      IF linear enabled AND exists(docs/decisions/linear-mapping.json):
+        USE Task tool with subagent_type "whycode:context-loader-agent":
+          { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
+          → Returns planIssues
+        issue = planIssues[plan.id]
+        USE Task tool with subagent_type "whycode:linear-agent":
+          { "action": "update-issue", "data": { "issueId": issue.issueId, "stateName": "Blocked" } }
+        USE Task tool with subagent_type "whycode:linear-agent":
+          { "action": "add-comment", "data": { "issueId": issue.issueId, "body": "Partial complete. Requirements: {result.requirements.join('; ')}" } }
+      BREAK
 
     ELIF result.outcome == "blocked":
       # Agent hit an architectural blocker - stop and escalate

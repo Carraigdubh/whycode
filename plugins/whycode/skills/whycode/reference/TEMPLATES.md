@@ -24,6 +24,8 @@ Plans use XML format. **Maximum 3 tasks per plan.**
     <rule>The orchestrator verifies externally - lying = sent back to fix</rule>
   </completion-contract>
 
+  <completion-mode>strict</completion-mode>
+
   <immutable-decisions>
     <!-- NEVER substitute these -->
     <package-manager>pnpm</package-manager>
@@ -61,6 +63,11 @@ Plans use XML format. **Maximum 3 tasks per plan.**
       <description>App must start without crashing</description>
     </check>
   </final-verification>
+
+  <requirements>
+    <!-- Optional: external setup needed for full completion -->
+    <requirement id="req-001">Set TWILIO_ACCOUNT_SID</requirement>
+  </requirements>
 
   <tasks>
     <task id="task-001" type="auto" linear-id="ABC-105">

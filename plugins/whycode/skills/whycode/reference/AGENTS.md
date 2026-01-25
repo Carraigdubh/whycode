@@ -109,7 +109,7 @@ WRITE docs/loop-state/{plan-id}-result.json with JSON ONLY (no extra text). Note
   "runId": "{runId}",
   "planId": "{plan-id}",
   "iteration": {N},
-  "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
+  "outcome": "PLAN_COMPLETE" | "PARTIAL_COMPLETE" | "incomplete" | "blocked",
   "tasksCompleted": ["task-001", "task-002"],
   "tasksPending": ["task-003"],
   "selfValidation": {
@@ -120,6 +120,10 @@ WRITE docs/loop-state/{plan-id}-result.json with JSON ONLY (no extra text). Note
     "smoke": { "status": "pass|fail", "appStarted": true|false }
   },
   "filesChanged": { "created": [...], "modified": [...] },
+  "requirements": [
+    "Set TWILIO_ACCOUNT_SID",
+    "Set TWILIO_AUTH_TOKEN"
+  ],
   "notes": "Summary of what was done this iteration (<= 800 chars)"
 }
 ```
@@ -267,6 +271,17 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
    - Create a checkpoint commit with a clear reason, e.g.:
      `wip({plan-id}): checkpoint - typecheck failing`
    - Write the result file with `outcome: "incomplete"` and include the failure summary
+
+6. PARTIAL COMPLETE MODE (If <completion-mode> is "partial"):
+
+   Use this mode when external setup is missing (API keys, deployments, interactive setup).
+   The goal is to make the code **build/typecheck clean** with safe guards.
+
+   Rules:
+   - Add runtime checks (env var guards) with clear error messages
+   - Avoid calling external services at build time
+   - Ensure typecheck/build pass with placeholders or stubs
+   - Set `outcome` to `"PARTIAL_COMPLETE"` and list unmet requirements
 
 5. ONLY AFTER ALL VERIFICATIONS PASS:
    - Append summary to docs/SUMMARY.md
