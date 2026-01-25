@@ -98,13 +98,14 @@ The smoke test ACTUALLY RUNS THE APP and checks for:
 Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 
 ### Context Management Rule
-**The orchestrator should NEVER:**
+  **The orchestrator should NEVER:**
 - Load full file contents directly (use `whycode:context-loader-agent`)
 - Run npm/pnpm/yarn commands directly (use `whycode:dependency-agent`)
 - Run build/test commands directly (use `whycode:validation-agent`)
 - Skip smoke tests - EVERY validation MUST include "smoke" to catch runtime errors
 - Call Linear API directly (use `whycode:linear-agent`)
 - Update state files directly (use `whycode:state-agent`)
+- Run git/GitHub commands directly (use `whycode:git-agent`)
 
 **HARD RULE (Autonomous Phases 5-8):** Any read/write outside of `docs/PLAN.md` and `docs/loop-state/*.json` must be done via a subagent.
 The orchestrator can only touch PLAN and loop-state files directly for iteration control.
@@ -251,7 +252,23 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-8. SYNC REFERENCE FILES (once per run)
+8. INIT RUN BRANCH (GitHub flow)
+   USE Task tool with subagent_type "whycode:git-agent":
+     {
+       "action": "init-branch",
+       "data": { "runId": runId, "runName": runName, "baseBranch": "main" }
+     }
+   USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "update-run",
+       "data": {
+         "runId": runId,
+         "targetDir": "docs/runs/{runId}",
+         "patch": { "branch": "{branchName}", "baseBranch": "main" }
+       }
+     }
+
+9. SYNC REFERENCE FILES (once per run)
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
@@ -262,7 +279,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-9. DISCOVER integrations:
+10. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY
@@ -736,13 +753,49 @@ FOR EACH plan in plans:
       USE Task tool with subagent_type "whycode:validation-agent":
         { "validations": ["typecheck", "lint", "test", "build", "smoke"] }
 
-      IF verification.status == "pass":
-        # SUCCESS!
-        iterationRecord.verificationResult = verification
-        loopState.status = "completed"
+    IF verification.status == "pass":
+      # SUCCESS!
+      iterationRecord.verificationResult = verification
+      loopState.status = "completed"
+      WRITE docs/loop-state/{plan.id}.json = loopState
+      LOG: "Plan {plan.id} completed in {loopState.currentIteration} iterations"
+
+      # GitHub: push branch after each plan
+      USE Task tool with subagent_type "whycode:git-agent":
+        { "action": "push-branch", "data": {} }
+      IF pushResult.status != "success":
+        USE Task tool with subagent_type "whycode:state-agent":
+          {
+            "action": "append-requirements",
+            "data": {
+              "target": "docs/requirements/pending.json",
+              "runId": runId,
+              "planId": plan.id,
+              "requirements": ["GitHub push failed. Authenticate and re-run resolve."]
+            }
+          }
+        loopState.status = "partial_complete"
         WRITE docs/loop-state/{plan.id}.json = loopState
-        LOG: "Plan {plan.id} completed in {loopState.currentIteration} iterations"
-        BREAK  # Exit loop - plan complete
+        BREAK
+
+      # GitHub: create PR once per run
+      USE Task tool with subagent_type "whycode:context-loader-agent":
+        { "action": "read-json", "target": "docs/runs/{runId}/run.json" }
+        → Returns runMeta
+      IF runMeta.json.prUrl is missing:
+        USE Task tool with subagent_type "whycode:git-agent":
+          { "action": "create-pr", "data": { "runId": runId, "runName": runName, "baseBranch": "main" } }
+        USE Task tool with subagent_type "whycode:state-agent":
+          {
+            "action": "update-run",
+            "data": {
+              "runId": runId,
+              "targetDir": "docs/runs/{runId}",
+              "patch": { "prUrl": prResult.data.url }
+            }
+          }
+
+      BREAK  # Exit loop - plan complete
 
       ELSE:
         # Verification failed - record and continue

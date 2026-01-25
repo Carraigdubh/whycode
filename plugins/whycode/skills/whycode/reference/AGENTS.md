@@ -37,6 +37,7 @@ Full agent definitions are in `../../../agents/`:
 | `whycode:linear-agent` | haiku | indigo | Linear API interactions |
 | `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
 | `whycode:state-agent` | haiku | brown | Update state files |
+| `whycode:git-agent` | haiku | black | Git/GitHub operations (branch, push, PR) |
 
 Each agent file contains:
 - **Frontmatter**: `name`, `description`, `model`, `color`, `tools` (scoped)

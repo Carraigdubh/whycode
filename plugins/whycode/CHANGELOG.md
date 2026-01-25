@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.1.9] - 2026-01-25
+
+### Added
+- GitHub run branches with friendly name + runId
+- Auto push after each plan
+- Auto PR creation per run
+
+### Changed
+- Git operations routed via new git-agent
+
 ## [2.1.8] - 2026-01-25
 
 ### Added

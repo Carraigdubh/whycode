@@ -19,7 +19,7 @@ Offload state management from the orchestrator. Read and write state files, retu
 You receive a task like:
 ```json
 {
-  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json" | "archive-run" | "init-run" | "list-runs" | "update-run" | "append-requirements",
+  "action": "update-state" | "update-roadmap" | "update-progress" | "get-state" | "mark-complete" | "sync-reference" | "write-json" | "archive-run" | "init-run" | "list-runs" | "update-run" | "append-requirements" | "append-run-commits",
   "data": { ... }
 }
 ```
@@ -387,6 +387,28 @@ Append unmet requirements to `docs/requirements/pending.json`.
 ```
 1. IF target exists: READ and parse; else start with { "items": [] }
 2. APPEND new items with runId, planId, timestamp
+3. WRITE and VERIFY
+```
+
+### append-run-commits
+Append commit SHAs to `docs/runs/{runId}/commits.json`.
+
+```json
+{
+  "action": "append-run-commits",
+  "data": {
+    "target": "docs/runs/2026-01-25T14-33-05Z/commits.json",
+    "runId": "2026-01-25T14-33-05Z",
+    "planId": "04-01",
+    "commits": ["abc123", "def456"]
+  }
+}
+```
+
+**Workflow:**
+```
+1. IF target exists: READ and parse; else start with { "runId": "...", "items": [] }
+2. APPEND new commit entries with planId + timestamp
 3. WRITE and VERIFY
 ```
 
