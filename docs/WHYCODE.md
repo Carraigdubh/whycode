@@ -199,13 +199,52 @@ Run: /plugin update whycode@whycode-marketplace
 1. **Version Check** - Displays current version, checks GitHub for updates
 2. **Changelog Display** - Shows what's new if update available
 3. **State Recovery** - Checks for existing `whycode-state.json` to resume
-4. **ralph-wiggum Check** - Verifies ralph-wiggum plugin is installed (required)
-5. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
+4. **Run Management** - Archives completed runs and lists recent runs
+5. **Completion Mode** - Prompts for `strict` or `partial`
+6. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
 
 **Dependencies:**
-- **ralph-wiggum** (required) - Provides `/ralph-loop` for autonomous iteration
 - **Linear API (LINEAR_API_KEY)** (optional) - Issue tracking integration
 - **Chrome extension** (optional) - E2E testing for web projects
+
+---
+
+## Run Management
+
+Each run is archived under `docs/runs/{runId}` and includes:
+- `run.json` (name, version, completionMode, branch/PR)
+- `loop-state/` (iteration history)
+- `commits.json` (per-plan commit list)
+
+Startup shows recent runs with name + start time. Completed runs are archived automatically.
+
+---
+
+## Completion Modes
+
+- **strict**: all verifications (typecheck/lint/test/build/smoke) must pass to complete a plan.
+- **partial**: allows build/typecheck clean completion when external setup is missing.
+  - Missing requirements are recorded in `docs/requirements/pending.json`.
+  - Linear issues are marked **Blocked** with explicit instructions.
+
+---
+
+## GitHub Workflow
+
+Each run uses a dedicated branch and PR:
+- Branch: `whycode/{friendly-name}-{runId}`
+- Pushes after each plan
+- PR created once per run (title: `WhyCode: {runName}`)
+
+If a push fails, the plan is marked `PARTIAL_COMPLETE` with instructions.
+
+---
+
+## Project Documentation (Source of Truth)
+
+Canonical docs live under `docs/project documentation/`.
+After each plan, the docs agent syncs changes and appends a run note to
+`docs/project documentation/INDEX.md`.
 
 WhyCode will guide you through:
 1. **Document Intake** - Provide your project documents, answer clarifying questions
@@ -1501,21 +1540,20 @@ Backlog → In Progress → Done
                     ↘ Blocked (on failure)
 ```
 
+When a plan is `PARTIAL_COMPLETE`, WhyCode posts a Linear comment listing
+exact requirements (env vars, config steps) and marks the issue **Blocked**.
+
 ### Mapping File
 
 All Linear IDs stored in `docs/decisions/linear-mapping.json`:
 
 ```json
 {
-  "projectIssueId": "ABC-123",
-  "features": {
-    "user-auth": {
-      "issueId": "ABC-124",
-      "tasks": {
-        "setup-clerk": "ABC-125",
-        "create-login-page": "ABC-126"
-      }
-    }
+  "teamId": "TEAM-123",
+  "parentIssueId": "UUID",
+  "parentIssueIdentifier": "ABC-100",
+  "planIssues": {
+    "01-01": { "issueId": "UUID", "issueIdentifier": "ABC-101" }
   }
 }
 ```

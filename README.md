@@ -76,6 +76,29 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 /whycode fix "desc"   # Fix with description
 ```
 
+## Startup Switches (Interactive)
+
+On startup, WhyCode prompts for:
+- **Completion mode**: `strict` (all verifications must pass) or `partial` (build/typecheck clean with requirements logged)
+- **Max iterations**: 20/30/50/custom
+- **Run name**: suggested, editable
+
+## Run Records
+
+Each run is archived under `docs/runs/{runId}` with:
+- `run.json` (name, version, completionMode, branch/PR)
+- `loop-state/` (iteration history)
+- `commits.json` (per-plan commit list)
+
+Project source-of-truth docs live in `docs/project documentation/` and are synced after each plan.
+
+## GitHub Workflow
+
+WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR:
+- Branch: `whycode/{friendly-name}-{runId}`
+- PR title: `WhyCode: {runName}`
+- If a plan is partial, the Linear issue is marked **Blocked** with requirements.
+
 ## What It Does
 
 **8-Phase Workflow:**
@@ -112,6 +135,9 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 - **whycode-loop**: Autonomous iteration with fresh context per iteration
 - **Linear Integration**: Issue tracking (optional)
 - **Version Checking**: Shows updates on startup with changelog
+- **Run Archiving**: Each run stored under `docs/runs/{runId}`
+- **Partial Completion**: Records unmet requirements without blocking all progress
+- **GitHub Workflow**: Per-run branch + PR, auto-push after each plan
 
 ## Repository Structure
 

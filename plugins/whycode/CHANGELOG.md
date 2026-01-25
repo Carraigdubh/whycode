@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-01-25
+
+### Changed
+- Documentation updated with run management, completion modes, and GitHub workflow
+
 ## [2.2.0] - 2026-01-25
 
 ### Added
