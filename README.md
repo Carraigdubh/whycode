@@ -92,7 +92,12 @@ Each run is archived under `docs/whycode/runs/{runId}` with:
 
 Project source-of-truth docs live in `docs/project documentation/` and are synced after each plan.
 
-WhyCode run artifacts live under `docs/whycode/` (state, loop-state, runs, plans, specs, decisions).
+## Preferred Documentation Structure
+
+- `docs/whycode/` → **WhyCode runtime root** (state, loop-state, runs, plans, specs, decisions, intake, audit, artifacts, features)
+- `docs/project documentation/` → **Canonical project documentation** (PRD, tech specs, API specs, etc.)
+
+WhyCode run artifacts live under `docs/whycode/` and should not be mixed with project docs.
 
 ## GitHub Workflow
 

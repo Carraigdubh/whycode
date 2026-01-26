@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.3] - 2026-01-25
+
+### Changed
+- README now documents the preferred documentation structure (docs/whycode vs project docs)
+
 ## [2.2.2] - 2026-01-25
 
 ### Changed
