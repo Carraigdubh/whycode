@@ -133,7 +133,7 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
    **NEVER assume a method exists. ALWAYS verify first.**
    ```
 
-7. **Log Completion**: Append a brief completion note to `docs/audit/log.md` (orchestrator handles Linear)
+7. **Log Completion**: Append a brief completion note to `docs/whycode/audit/log.md` (orchestrator handles Linear)
 8. **Write Summary**: Include validation results in `summary.md`:
    ```
    ## Validation Results
@@ -142,7 +142,7 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
    - Tests: ✅ 12/12 passing
    - Build: ✅ Pass
    ```
-9. **Return Reference**: `{ "status": "complete", "artifactPath": "docs/artifacts/task-xxx/" }`
+9. **Return Reference**: `{ "status": "complete", "artifactPath": "docs/whycode/artifacts/task-xxx/" }`
 
 **CRITICAL WHYCODE-LOOP CONTRACT**:
 ```
@@ -169,7 +169,7 @@ If verification fails, you'll be spawned again with the error.
 
 ## MANDATORY: Write Result File Before Exiting
 
-**You MUST write `docs/loop-state/{plan-id}-result.json` before exiting:**
+**You MUST write `docs/whycode/loop-state/{plan-id}-result.json` before exiting:**
 
 ```json
 {
@@ -210,9 +210,9 @@ You will receive a JSON file like:
     "Sign-in/sign-up routes working"
   ],
   "retrieveOnlyIfNeeded": [
-    "docs/specs/features/auth.md"
+    "docs/whycode/specs/features/auth.md"
   ],
-  "writeArtifactsTo": "docs/artifacts/task-001/"
+  "writeArtifactsTo": "docs/whycode/artifacts/task-001/"
 }
 ```
 

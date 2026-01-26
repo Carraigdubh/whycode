@@ -36,7 +36,7 @@ Read a file and return a concise summary (max 500 chars).
 ```json
 {
   "action": "read-summary",
-  "target": "docs/specs/master-prd.md"
+  "target": "docs/whycode/specs/master-prd.md"
 }
 ```
 
@@ -57,7 +57,7 @@ Read a file and return a concise summary (max 500 chars).
 ```json
 {
   "status": "success",
-  "file": "docs/specs/master-prd.md",
+  "file": "docs/whycode/specs/master-prd.md",
   "summary": "E-commerce app with 5 features: Auth, Products, Cart, Checkout, Admin. Tech: Next.js, Supabase, Clerk. Priority: MVP by phase 1.",
   "proof": {
     "fileExists": true,
@@ -75,7 +75,7 @@ Extract a specific field from a JSON/structured file.
 ```json
 {
   "action": "extract-field",
-  "target": "docs/decisions/tech-stack.json",
+  "target": "docs/whycode/decisions/tech-stack.json",
   "field": "packageManager"
 }
 ```
@@ -86,7 +86,7 @@ Read and parse a JSON file. Use only for small files where the orchestrator need
 ```json
 {
   "action": "read-json",
-  "target": "docs/plans/index.json"
+  "target": "docs/whycode/plans/index.json"
 }
 ```
 
@@ -102,7 +102,7 @@ Read and parse a JSON file. Use only for small files where the orchestrator need
 ```json
 {
   "status": "success",
-  "file": "docs/plans/index.json",
+  "file": "docs/whycode/plans/index.json",
   "json": { "plans": [...] },
   "proof": {
     "fileExists": true,
@@ -142,7 +142,7 @@ List files matching a pattern with brief descriptions.
 ```json
 {
   "action": "list-files",
-  "target": "docs/artifacts/",
+  "target": "docs/whycode/artifacts/",
   "pattern": "*/summary.md"
 }
 ```
@@ -162,8 +162,8 @@ List files matching a pattern with brief descriptions.
 {
   "status": "success",
   "files": [
-    { "path": "docs/artifacts/task-001/summary.md", "preview": "Auth setup - complete", "exists": true },
-    { "path": "docs/artifacts/task-002/summary.md", "preview": "Login form - complete", "exists": true }
+    { "path": "docs/whycode/artifacts/task-001/summary.md", "preview": "Auth setup - complete", "exists": true },
+    { "path": "docs/whycode/artifacts/task-002/summary.md", "preview": "Login form - complete", "exists": true }
   ],
   "proof": {
     "directoryExists": true,
@@ -242,7 +242,7 @@ When summarizing, prioritize:
 ```json
 {
   "status": "not-found",
-  "file": "docs/specs/missing.md",
+  "file": "docs/whycode/specs/missing.md",
   "proof": { "fileExists": false, "checkedAt": "2024-01-15T10:30:00Z" }
 }
 ```

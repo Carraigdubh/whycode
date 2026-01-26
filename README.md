@@ -85,14 +85,14 @@ On startup, WhyCode prompts for:
 
 ## Run Records
 
-Each run is archived under `docs/runs/{runId}` with:
+Each run is archived under `docs/whycode/runs/{runId}` with:
 - `run.json` (name, version, completionMode, branch/PR)
 - `loop-state/` (iteration history)
 - `commits.json` (per-plan commit list)
 
 Project source-of-truth docs live in `docs/project documentation/` and are synced after each plan.
 
-WhyCode skill reference files live under `docs/whycode/` (small, stable; no run artifacts).
+WhyCode run artifacts live under `docs/whycode/` (state, loop-state, runs, plans, specs, decisions).
 
 ## GitHub Workflow
 
@@ -137,7 +137,7 @@ WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR
 - **whycode-loop**: Autonomous iteration with fresh context per iteration
 - **Linear Integration**: Issue tracking (optional)
 - **Version Checking**: Shows updates on startup with changelog
-- **Run Archiving**: Each run stored under `docs/runs/{runId}`
+- **Run Archiving**: Each run stored under `docs/whycode/runs/{runId}`
 - **Partial Completion**: Records unmet requirements without blocking all progress
 - **GitHub Workflow**: Per-run branch + PR, auto-push after each plan
 

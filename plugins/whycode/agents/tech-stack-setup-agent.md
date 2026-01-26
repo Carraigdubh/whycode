@@ -256,7 +256,7 @@ Log: "📝 Files modified: {files_modified}"
 Document what was configured for other agents:
 
 ```
-CREATE: docs/decisions/integration-setup.md
+CREATE: docs/whycode/decisions/integration-setup.md
 
 # Integration Setup Reference
 
@@ -344,7 +344,7 @@ RETURN: {
   "configurationsApplied": [config.name for config in configurations_needed],
   "filesCreated": files_created,
   "filesModified": files_modified,
-  "referenceDoc": "docs/decisions/integration-setup.md",
+  "referenceDoc": "docs/whycode/decisions/integration-setup.md",
   "buildStatus": "passing"
 }
 ```

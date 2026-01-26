@@ -60,13 +60,13 @@ All agents execute autonomously using **whycode-loop** - a native iteration syst
 
 **How it works:**
 ```
-Orchestrator writes state → docs/loop-state/{plan-id}.json
+Orchestrator writes state → docs/whycode/loop-state/{plan-id}.json
          ↓
 Task tool runs agent (fresh context)
          ↓
 Agent reads state from files (PLAN.md, loop-state/)
          ↓
-Agent works, writes result → docs/loop-state/{plan-id}-result.json
+Agent works, writes result → docs/whycode/loop-state/{plan-id}-result.json
          ↓
 Orchestrator reads result, verifies, loops or completes
 ```
@@ -86,11 +86,11 @@ Orchestrator reads result, verifies, loops or completes
 ### At Start of Each Iteration (MANDATORY)
 
 ```
-1. READ docs/loop-state/{plan-id}.json
+1. READ docs/whycode/loop-state/{plan-id}.json
    - See iteration history
    - Check lastVerificationFailure (fix this first!)
 
-2. READ docs/PLAN.md
+2. READ docs/whycode/PLAN.md
    - Your task specification
    - immutable-decisions, pm-commands
 
@@ -105,7 +105,7 @@ Orchestrator reads result, verifies, loops or completes
 ### At End of Each Iteration (MANDATORY - Before Exiting)
 
 ```
-WRITE docs/loop-state/{plan-id}-result.json with JSON ONLY (no extra text). Notes <= 800 chars.
+WRITE docs/whycode/loop-state/{plan-id}-result.json with JSON ONLY (no extra text). Notes <= 800 chars.
 {
   "runId": "{runId}",
   "planId": "{plan-id}",
@@ -150,7 +150,7 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
 ```
 0. FRESH CONTEXT SETUP (MANDATORY - You have NO memory)
 
-   a. READ docs/loop-state/{plan-id}.json
+   a. READ docs/whycode/loop-state/{plan-id}.json
       - Check currentIteration, lastVerificationFailure
       - IF lastVerificationFailure exists: FIX THIS FIRST
 
@@ -160,7 +160,7 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
 
    c. READ your agent definition: agents/{agent-type}.md
 
-1. READ docs/PLAN.md (XML format)
+1. READ docs/whycode/PLAN.md (XML format)
 
 2. PARSE CONFIGURATION:
    - <immutable-decisions>: Use ONLY these technologies
@@ -205,18 +205,18 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
       git commit -m "feat({plan-id}): {task-name}"
 
    g. UPDATE loop-state task tracking:
-      - READ docs/loop-state/{plan-id}.json
+      - READ docs/whycode/loop-state/{plan-id}.json
       - SET task.status = "done"
       - SET task.lastVerified = "{ISO timestamp}"
-      - WRITE docs/loop-state/{plan-id}.json
+      - WRITE docs/whycode/loop-state/{plan-id}.json
 
    h. UPDATE LINEAR (if enabled):
-      - Append a brief note to docs/audit/log.md
+      - Append a brief note to docs/whycode/audit/log.md
       - The orchestrator will update Linear
 
    i. DOCUMENT THE TASK:
-      - CREATE docs/tasks/{plan-id}-{task-id}.md
-      - APPEND to docs/audit/log.md
+      - CREATE docs/whycode/tasks/{plan-id}-{task-id}.md
+      - APPEND to docs/whycode/audit/log.md
       - UPDATE CHANGELOG.md (unreleased section)
 
    j. APPLY DEVIATION RULES if needed:
@@ -224,7 +224,7 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
       - Rule 2: Auto-add security/correctness
       - Rule 3: Auto-fix blockers
       - Rule 4: STOP for architectural changes
-      - Rule 5: Log enhancements to docs/ISSUES.md
+      - Rule 5: Log enhancements to docs/whycode/ISSUES.md
 
 4. FINAL VERIFICATION (MANDATORY BEFORE PLAN_COMPLETE):
 
@@ -285,12 +285,12 @@ All agents follow this protocol within **whycode-loop** (fresh context per itera
    - Set `outcome` to `"PARTIAL_COMPLETE"` and list unmet requirements
 
 5. ONLY AFTER ALL VERIFICATIONS PASS:
-   - Append summary to docs/SUMMARY.md
-   - UPDATE docs/features/{feature}.md
+   - Append summary to docs/whycode/SUMMARY.md
+   - UPDATE docs/whycode/features/{feature}.md
 
 6. WRITE RESULT FILE (MANDATORY - Before exiting):
 
-   WRITE docs/loop-state/{plan-id}-result.json:
+   WRITE docs/whycode/loop-state/{plan-id}-result.json:
    {
      "planId": "{plan-id}",
      "iteration": {currentIteration},
@@ -339,8 +339,8 @@ You are executing plan {plan-id}, iteration {N}.
 
 ## MANDATORY SETUP (DO NOT SKIP)
 
-1. READ docs/loop-state/{plan-id}.json - Iteration history, previous failures
-2. READ docs/PLAN.md - Your task specification
+1. READ docs/whycode/loop-state/{plan-id}.json - Iteration history, previous failures
+2. READ docs/whycode/PLAN.md - Your task specification
 3. READ your agent definition from agents/{agent-type}.md
 4. READ docs/whycode/reference/AGENTS.md - Execution protocol
 5. CHECK git log --oneline -10 - See what previous iterations committed
@@ -370,7 +370,7 @@ Run ALL of these - they MUST pass:
 
 ## MANDATORY OUTPUT (BEFORE EXITING)
 
-You MUST write docs/loop-state/{plan-id}-result.json with:
+You MUST write docs/whycode/loop-state/{plan-id}-result.json with:
 {
   "planId": "{plan-id}",
   "iteration": {N},
@@ -399,8 +399,8 @@ You are executing a TDD plan {plan-id}, iteration {N}.
 
 ## MANDATORY SETUP
 
-1. READ docs/loop-state/{plan-id}.json - Check lastVerificationFailure
-2. READ docs/PLAN.md - Task specification
+1. READ docs/whycode/loop-state/{plan-id}.json - Check lastVerificationFailure
+2. READ docs/whycode/PLAN.md - Task specification
 3. READ agents/test-agent.md - Your agent definition
 4. CHECK git log --oneline -10 - See previous work
 
@@ -434,7 +434,7 @@ FOR EACH incomplete <task>:
 
 ## MANDATORY OUTPUT
 
-WRITE docs/loop-state/{plan-id}-result.json with outcome and selfValidation.
+WRITE docs/whycode/loop-state/{plan-id}-result.json with outcome and selfValidation.
 ```
 
 ---
@@ -450,16 +450,16 @@ You are a documentation agent executing iteration {N}.
 
 ## MANDATORY SETUP
 
-1. READ docs/loop-state/{plan-id}.json - Check previous iteration status
+1. READ docs/whycode/loop-state/{plan-id}.json - Check previous iteration status
 2. READ docs/whycode/reference/TEMPLATES.md - Document formats
 3. READ agents/docs-agent.md - Your agent definition
 
 ## DOCUMENTATION PROTOCOL
 
 1. Read context from:
-   - docs/PROJECT.md (vision)
-   - docs/ROADMAP.md (phases)
-   - docs/SUMMARY.md (what was built)
+   - docs/whycode/PROJECT.md (vision)
+   - docs/whycode/ROADMAP.md (phases)
+   - docs/whycode/SUMMARY.md (what was built)
    - Source code files
 
 2. FOR EACH documentation task:
@@ -485,7 +485,7 @@ DOCUMENTS TO GENERATE:
 
 ## MANDATORY OUTPUT
 
-WRITE docs/loop-state/{plan-id}-result.json with outcome.
+WRITE docs/whycode/loop-state/{plan-id}-result.json with outcome.
 ```
 
 ---
@@ -496,7 +496,7 @@ When `<linear enabled="true">` in the plan:
 
 ```
 # Agents do NOT call Linear directly in this build.
-# Log task start/finish to docs/audit/log.md and include the linear-id.
+# Log task start/finish to docs/whycode/audit/log.md and include the linear-id.
 # The orchestrator handles Linear updates.
 ```
 

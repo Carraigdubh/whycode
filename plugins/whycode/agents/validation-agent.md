@@ -45,7 +45,7 @@ Or for a single validation:
 **CRITICAL: Every validation MUST capture exit code and verify output artifacts. Never trust command success alone.**
 
 ```
-1. READ docs/decisions/pm-commands.json if not provided in input
+1. READ docs/whycode/decisions/pm-commands.json if not provided in input
 
 2. FOR EACH validation requested:
 

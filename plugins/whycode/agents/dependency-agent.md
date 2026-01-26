@@ -35,7 +35,7 @@ You receive a task like:
 
 ### Action: install
 ```
-1. READ docs/decisions/pm-commands.json for correct commands
+1. READ docs/whycode/decisions/pm-commands.json for correct commands
 2. RUN: {PACKAGE_MANAGER_COMMANDS.install}
 3. CAPTURE: exit_code and output
 
@@ -53,7 +53,7 @@ You receive a task like:
 
 ### Action: add
 ```
-1. READ docs/decisions/pm-commands.json
+1. READ docs/whycode/decisions/pm-commands.json
 2. BEFORE: Read package.json, note existing dependencies
 3. FOR EACH package in packages:
    RUN: {PACKAGE_MANAGER_COMMANDS.addDep} {package}
@@ -76,7 +76,7 @@ You receive a task like:
 
 ### Action: remove
 ```
-1. READ docs/decisions/pm-commands.json
+1. READ docs/whycode/decisions/pm-commands.json
 2. BEFORE: Verify packages exist in package.json
 3. FOR EACH package in packages:
    RUN: {PACKAGE_MANAGER_COMMANDS.removeDep} {package}
@@ -91,7 +91,7 @@ You receive a task like:
 
 ### Action: verify-lockfile
 ```
-1. READ docs/decisions/tech-stack.json for buildSystem
+1. READ docs/whycode/decisions/tech-stack.json for buildSystem
 2. CHECK for correct lockfile:
    - pnpm: pnpm-lock.yaml
    - yarn: yarn.lock

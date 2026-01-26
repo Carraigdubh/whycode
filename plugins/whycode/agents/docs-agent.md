@@ -65,10 +65,10 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
 ## Workflow
 
 1. **Load Project Context**:
-   - Read `docs/PROJECT.md` for vision and goals
-   - Read `docs/ROADMAP.md` for what phases were completed
-   - Read `docs/SUMMARY.md` for implementation details
-   - Read `docs/decisions/tech-stack.json` for actual technologies
+   - Read `docs/whycode/PROJECT.md` for vision and goals
+   - Read `docs/whycode/ROADMAP.md` for what phases were completed
+   - Read `docs/whycode/SUMMARY.md` for implementation details
+   - Read `docs/whycode/decisions/tech-stack.json` for actual technologies
    - Read `docs/project documentation/INDEX.md` if present
 
 2. **Scan Implementation**:
@@ -276,4 +276,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## Completion Logging
 
-When complete, append a brief note to `docs/audit/log.md` with the docs generated.
+When complete, append a brief note to `docs/whycode/audit/log.md` with the docs generated.

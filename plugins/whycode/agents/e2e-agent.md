@@ -225,7 +225,7 @@ appId: com.example.app
       "name": "Form validation",
       "status": "fail",
       "error": "Expected error message not displayed",
-      "screenshot": "docs/artifacts/e2e/form-validation-fail.png"
+      "screenshot": "docs/whycode/artifacts/e2e/form-validation-fail.png"
     }
   ],
   "consoleErrors": [],
@@ -281,4 +281,4 @@ None
 
 ## Completion Logging
 
-After E2E tests complete, append a brief result summary to `docs/audit/log.md`.\nIf there are critical failures, also append a short entry to `docs/review/critical-issues.md`.
+After E2E tests complete, append a brief result summary to `docs/whycode/audit/log.md`.\nIf there are critical failures, also append a short entry to `docs/review/critical-issues.md`.

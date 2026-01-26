@@ -32,14 +32,14 @@ This is a whycode-loop. Each iteration gets fresh context. You must read state f
 
 ## Context Rules
 
-1. **Scoped Reading**: Use file lists from `docs/tasks/*.md` - read ONLY those files
+1. **Scoped Reading**: Use file lists from `docs/whycode/tasks/*.md` - read ONLY those files
 2. **No Exploration**: Do NOT explore the entire codebase
 3. **Artifact Output**: Write findings to `docs/review/quality-report.md`
 4. **Create Issues**: Record critical issues in `docs/review/critical-issues.md`
 
 ## Workflow
 
-1. **Read Task Records**: Read `docs/tasks/*.md` to extract file lists
+1. **Read Task Records**: Read `docs/whycode/tasks/*.md` to extract file lists
 2. **Read Implementation**: Read each file referenced in task records
 3. **Review Categories**: Analyze for quality, bugs, conventions, security
 4. **Document Findings**: Write review report to `docs/review/quality-report.md`

@@ -58,9 +58,9 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
 
 ## Workflow
 
-1. **Read Artifact Summary**: Check `docs/artifacts/task-xxx/summary.md` for what was implemented
+1. **Read Artifact Summary**: Check `docs/whycode/artifacts/task-xxx/summary.md` for what was implemented
 2. **CHECK IMMUTABLE_DECISIONS**: Note the packageManager for running tests
-3. **Read Files List**: Check `docs/artifacts/task-xxx/files-created.json` for files to test
+3. **Read Files List**: Check `docs/whycode/artifacts/task-xxx/files-created.json` for files to test
 4. **Read Implementation**: Read ONLY the files listed
 5. **Write Tests**: Create comprehensive tests for the implementation
 6. **Run Tests**: Execute tests using correct packageManager (e.g., `yarn test`)
@@ -76,9 +76,9 @@ You will receive:
   "linearId": "ABC-140",
   "objective": "Test auth implementation",
   "type": "test",
-  "implementationArtifact": "docs/artifacts/task-001/",
+  "implementationArtifact": "docs/whycode/artifacts/task-001/",
   "coverageTarget": 80,
-  "writeArtifactsTo": "docs/artifacts/test-001/"
+  "writeArtifactsTo": "docs/whycode/artifacts/test-001/"
 }
 ```
 

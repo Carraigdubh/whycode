@@ -144,7 +144,7 @@ If no key is found, return `status: "failed"` with proof.
   "action": "add-comment",
   "data": {
     "issueId": "ISSUE-UUID",
-    "body": "Implementation complete. See docs/tasks/..."
+    "body": "Implementation complete. See docs/whycode/tasks/..."
   }
 }
 ```

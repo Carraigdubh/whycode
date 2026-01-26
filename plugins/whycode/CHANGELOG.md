@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-01-25
+
+### Changed
+- WhyCode runtime artifacts now live under docs/whycode
+- Documentation updated to match new structure
+
 ## [2.2.1] - 2026-01-25
 
 ### Changed
@@ -33,7 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - Partial completion mode with requirements tracking
-- Requirements list stored in docs/requirements/pending.json
+- Requirements list stored in docs/whycode/requirements/pending.json
 
 ### Changed
 - Completion mode prompt added at startup
@@ -50,8 +56,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [2.1.6] - 2026-01-25
 
 ### Added
-- Run archive folders under docs/runs/{runId}
-- Run metadata file docs/runs/{runId}/run.json
+- Run archive folders under docs/whycode/runs/{runId}
+- Run metadata file docs/whycode/runs/{runId}/run.json
 
 ### Changed
 - Existing in-progress run is archived before starting a new run
@@ -97,13 +103,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 - **BREAKING**: Replaced `ralph-wiggum` dependency with native `whycode-loop`
   - Each iteration now spawns in a **fresh 200k token context** (no context degradation)
-  - Memory persists only through filesystem (`docs/loop-state/`, git, PLAN.md)
+  - Memory persists only through filesystem (`docs/whycode/loop-state/`, git, PLAN.md)
   - No external plugin dependency required
   - Based on [The Ralph Wiggum Playbook](https://humanlayer.dev/blog/ralph-wiggum-playbook)
 
 ### Added
-- New state file pattern: `docs/loop-state/{plan-id}.json` for iteration tracking
-- Result file pattern: `docs/loop-state/{plan-id}-result.json` for agent results
+- New state file pattern: `docs/whycode/loop-state/{plan-id}.json` for iteration tracking
+- Result file pattern: `docs/whycode/loop-state/{plan-id}-result.json` for agent results
 - All agents now read state from files at start (fresh context awareness)
 - External validation after `PLAN_COMPLETE` (orchestrator verifies independently)
 

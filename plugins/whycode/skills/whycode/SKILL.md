@@ -107,7 +107,7 @@ Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 - Update state files directly (use `whycode:state-agent`)
 - Run git/GitHub commands directly (use `whycode:git-agent`)
 
-**HARD RULE (Autonomous Phases 5-8):** Any read/write outside of `docs/PLAN.md` and `docs/loop-state/*.json` must be done via a subagent.
+**HARD RULE (Autonomous Phases 5-8):** Any read/write outside of `docs/whycode/PLAN.md` and `docs/whycode/loop-state/*.json` must be done via a subagent.
 The orchestrator can only touch PLAN and loop-state files directly for iteration control.
 
 **Use the Task tool to run subagents. Do not write "spawn" text; actually call Task.**
@@ -189,7 +189,7 @@ This keeps the orchestrator's context clean for coordination.
    runId = ISO timestamp with ":" replaced by "-" (e.g., 2026-01-25T14-33-05Z)
    suggestedRunName = "Run {YYYY-MM-DD HH:MM}"
 
-1. CHECK for docs/whycode-state.json
+1. CHECK for docs/whycode/state.json
    IF exists AND status == "in_progress":
      Show: "Found WhyCode at Phase {X}, Plan {Y}. Resume? [Y/n]"
      IF yes: Jump to saved position
@@ -199,9 +199,9 @@ This keeps the orchestrator's context clean for coordination.
            "action": "archive-run",
            "data": {
              "runId": runId,
-             "sourceState": "docs/whycode-state.json",
-             "sourceLoopDir": "docs/loop-state",
-             "targetDir": "docs/runs/{runId}"
+             "sourceState": "docs/whycode/state.json",
+             "sourceLoopDir": "docs/whycode/loop-state",
+             "targetDir": "docs/whycode/runs/{runId}"
            }
          }
    IF exists AND status == "completed":
@@ -210,15 +210,15 @@ This keeps the orchestrator's context clean for coordination.
           "action": "archive-run",
           "data": {
             "runId": runId,
-            "sourceState": "docs/whycode-state.json",
-            "sourceLoopDir": "docs/loop-state",
-            "targetDir": "docs/runs/{runId}"
+            "sourceState": "docs/whycode/state.json",
+            "sourceLoopDir": "docs/whycode/loop-state",
+            "targetDir": "docs/whycode/runs/{runId}"
           }
         }
 
 2. SHOW previous runs (if any)
    USE Task tool with subagent_type "whycode:state-agent":
-     { "action": "list-runs", "data": { "targetDir": "docs/runs" } }
+     { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
    SHOW last 5 runs with name + startedAt
 
 3. ASK user for completion mode (strict/partial)
@@ -234,7 +234,7 @@ This keeps the orchestrator's context clean for coordination.
    CREATE docs/whycode/ if not exists
 
 7. ENSURE loop-state directory exists
-   CREATE docs/loop-state/ if not exists
+   CREATE docs/whycode/loop-state/ if not exists
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
@@ -244,7 +244,7 @@ This keeps the orchestrator's context clean for coordination.
        "action": "init-run",
        "data": {
          "runId": runId,
-         "targetDir": "docs/runs/{runId}",
+         "targetDir": "docs/whycode/runs/{runId}",
          "meta": {
            "startedAt": NOW(),
            "version": "{version}",
@@ -266,7 +266,7 @@ This keeps the orchestrator's context clean for coordination.
        "action": "update-run",
        "data": {
          "runId": runId,
-         "targetDir": "docs/runs/{runId}",
+         "targetDir": "docs/whycode/runs/{runId}",
          "patch": { "branch": "{branchName}", "baseBranch": "main" }
        }
      }
@@ -350,8 +350,8 @@ This keeps the orchestrator's context clean for coordination.
    - Technical constraints
    - Integrations required
 3. CONFIRM each extraction with user
-4. WRITE docs/intake/project-understanding.md
-5. WRITE docs/audit/intake-log.md
+4. WRITE docs/whycode/intake/project-understanding.md
+5. WRITE docs/whycode/audit/intake-log.md
 6. UPDATE whycode-state.json: phase=0, status=complete
 ```
 
@@ -366,9 +366,9 @@ IF existing codebase detected:
     - Tech stack in use
     - Architecture patterns
     - Entry points
-  WRITE docs/codebase/SUMMARY.md
-  WRITE docs/codebase/STACK.md
-  WRITE docs/codebase/ARCHITECTURE.md
+  WRITE docs/whycode/codebase/SUMMARY.md
+  WRITE docs/whycode/codebase/STACK.md
+  WRITE docs/whycode/codebase/ARCHITECTURE.md
 ```
 
 ---
@@ -394,14 +394,14 @@ IF NOT skip:
 1. DETECT or ASK project type
 2. ASK language and build system preferences
 3. VERIFY build system installed
-4. CREATE docs/decisions/pm-commands.json:
+4. CREATE docs/whycode/decisions/pm-commands.json:
    { "install": "...", "addDep": "...", "build": "...", "test": "..." }
 5. ASK framework choice
 6. ASK service providers (database, auth, etc.)
 7. USE Task tool with subagent_type "whycode:tech-stack-setup-agent" to configure
 8. VERIFY build passes
-9. WRITE docs/decisions/tech-stack.json
-10. WRITE docs/audit/tech-decisions.md
+9. WRITE docs/whycode/decisions/tech-stack.json
+10. WRITE docs/whycode/audit/tech-decisions.md
 11. WRITE docs/adr/ADR-001-tech-stack.md
 ```
 
@@ -414,9 +414,9 @@ IF NOT skip:
 2. ASK user to approve/edit PRD
 3. BREAK into features
 4. FOR EACH feature:
-   WRITE docs/features/{feature-name}.md
+   WRITE docs/whycode/features/{feature-name}.md
 5. GENERATE task graph with dependencies
-6. WRITE docs/specs/master-prd.md
+6. WRITE docs/whycode/specs/master-prd.md
 7. ASK user to approve task breakdown
 ```
 
@@ -432,7 +432,7 @@ IF NOT skip:
 2. ASK user to choose
 3. USE Task tool with subagent_type "general-purpose" to design
 4. WRITE docs/adr/ADR-002-architecture.md
-5. WRITE docs/architecture/OVERVIEW.md
+5. WRITE docs/whycode/architecture/OVERVIEW.md
 6. GENERATE plans from task graph (MAX 3 TASKS PER PLAN)
 
    **CRITICAL: Plans must be whycode-loop-aware**
@@ -447,7 +447,7 @@ IF NOT skip:
    **Why?** Agents execute in whycode-loop with fresh context per iteration.
    Clear criteria = agent iterates until success. Vague criteria = agent claims "done" prematurely.
 
-7. WRITE docs/plans/index.json
+7. WRITE docs/whycode/plans/index.json
 ```
 
 ---
@@ -462,24 +462,24 @@ IF NOT skip:
 INITIALIZE:
   # Use context-loader-agent instead of loading files directly
   USE Task tool with subagent_type "whycode:context-loader-agent":
-    { "action": "read-summary", "target": "docs/decisions/tech-stack.json" }
+    { "action": "read-summary", "target": "docs/whycode/decisions/tech-stack.json" }
     → Returns summary, not full content
 
   USE Task tool with subagent_type "whycode:context-loader-agent":
-    { "action": "read-summary", "target": "docs/plans/index.json" }
+    { "action": "read-summary", "target": "docs/whycode/plans/index.json" }
     → Returns plan count and IDs only
 
   # Use linear-agent for batch issue creation
   IF linearEnabled:
     # Get team ID from state (set during startup discovery)
   USE Task tool with subagent_type "whycode:context-loader-agent":
-      { "action": "extract-field", "target": "docs/whycode-state.json", "field": "linearTeamId" }
+      { "action": "extract-field", "target": "docs/whycode/state.json", "field": "linearTeamId" }
       → Returns teamId
 
     IF teamId:
       # 2. Read plans from index (via context-loader)
   USE Task tool with subagent_type "whycode:context-loader-agent":
-        { "action": "read-json", "target": "docs/plans/index.json" }
+        { "action": "read-json", "target": "docs/whycode/plans/index.json" }
         → Returns parsed plan list
       plans = result.json.plans
 
@@ -521,7 +521,7 @@ INITIALIZE:
         {
           "action": "write-json",
           "data": {
-            "target": "docs/decisions/linear-mapping.json",
+            "target": "docs/whycode/decisions/linear-mapping.json",
             "json": {
               "teamId": "teamId",
               "parentIssueId": "UUID",
@@ -546,7 +546,7 @@ FOR EACH plan in plans:
     { "action": "update-state", "data": { "currentPlan": plan.id } }
 
   # 1. CREATE PLAN XML (whycode-loop Aware)
-  WRITE docs/PLAN.md with:
+  WRITE docs/whycode/PLAN.md with:
     - <completion-contract> (whycode-loop rules - agent must iterate until pass)
     - <completion-mode> from whycode-state.json
     - <immutable-decisions> from tech-stack.json
@@ -564,9 +564,9 @@ FOR EACH plan in plans:
   See reference/TEMPLATES.md for full XML format.
 
   # 2. UPDATE LINEAR (via linear-agent)
-  IF linear enabled AND exists(docs/decisions/linear-mapping.json):
+  IF linear enabled AND exists(docs/whycode/decisions/linear-mapping.json):
     USE Task tool with subagent_type "whycode:context-loader-agent":
-      { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
+      { "action": "extract-field", "target": "docs/whycode/decisions/linear-mapping.json", "field": "planIssues" }
       → Returns planIssues
     issue = planIssues[plan.id]
     USE Task tool with subagent_type "whycode:linear-agent":
@@ -606,7 +606,7 @@ FOR EACH plan in plans:
     "iterations": [],
     "lastVerificationFailure": null
   }
-  WRITE docs/loop-state/{plan.id}.json = loopState
+  WRITE docs/whycode/loop-state/{plan.id}.json = loopState
 
   # The whycode-loop
   WHILE loopState.currentIteration < loopMaxIterations:
@@ -620,16 +620,16 @@ FOR EACH plan in plans:
     }
     loopState.iterations.append(iterationRecord)
     loopState.status = "iterating"
-    WRITE docs/loop-state/{plan.id}.json = loopState
+    WRITE docs/whycode/loop-state/{plan.id}.json = loopState
 
     # Delete previous result file to ensure fresh result
-    DELETE docs/loop-state/{plan.id}-result.json (if exists)
+    DELETE docs/whycode/loop-state/{plan.id}-result.json (if exists)
 
     # Spawn agent in fresh context via Task tool
     runId = "{plan.id}-{loopState.currentIteration}-{NOW()}"
     loopState.currentRunId = runId
-    WRITE docs/loop-state/{plan.id}.json = loopState
-    APPEND docs/loop-state/{plan.id}-run.log: "{NOW()} START runId={runId} agent={agentType} iteration={loopState.currentIteration}"
+    WRITE docs/whycode/loop-state/{plan.id}.json = loopState
+    APPEND docs/whycode/loop-state/{plan.id}-run.log: "{NOW()} START runId={runId} agent={agentType} iteration={loopState.currentIteration}"
 
     USE Task tool(
       description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
@@ -645,8 +645,8 @@ FOR EACH plan in plans:
 
       ## MANDATORY SETUP (DO NOT SKIP)
 
-      1. READ docs/PLAN.md - Your task specification
-      2. READ docs/loop-state/{plan.id}.json - Iteration history and any previous failures
+      1. READ docs/whycode/PLAN.md - Your task specification
+      2. READ docs/whycode/loop-state/{plan.id}.json - Iteration history and any previous failures
       3. READ your agent definition from agents/{agentType}.md
       4. READ docs/whycode/reference/AGENTS.md - Execution protocol
       5. CHECK git log --oneline -10 - See what previous iterations committed
@@ -672,7 +672,7 @@ FOR EACH plan in plans:
          c. Run <verify> command - MUST pass
          d. If fails, fix and retry
          e. Commit when passing
-         f. Update docs/loop-state/{plan.id}.json task status to "done" with timestamp
+         f. Update docs/whycode/loop-state/{plan.id}.json task status to "done" with timestamp
 
       ## MANDATORY VERIFICATION (BEFORE CLAIMING COMPLETE)
 
@@ -685,7 +685,7 @@ FOR EACH plan in plans:
 
       ## MANDATORY OUTPUT (BEFORE EXITING)
 
-      You MUST write docs/loop-state/{plan.id}-result.json with JSON ONLY (no extra text).
+      You MUST write docs/whycode/loop-state/{plan.id}-result.json with JSON ONLY (no extra text).
       Notes must be <= 800 chars. Do not include raw command output.
 
       {
@@ -693,7 +693,7 @@ FOR EACH plan in plans:
         ...
       }
 
-      You MUST write docs/loop-state/{plan.id}-result.json with:
+      You MUST write docs/whycode/loop-state/{plan.id}-result.json with:
       {
         "planId": "{plan.id}",
         "iteration": {loopState.currentIteration},
@@ -721,21 +721,21 @@ FOR EACH plan in plans:
 
     # Record subagent start for auditing
     loopState.lastSubagentStartedAt = NOW()
-    WRITE docs/loop-state/{plan.id}.json = loopState
+    WRITE docs/whycode/loop-state/{plan.id}.json = loopState
 
     # Read agent result
-    IF NOT exists(docs/loop-state/{plan.id}-result.json):
+    IF NOT exists(docs/whycode/loop-state/{plan.id}-result.json):
       # Agent crashed or failed to write result
       iterationRecord.outcome = "crashed"
       iterationRecord.errorSummary = "Agent did not write result file"
-      WRITE docs/loop-state/{plan.id}.json = loopState
+      WRITE docs/whycode/loop-state/{plan.id}.json = loopState
       CONTINUE  # Try again next iteration
 
-    result = READ docs/loop-state/{plan.id}-result.json
+    result = READ docs/whycode/loop-state/{plan.id}-result.json
     iterationRecord.completedAt = NOW()
     iterationRecord.outcome = result.outcome
     iterationRecord.tasksAttempted = result.tasksCompleted
-    APPEND docs/loop-state/{plan.id}-run.log: "{NOW()} END runId={loopState.currentRunId} outcome={result.outcome}"
+    APPEND docs/whycode/loop-state/{plan.id}-run.log: "{NOW()} END runId={loopState.currentRunId} outcome={result.outcome}"
 
     # Log task progress for visibility
     IF result.tasksCompleted.length > 0:
@@ -760,7 +760,7 @@ FOR EACH plan in plans:
       # SUCCESS!
       iterationRecord.verificationResult = verification
       loopState.status = "completed"
-      WRITE docs/loop-state/{plan.id}.json = loopState
+      WRITE docs/whycode/loop-state/{plan.id}.json = loopState
       LOG: "Plan {plan.id} completed in {loopState.currentIteration} iterations"
 
       # GitHub: push branch after each plan
@@ -771,19 +771,19 @@ FOR EACH plan in plans:
           {
             "action": "append-requirements",
             "data": {
-              "target": "docs/requirements/pending.json",
+              "target": "docs/whycode/requirements/pending.json",
               "runId": runId,
               "planId": plan.id,
               "requirements": ["GitHub push failed. Authenticate and re-run resolve."]
             }
           }
         loopState.status = "partial_complete"
-        WRITE docs/loop-state/{plan.id}.json = loopState
+        WRITE docs/whycode/loop-state/{plan.id}.json = loopState
         BREAK
 
       # GitHub: create PR once per run
       USE Task tool with subagent_type "whycode:context-loader-agent":
-        { "action": "read-json", "target": "docs/runs/{runId}/run.json" }
+        { "action": "read-json", "target": "docs/whycode/runs/{runId}/run.json" }
         → Returns runMeta
       IF runMeta.json.prUrl is missing:
         USE Task tool with subagent_type "whycode:git-agent":
@@ -793,7 +793,7 @@ FOR EACH plan in plans:
             "action": "update-run",
             "data": {
               "runId": runId,
-              "targetDir": "docs/runs/{runId}",
+              "targetDir": "docs/whycode/runs/{runId}",
               "patch": { "prUrl": prResult.data.url }
             }
           }
@@ -814,7 +814,7 @@ FOR EACH plan in plans:
         }
         SHOW: "Plan {plan.id} claimed complete but verification failed:"
         SHOW: errorSummary
-        WRITE docs/loop-state/{plan.id}.json = loopState
+        WRITE docs/whycode/loop-state/{plan.id}.json = loopState
         # Continue to next iteration - agent will see the error
 
     ELIF result.outcome == "PARTIAL_COMPLETE":
@@ -823,18 +823,18 @@ FOR EACH plan in plans:
         {
           "action": "append-requirements",
           "data": {
-            "target": "docs/requirements/pending.json",
+            "target": "docs/whycode/requirements/pending.json",
             "runId": runId,
             "planId": plan.id,
             "requirements": result.requirements
           }
         }
       loopState.status = "partial_complete"
-      WRITE docs/loop-state/{plan.id}.json = loopState
+      WRITE docs/whycode/loop-state/{plan.id}.json = loopState
       # Update Linear issue as blocked with requirements summary
-      IF linear enabled AND exists(docs/decisions/linear-mapping.json):
+      IF linear enabled AND exists(docs/whycode/decisions/linear-mapping.json):
         USE Task tool with subagent_type "whycode:context-loader-agent":
-          { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
+          { "action": "extract-field", "target": "docs/whycode/decisions/linear-mapping.json", "field": "planIssues" }
           → Returns planIssues
         issue = planIssues[plan.id]
         USE Task tool with subagent_type "whycode:linear-agent":
@@ -846,14 +846,14 @@ FOR EACH plan in plans:
     ELIF result.outcome == "blocked":
       # Agent hit an architectural blocker - stop and escalate
       loopState.status = "blocked"
-      WRITE docs/loop-state/{plan.id}.json = loopState
+      WRITE docs/whycode/loop-state/{plan.id}.json = loopState
       SHOW: "Plan {plan.id} blocked: {result.notes}"
       ESCALATE to user (Deviation Rule 4)
       BREAK
 
     ELSE:
       # Agent incomplete but not blocked - continue
-      WRITE docs/loop-state/{plan.id}.json = loopState
+      WRITE docs/whycode/loop-state/{plan.id}.json = loopState
       # Continue to next iteration
 
   # END WHILE
@@ -861,7 +861,7 @@ FOR EACH plan in plans:
   # Check if we hit max iterations without completion
   IF loopState.status != "completed" AND loopState.status != "blocked":
     loopState.status = "max_iterations_reached"
-    WRITE docs/loop-state/{plan.id}.json = loopState
+    WRITE docs/whycode/loop-state/{plan.id}.json = loopState
     WARN: "Plan {plan.id} hit max iterations ({loopMaxIterations}) - may be incomplete"
     # Still proceed - orchestrator can decide what to do
 
@@ -884,9 +884,9 @@ FOR EACH plan in plans:
     """
 
   # 8. UPDATE LINEAR (only after verification passes)
-  IF linear enabled AND exists(docs/decisions/linear-mapping.json):
+  IF linear enabled AND exists(docs/whycode/decisions/linear-mapping.json):
     USE Task tool with subagent_type "whycode:context-loader-agent":
-      { "action": "extract-field", "target": "docs/decisions/linear-mapping.json", "field": "planIssues" }
+      { "action": "extract-field", "target": "docs/whycode/decisions/linear-mapping.json", "field": "planIssues" }
       → Returns planIssues
     issue = planIssues[plan.id]
     USE Task tool with subagent_type "whycode:linear-agent":
@@ -930,11 +930,11 @@ loopState = {
   "currentIteration": 0,
   "status": "starting"
 }
-WRITE docs/loop-state/phase6-review.json = loopState
+WRITE docs/whycode/loop-state/phase6-review.json = loopState
 
 WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
-  DELETE docs/loop-state/phase6-review-result.json (if exists)
+  DELETE docs/whycode/loop-state/phase6-review-result.json (if exists)
 
   USE Task tool(
     subagent_type: "whycode:review-agent",
@@ -945,7 +945,7 @@ WHILE loopState.currentIteration < loopMaxIterations:
 
     SETUP:
     1. READ docs/whycode/reference/AGENTS.md for protocol
-    2. READ docs/loop-state/phase6-review.json for iteration history
+    2. READ docs/whycode/loop-state/phase6-review.json for iteration history
 
     TASK:
     Review code quality in categories: Quality, Bugs, Conventions, Security.
@@ -953,17 +953,17 @@ WHILE loopState.currentIteration < loopMaxIterations:
     Append critical findings to docs/review/critical-issues.md.
 
     OUTPUT (MANDATORY):
-    Write docs/loop-state/phase6-review-result.json with:
+    Write docs/whycode/loop-state/phase6-review-result.json with:
     { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
     """
   )
 
-  result = READ docs/loop-state/phase6-review-result.json
+  result = READ docs/whycode/loop-state/phase6-review-result.json
   IF result.outcome == "PLAN_COMPLETE":
     BREAK
 
 loopState.status = "completed"
-WRITE docs/loop-state/phase6-review.json = loopState
+WRITE docs/whycode/loop-state/phase6-review.json = loopState
 
 IF critical issues found:
   CREATE fix plans
@@ -983,11 +983,11 @@ loopState = {
   "currentIteration": 0,
   "status": "starting"
 }
-WRITE docs/loop-state/phase7-docs.json = loopState
+WRITE docs/whycode/loop-state/phase7-docs.json = loopState
 
 WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
-  DELETE docs/loop-state/phase7-docs-result.json (if exists)
+  DELETE docs/whycode/loop-state/phase7-docs-result.json (if exists)
 
   USE Task tool(
     subagent_type: "whycode:docs-agent",
@@ -999,7 +999,7 @@ WHILE loopState.currentIteration < loopMaxIterations:
     SETUP:
     1. READ docs/whycode/reference/AGENTS.md for protocol
     2. READ docs/whycode/reference/TEMPLATES.md for formats
-    3. READ docs/loop-state/phase7-docs.json for iteration history
+    3. READ docs/whycode/loop-state/phase7-docs.json for iteration history
 
     TASK:
     Generate project documentation:
@@ -1010,17 +1010,17 @@ WHILE loopState.currentIteration < loopMaxIterations:
     - docs/DEPLOYMENT.md (deployment guide)
 
     OUTPUT (MANDATORY):
-    Write docs/loop-state/phase7-docs-result.json with:
+    Write docs/whycode/loop-state/phase7-docs-result.json with:
     { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
     """
   )
 
-  result = READ docs/loop-state/phase7-docs-result.json
+  result = READ docs/whycode/loop-state/phase7-docs-result.json
   IF result.outcome == "PLAN_COMPLETE":
     BREAK
 
 loopState.status = "completed"
-WRITE docs/loop-state/phase7-docs.json = loopState
+WRITE docs/whycode/loop-state/phase7-docs.json = loopState
 ```
 
 ---
@@ -1028,7 +1028,7 @@ WRITE docs/loop-state/phase7-docs.json = loopState
 ## Phase 8: Summary & Handoff (Autonomous)
 
 ```
-LOAD docs/decisions/tech-stack.json for correct PM commands
+LOAD docs/whycode/decisions/tech-stack.json for correct PM commands
 GENERATE docs/delivery/handoff-summary.md:
   - What was built
   - Correct run commands (from pm-commands.json)
@@ -1097,7 +1097,7 @@ IF env.LINEAR_API_KEY:
 - Status updates: whycode:linear-agent { "action": "update-issue", ... }
 - Comments: whycode:linear-agent { "action": "add-comment", ... }
 
-# Issue mapping stored in: docs/decisions/linear-mapping.json
+# Issue mapping stored in: docs/whycode/decisions/linear-mapping.json
 {
   "teamId": "TEAM-123",
   "parentIssueId": "UUID",

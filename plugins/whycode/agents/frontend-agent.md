@@ -132,7 +132,7 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
    **NEVER assume a method exists. ALWAYS verify first.**
    ```
 
-7. **Log Completion**: Append a brief completion note to `docs/audit/log.md` (orchestrator handles Linear)
+7. **Log Completion**: Append a brief completion note to `docs/whycode/audit/log.md` (orchestrator handles Linear)
 8. **Write Summary**: Include validation results in `summary.md`:
    ```
    ## Validation Results
@@ -142,7 +142,7 @@ Your task packet includes a `PACKAGE_MANAGER_COMMANDS` section with the EXACT co
    - Tests: ✅ Pass (or N/A if no tests)
    - Smoke Test: ✅ App starts without crashing
    ```
-9. **Return Reference**: `{ "status": "complete", "artifactPath": "docs/artifacts/task-xxx/" }`
+9. **Return Reference**: `{ "status": "complete", "artifactPath": "docs/whycode/artifacts/task-xxx/" }`
 
 **CRITICAL RALPH-LOOP CONTRACT**:
 ```
@@ -187,10 +187,10 @@ You will receive a JSON file like:
     "Submits to auth API"
   ],
   "retrieveOnlyIfNeeded": [
-    "docs/specs/features/auth.md",
-    "docs/decisions/ui-patterns.json"
+    "docs/whycode/specs/features/auth.md",
+    "docs/whycode/decisions/ui-patterns.json"
   ],
-  "writeArtifactsTo": "docs/artifacts/task-005/"
+  "writeArtifactsTo": "docs/whycode/artifacts/task-005/"
 }
 ```
 

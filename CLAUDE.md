@@ -103,7 +103,7 @@ Agents must be referenced with the `whycode:` namespace prefix when spawning.
 
 Agents are spawned via **whycode-loop** with fresh context per iteration:
 - Each iteration spawns a fresh agent via the Task tool
-- Memory persists only through filesystem (git, docs/loop-state/, PLAN.md)
+- Memory persists only through filesystem (git, docs/whycode/loop-state/, docs/whycode/PLAN.md)
 - No external plugin dependency
 
 ### Dependencies

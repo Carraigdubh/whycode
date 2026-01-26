@@ -211,7 +211,7 @@ Run: /plugin update whycode@whycode-marketplace
 
 ## Run Management
 
-Each run is archived under `docs/runs/{runId}` and includes:
+Each run is archived under `docs/whycode/runs/{runId}` and includes:
 - `run.json` (name, version, completionMode, branch/PR)
 - `loop-state/` (iteration history)
 - `commits.json` (per-plan commit list)
@@ -224,7 +224,7 @@ Startup shows recent runs with name + start time. Completed runs are archived au
 
 - **strict**: all verifications (typecheck/lint/test/build/smoke) must pass to complete a plan.
 - **partial**: allows build/typecheck clean completion when external setup is missing.
-  - Missing requirements are recorded in `docs/requirements/pending.json`.
+  - Missing requirements are recorded in `docs/whycode/requirements/pending.json`.
   - Linear issues are marked **Blocked** with explicit instructions.
 
 ---
@@ -248,13 +248,13 @@ After each plan, the docs agent syncs changes and appends a run note to
 
 ---
 
-## WhyCode Skill Folder
+## WhyCode Folder
 
-WhyCode stores only **reference assets** under `docs/whycode/`:
-- `docs/whycode/reference/AGENTS.md`
-- `docs/whycode/reference/TEMPLATES.md`
+`docs/whycode/` is the runtime root for WhyCode:
+- `state.json`, `loop-state/`, `runs/`, `plans/`, `specs/`, `decisions/`, `intake/`, `audit/`, `artifacts/`, `features/`
+- `reference/AGENTS.md`, `reference/TEMPLATES.md`
 
-All run artifacts and project documentation are **outside** this folder.
+Project documentation lives in `docs/project documentation/`.
 
 WhyCode will guide you through:
 1. **Document Intake** - Provide your project documents, answer clarifying questions
@@ -327,7 +327,7 @@ If you've already completed the planning phases:
           └─────────────────────┼─────────────────────┘
                                 ▼
                     ┌─────────────────────┐
-                    │  docs/artifacts/    │
+                    │  docs/whycode/artifacts/    │
                     │  (Results Storage)  │
                     └─────────────────────┘
 ```
@@ -351,7 +351,7 @@ Based on [Anthropic's multi-agent best practices](https://www.anthropic.com/engi
 
 ## State Persistence & Recovery
 
-WhyCode maintains state in `docs/whycode-state.json` for crash recovery and resumption.
+WhyCode maintains state in `docs/whycode/state.json` for crash recovery and resumption.
 
 ### State File Structure
 
@@ -372,11 +372,11 @@ WhyCode maintains state in `docs/whycode-state.json` for crash recovery and resu
     "lastCompletedTask": "task-003"
   },
   "artifacts": {
-    "projectUnderstanding": "docs/intake/project-understanding.md",
-    "techStack": "docs/decisions/tech-stack.json",
-    "masterPrd": "docs/specs/master-prd.md",
-    "taskGraph": "docs/specs/task-graph.json",
-    "linearMapping": "docs/decisions/linear-mapping.json"
+    "projectUnderstanding": "docs/whycode/intake/project-understanding.md",
+    "techStack": "docs/whycode/decisions/tech-stack.json",
+    "masterPrd": "docs/whycode/specs/master-prd.md",
+    "taskGraph": "docs/whycode/specs/task-graph.json",
+    "linearMapping": "docs/whycode/decisions/linear-mapping.json"
   },
   "lastError": null
 }
@@ -387,7 +387,7 @@ WhyCode maintains state in `docs/whycode-state.json` for crash recovery and resu
 **CRITICAL**: On EVERY harness invocation, check for existing state BEFORE doing anything else:
 
 ```
-1. Check if docs/whycode-state.json exists
+1. Check if docs/whycode/state.json exists
 2. IF exists AND status == "in_progress":
    - Display: "Found existing whycode state at Phase {X}, Step {Y}"
    - Display: "Last activity: {lastUpdatedAt}"
@@ -535,7 +535,7 @@ WhyCode detects your development environment and identifies known issues:
 - Go: Checks `go version`
 - C++: Checks compiler availability (gcc, clang, MSVC)
 
-If issues are detected, WhyCode stores them in `docs/decisions/environment-notes.json` and applies appropriate mitigations during setup.
+If issues are detected, WhyCode stores them in `docs/whycode/decisions/environment-notes.json` and applies appropriate mitigations during setup.
 
 ### Required Tools Check
 
@@ -577,7 +577,7 @@ Ensures sufficient disk space is available for dependencies and build artifacts 
 4. User stories and acceptance criteria are drafted
 5. Full understanding is summarized for your approval
 
-**Output:** `docs/intake/project-understanding.md`
+**Output:** `docs/whycode/intake/project-understanding.md`
 
 **Gate:** You must confirm understanding before proceeding.
 
@@ -596,9 +596,9 @@ Ensures sufficient disk space is available for dependencies and build artifacts 
 4. Maps entry points
 
 **Output:**
-- `docs/codebase/SUMMARY.md` - Overview
-- `docs/codebase/STACK.md` - Technologies detected
-- `docs/codebase/ARCHITECTURE.md` - Patterns identified
+- `docs/whycode/codebase/SUMMARY.md` - Overview
+- `docs/whycode/codebase/STACK.md` - Technologies detected
+- `docs/whycode/codebase/ARCHITECTURE.md` - Patterns identified
 
 **Gate:** Automatic (no user interaction required).
 
@@ -693,7 +693,7 @@ IF selected_build_system == "CMake":
 
 #### Step 1.3c: Create Build Commands Reference
 
-WhyCode creates `docs/decisions/pm-commands.json` with the exact commands for your build system:
+WhyCode creates `docs/whycode/decisions/pm-commands.json` with the exact commands for your build system:
 
 ```json
 {
@@ -768,9 +768,9 @@ Different technology combinations require specific configurations. Rather than h
 | Game (Unity + Photon) | Multiplayer networking, asset configuration |
 
 **Output:**
-- `docs/decisions/tech-stack.json` (project type, language, build system, framework)
-- `docs/decisions/pm-commands.json` (exact commands for your build system)
-- `docs/decisions/integration-setup.md` (what was configured and why)
+- `docs/whycode/decisions/tech-stack.json` (project type, language, build system, framework)
+- `docs/whycode/decisions/pm-commands.json` (exact commands for your build system)
+- `docs/whycode/decisions/integration-setup.md` (what was configured and why)
 - `.env.local` or equivalent (your API keys)
 - `.env.example` (template for others)
 - Framework-specific configuration files
@@ -790,10 +790,10 @@ Different technology combinations require specific configurations. Rather than h
 4. **Task Graph** - Dependency-ordered implementation tasks
 
 **Output:**
-- `docs/specs/master-prd.md`
-- `docs/specs/features/*.md`
-- `docs/specs/technical-spec.md`
-- `docs/specs/task-graph.json`
+- `docs/whycode/specs/master-prd.md`
+- `docs/whycode/specs/features/*.md`
+- `docs/whycode/specs/technical-spec.md`
+- `docs/whycode/specs/task-graph.json`
 
 **Gate:** You must approve specifications before implementation.
 
@@ -814,7 +814,7 @@ Different technology combinations require specific configurations. Rather than h
 3. Interfaces and data contracts defined
 4. Implementation roadmap created
 
-**Output:** `docs/specs/architecture-decision.md`
+**Output:** `docs/whycode/specs/architecture-decision.md`
 
 **Gate:** You must choose an architecture approach.
 
@@ -876,8 +876,8 @@ Different technology combinations require specific configurations. Rather than h
 
 **Progress Tracking:**
 - Real-time Linear updates
-- Detailed log in `docs/progress.md`
-- State in `docs/whycode-state.json`
+- Detailed log in `docs/whycode/progress.md`
+- State in `docs/whycode/state.json`
 
 ---
 
@@ -926,7 +926,7 @@ Different technology combinations require specific configurations. Rather than h
 **CRITICAL:** Load tech-stack.json to get the correct package manager:
 
 ```javascript
-const decisions = load("docs/decisions/tech-stack.json");
+const decisions = load("docs/whycode/decisions/tech-stack.json");
 const pm = decisions.packageManager;  // Use this, not assumptions!
 ```
 
@@ -969,7 +969,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
    - Build: `{pm} run build`
    - **DO NOT return "complete" if ANY validation fails**
 6. Update Linear to "Done"
-7. Write summary to `docs/artifacts/task-{id}/summary.md` with validation results
+7. Write summary to `docs/whycode/artifacts/task-{id}/summary.md` with validation results
 8. Return `{ status: "complete", artifactPath: "..." }`
 
 **Code Standards:**
@@ -1070,7 +1070,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 4. **Security** - Injection, auth, data exposure, XSS
 
 **Output:**
-- `docs/artifacts/review-{id}/review-report.md`
+- `docs/whycode/artifacts/review-{id}/review-report.md`
 - Linear issues for critical findings
 
 ---
@@ -1116,7 +1116,7 @@ const pm = decisions.packageManager;  // Use this, not assumptions!
 **Output:**
 - Build system configuration files (Cargo.toml, CMakeLists.txt, package.json, etc.)
 - Framework-specific configuration
-- `docs/decisions/integration-setup.md` (documents what was configured)
+- `docs/whycode/decisions/integration-setup.md` (documents what was configured)
 - Build validation result
 
 ---
@@ -1272,7 +1272,7 @@ Every task packet includes IMMUTABLE_DECISIONS and build commands. The structure
   },
 
   "acceptanceCriteria": [...],
-  "writeArtifactsTo": "docs/artifacts/task-005/"
+  "writeArtifactsTo": "docs/whycode/artifacts/task-005/"
 }
 ```
 
@@ -1302,7 +1302,7 @@ Every task packet includes IMMUTABLE_DECISIONS and build commands. The structure
   },
 
   "acceptanceCriteria": [...],
-  "writeArtifactsTo": "docs/artifacts/task-012/"
+  "writeArtifactsTo": "docs/whycode/artifacts/task-012/"
 }
 ```
 
@@ -1399,7 +1399,7 @@ The orchestrator runs periodic black-box validation (no code context needed):
 
 ```bash
 # STEP 1: Verify Package Manager
-pm = load("docs/decisions/tech-stack.json").packageManager
+pm = load("docs/whycode/decisions/tech-stack.json").packageManager
 verify_installed(pm)
 
 # STEP 2: Install Dependencies
@@ -1461,7 +1461,7 @@ Each task gets a JSON packet with ONLY what it needs. The structure adapts to an
     "build": "yarn run build"
   },
   "acceptanceCriteria": ["Form renders correctly", "Validation works"],
-  "writeArtifactsTo": "docs/artifacts/task-005/"
+  "writeArtifactsTo": "docs/whycode/artifacts/task-005/"
 }
 ```
 
@@ -1482,7 +1482,7 @@ Each task gets a JSON packet with ONLY what it needs. The structure adapts to an
     "build": "cargo build --release"
   },
   "acceptanceCriteria": ["--verbose flag accepted", "Increases log output"],
-  "writeArtifactsTo": "docs/artifacts/task-008/"
+  "writeArtifactsTo": "docs/whycode/artifacts/task-008/"
 }
 ```
 
@@ -1555,7 +1555,7 @@ exact requirements (env vars, config steps) and marks the issue **Blocked**.
 
 ### Mapping File
 
-All Linear IDs stored in `docs/decisions/linear-mapping.json`:
+All Linear IDs stored in `docs/whycode/decisions/linear-mapping.json`:
 
 ```json
 {
@@ -1671,20 +1671,20 @@ Add `LINEAR_API_KEY` to `.env.local` and restart Claude Code.
 #### "Linear rate limiting"
 
 WhyCode now creates issues sequentially with 1-second delays. If you still hit rate limits:
-1. Check `docs/whycode-state.json` for progress
+1. Check `docs/whycode/state.json` for progress
 2. Wait a few minutes
 3. Run `/whycode` to resume
 
 #### "Wrong build system used"
 
 This should not happen with IMMUTABLE_DECISIONS enforcement. If it does:
-1. Check `docs/decisions/tech-stack.json` has correct `buildSystem`
+1. Check `docs/whycode/decisions/tech-stack.json` has correct `buildSystem`
 2. Verify task packets in `docs/context/task-packets/` have correct IMMUTABLE_DECISIONS
 3. Report the issue - this is a harness bug
 
 #### "Build failing during validation"
 
-Check the agent's summary in `docs/artifacts/task-XXX/summary.md` for validation results:
+Check the agent's summary in `docs/whycode/artifacts/task-XXX/summary.md` for validation results:
 ```markdown
 ## Validation Results
 - TypeCheck: ❌ FAIL - errors in src/components/Login.tsx
@@ -1727,14 +1727,14 @@ This means a critical task failed and blocked everything downstream. Check:
 WhyCode runs Integration Validation before completing. If you still have issues:
 1. Check `docs/delivery/handoff-summary.md` for correct run commands
 2. Verify all environment variables
-3. Try running build commands manually from `docs/decisions/pm-commands.json`
+3. Try running build commands manually from `docs/whycode/decisions/pm-commands.json`
 
 #### Integration issues
 
 The tech-stack-setup-agent configures integrations during Phase 2 by fetching current documentation.
 
 If you have integration issues:
-1. Check `docs/decisions/integration-setup.md` for what was configured
+1. Check `docs/whycode/decisions/integration-setup.md` for what was configured
 2. The agent documents the source documentation it used
 3. If configuration is outdated, re-run WhyCode - the agent fetches fresh docs
 4. Verify environment variables are set correctly
@@ -1763,14 +1763,14 @@ This is a Next.js client/server component mismatch. The component uses hooks or 
 
 Fix: Add `"use client"` at the very top of the file (before any imports).
 
-Check `docs/decisions/integration-setup.md` for framework-specific component rules.
+Check `docs/whycode/decisions/integration-setup.md` for framework-specific component rules.
 
 #### "localStorage is not defined" / "window is not defined" (Next.js/SSR)
 
 This usually occurs when browser APIs are accessed during server-side rendering.
 
 Fix options:
-1. Check `docs/decisions/integration-setup.md` for Node.js version-specific fixes
+1. Check `docs/whycode/decisions/integration-setup.md` for Node.js version-specific fixes
 2. Use dynamic imports with `ssr: false` for affected components
 3. Wrap browser API usage in `typeof window !== "undefined"` checks
 

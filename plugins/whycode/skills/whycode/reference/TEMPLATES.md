@@ -112,7 +112,7 @@ When generating plans, ensure:
 
 ## Task Record Template
 
-Location: `docs/tasks/{plan-id}-{task-id}.md`
+Location: `docs/whycode/tasks/{plan-id}-{task-id}.md`
 
 ```markdown
 # Task: {task-name}
@@ -156,7 +156,7 @@ Location: `docs/tasks/{plan-id}-{task-id}.md`
 
 ## Audit Log Format
 
-Location: `docs/audit/log.md` (append-only)
+Location: `docs/whycode/audit/log.md` (append-only)
 
 ```markdown
 # Audit Log
@@ -240,7 +240,7 @@ Location: `docs/adr/ADR-{number}-{title}.md`
 
 ## Feature Documentation Template
 
-Location: `docs/features/{feature-name}.md`
+Location: `docs/whycode/features/{feature-name}.md`
 
 ```markdown
 # Feature: {Feature Name}

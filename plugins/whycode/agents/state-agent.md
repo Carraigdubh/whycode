@@ -44,14 +44,14 @@ Update whycode-state.json with new values.
 
 **Workflow:**
 ```
-1. READ docs/whycode-state.json
+1. READ docs/whycode/state.json
 2. CAPTURE: beforeHash = hash of current content
 3. MERGE data into existing state
 4. UPDATE lastUpdatedAt timestamp
-5. WRITE docs/whycode-state.json
+5. WRITE docs/whycode/state.json
 
 6. VERIFY (MANDATORY):
-   a. RE-READ docs/whycode-state.json
+   a. RE-READ docs/whycode/state.json
    b. PARSE as JSON
    c. CHECK each field in data matches what was written
    d. CAPTURE: afterHash = hash of new content
@@ -87,14 +87,14 @@ Update ROADMAP.md to mark plans/phases complete.
 
 **Workflow:**
 ```
-1. READ docs/ROADMAP.md
+1. READ docs/whycode/ROADMAP.md
 2. CAPTURE: beforeLineCount = line count
 3. FIND plan "01-02" section
 4. UPDATE status marker to [x] or "Complete"
-5. WRITE docs/ROADMAP.md
+5. WRITE docs/whycode/ROADMAP.md
 
 6. VERIFY (MANDATORY):
-   a. RE-READ docs/ROADMAP.md
+   a. RE-READ docs/whycode/ROADMAP.md
    b. SEARCH for plan "01-02"
    c. CONFIRM marker is now [x] or "Complete"
 
@@ -129,16 +129,16 @@ Append entry to progress.md log.
 
 **Workflow:**
 ```
-1. READ docs/progress.md (or create if not exists)
+1. READ docs/whycode/progress.md (or create if not exists)
 2. CAPTURE: beforeLineCount = line count
 3. APPEND timestamped entry:
    ## [2024-01-15 14:30] Plan 01-02 / task-005
    Status: complete
    Summary: Login form implemented
-4. WRITE docs/progress.md
+4. WRITE docs/whycode/progress.md
 
 5. VERIFY (MANDATORY):
-   a. RE-READ docs/progress.md
+   a. RE-READ docs/whycode/progress.md
    b. CAPTURE: afterLineCount = line count
    c. CONFIRM: afterLineCount > beforeLineCount
    d. SEARCH for the entry we just added
@@ -168,7 +168,7 @@ Read current state and return summary.
 
 **Workflow:**
 ```
-1. CHECK: Does docs/whycode-state.json exist?
+1. CHECK: Does docs/whycode/state.json exist?
 2. READ file
 3. PARSE as JSON
 4. EXTRACT key fields
@@ -263,7 +263,7 @@ Write a JSON file with verification.
 {
   "action": "write-json",
   "data": {
-    "target": "docs/decisions/linear-mapping.json",
+    "target": "docs/whycode/decisions/linear-mapping.json",
     "json": { "key": "value" }
   }
 }
@@ -287,9 +287,9 @@ Archive an existing run state so new runs do not overwrite it.
   "action": "archive-run",
   "data": {
     "runId": "2026-01-25T14-33-05Z",
-    "sourceState": "docs/whycode-state.json",
-    "sourceLoopDir": "docs/loop-state",
-    "targetDir": "docs/runs/2026-01-25T14-33-05Z"
+    "sourceState": "docs/whycode/state.json",
+    "sourceLoopDir": "docs/whycode/loop-state",
+    "targetDir": "docs/whycode/runs/2026-01-25T14-33-05Z"
   }
 }
 ```
@@ -312,7 +312,7 @@ Initialize a new run directory and record run metadata.
   "action": "init-run",
   "data": {
     "runId": "2026-01-25T14-33-05Z",
-    "targetDir": "docs/runs/2026-01-25T14-33-05Z",
+    "targetDir": "docs/whycode/runs/2026-01-25T14-33-05Z",
     "meta": {
       "startedAt": "ISO",
       "version": "2.1.x",
@@ -330,12 +330,12 @@ Initialize a new run directory and record run metadata.
 ```
 
 ### list-runs
-List previous runs from `docs/runs/*/run.json`.
+List previous runs from `docs/whycode/runs/*/run.json`.
 
 ```json
 {
   "action": "list-runs",
-  "data": { "targetDir": "docs/runs" }
+  "data": { "targetDir": "docs/whycode/runs" }
 }
 ```
 
@@ -355,7 +355,7 @@ Update run metadata (e.g., friendly name).
   "action": "update-run",
   "data": {
     "runId": "2026-01-25T14-33-05Z",
-    "targetDir": "docs/runs/2026-01-25T14-33-05Z",
+    "targetDir": "docs/whycode/runs/2026-01-25T14-33-05Z",
     "patch": { "name": "SMS Notifications Run" }
   }
 }
@@ -369,13 +369,13 @@ Update run metadata (e.g., friendly name).
 ```
 
 ### append-requirements
-Append unmet requirements to `docs/requirements/pending.json`.
+Append unmet requirements to `docs/whycode/requirements/pending.json`.
 
 ```json
 {
   "action": "append-requirements",
   "data": {
-    "target": "docs/requirements/pending.json",
+    "target": "docs/whycode/requirements/pending.json",
     "runId": "2026-01-25T14-33-05Z",
     "planId": "04-01",
     "requirements": ["Set TWILIO_ACCOUNT_SID", "Set TWILIO_AUTH_TOKEN"]
@@ -391,13 +391,13 @@ Append unmet requirements to `docs/requirements/pending.json`.
 ```
 
 ### append-run-commits
-Append commit SHAs to `docs/runs/{runId}/commits.json`.
+Append commit SHAs to `docs/whycode/runs/{runId}/commits.json`.
 
 ```json
 {
   "action": "append-run-commits",
   "data": {
-    "target": "docs/runs/2026-01-25T14-33-05Z/commits.json",
+    "target": "docs/whycode/runs/2026-01-25T14-33-05Z/commits.json",
     "runId": "2026-01-25T14-33-05Z",
     "planId": "04-01",
     "commits": ["abc123", "def456"]
@@ -416,11 +416,11 @@ Append commit SHAs to `docs/runs/{runId}/commits.json`.
 
 | File | Purpose |
 |------|---------|
-| `docs/whycode-state.json` | Main state (phase, plan, status) |
-| `docs/ROADMAP.md` | Phase/plan progress tracking |
-| `docs/progress.md` | Detailed execution log |
-| `docs/STATE.md` | Living memory (GSD+ format) |
-| `docs/SUMMARY.md` | Historical record (append-only) |
+| `docs/whycode/state.json` | Main state (phase, plan, status) |
+| `docs/whycode/ROADMAP.md` | Phase/plan progress tracking |
+| `docs/whycode/progress.md` | Detailed execution log |
+| `docs/whycode/STATE.md` | Living memory (GSD+ format) |
+| `docs/whycode/SUMMARY.md` | Historical record (append-only) |
 
 ## Output Format
 
