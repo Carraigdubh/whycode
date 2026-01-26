@@ -92,6 +92,8 @@ Each run is archived under `docs/runs/{runId}` with:
 
 Project source-of-truth docs live in `docs/project documentation/` and are synced after each plan.
 
+WhyCode skill reference files live under `docs/whycode/` (small, stable; no run artifacts).
+
 ## GitHub Workflow
 
 WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR:

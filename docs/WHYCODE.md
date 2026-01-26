@@ -246,6 +246,16 @@ Canonical docs live under `docs/project documentation/`.
 After each plan, the docs agent syncs changes and appends a run note to
 `docs/project documentation/INDEX.md`.
 
+---
+
+## WhyCode Skill Folder
+
+WhyCode stores only **reference assets** under `docs/whycode/`:
+- `docs/whycode/reference/AGENTS.md`
+- `docs/whycode/reference/TEMPLATES.md`
+
+All run artifacts and project documentation are **outside** this folder.
+
 WhyCode will guide you through:
 1. **Document Intake** - Provide your project documents, answer clarifying questions
 2. **Tech Stack Setup** - Choose frameworks, set up services, provide API keys

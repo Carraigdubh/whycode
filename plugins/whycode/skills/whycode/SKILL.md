@@ -230,12 +230,15 @@ This keeps the orchestrator's context clean for coordination.
 5. ASK user to confirm or edit run name (default: {suggestedRunName})
    Store in run meta
 
-6. ENSURE loop-state directory exists
+6. ENSURE whycode reference directory exists
+   CREATE docs/whycode/ if not exists
+
+7. ENSURE loop-state directory exists
    CREATE docs/loop-state/ if not exists
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
-7. INIT RUN RECORD
+8. INIT RUN RECORD
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "init-run",
@@ -252,7 +255,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-8. INIT RUN BRANCH (GitHub flow)
+9. INIT RUN BRANCH (GitHub flow)
    USE Task tool with subagent_type "whycode:git-agent":
      {
        "action": "init-branch",
@@ -268,7 +271,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-9. SYNC REFERENCE FILES (once per run)
+10. SYNC REFERENCE FILES (once per run)
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
@@ -279,7 +282,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-10. DISCOVER integrations:
+11. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY
