@@ -189,7 +189,11 @@ This keeps the orchestrator's context clean for coordination.
    runId = ISO timestamp with ":" replaced by "-" (e.g., 2026-01-25T14-33-05Z)
    suggestedRunName = "Run {YYYY-MM-DD HH:MM}"
 
-1. CHECK for docs/whycode/state.json
+1. MIGRATE legacy state (if present)
+   IF exists docs/whycode-state.json:
+     MOVE to docs/whycode/legacy/whycode-state.json
+
+2. CHECK for docs/whycode/state.json
    IF exists AND status == "in_progress":
      Show: "Found WhyCode at Phase {X}, Plan {Y}. Resume? [Y/n]"
      IF yes: Jump to saved position
@@ -216,29 +220,39 @@ This keeps the orchestrator's context clean for coordination.
           }
         }
 
-2. SHOW previous runs (if any)
+3. SHOW previous runs (if any)
    USE Task tool with subagent_type "whycode:state-agent":
      { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
    SHOW last 5 runs with name + startedAt
 
-3. ASK user for completion mode (strict/partial)
+4. RUN SELECTION (if prior runs exist)
+   Offer: resume | rerun | review | resolve | new
+   - resume: continue current in-progress run
+   - rerun: start a new run based on selected runId (optionally revert prior changes)
+   - review: re-run tests + code review for selected runId
+   - resolve: check pending requirements and apply fixes for selected runId
+   - new: start fresh
+   IF selection requires a runId: prompt to choose from list
+   IF Linear is disabled and selection is review/resolve: fallback to new with warning
+
+5. ASK user for completion mode (strict/partial)
    Store in whycode-state.json as completionMode
 
-4. ASK user for max iterations (20/30/50/custom)
+6. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as loopMaxIterations
 
-5. ASK user to confirm or edit run name (default: {suggestedRunName})
+7. ASK user to confirm or edit run name (default: {suggestedRunName})
    Store in run meta
 
-6. ENSURE whycode reference directory exists
+8. ENSURE whycode reference directory exists
    CREATE docs/whycode/ if not exists
 
-7. ENSURE loop-state directory exists
+9. ENSURE loop-state directory exists
    CREATE docs/whycode/loop-state/ if not exists
    # This directory stores iteration state for whycode-loop
    # Each plan gets {plan-id}.json (orchestrator state) and {plan-id}-result.json (agent result)
 
-8. INIT RUN RECORD
+10. INIT RUN RECORD
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "init-run",
@@ -255,7 +269,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-9. INIT RUN BRANCH (GitHub flow)
+11. INIT RUN BRANCH (GitHub flow)
    USE Task tool with subagent_type "whycode:git-agent":
      {
        "action": "init-branch",
@@ -271,7 +285,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-10. SYNC REFERENCE FILES (once per run)
+12. SYNC REFERENCE FILES (once per run)
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "sync-reference",
@@ -282,7 +296,7 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
-11. DISCOVER integrations:
+13. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
    # 1. First check .env.local for LINEAR_API_KEY

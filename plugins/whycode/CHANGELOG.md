@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.5] - 2026-01-25
+
+### Added
+- Run selection step (resume/rerun/review/resolve/new)
+- Legacy state migration for docs/whycode-state.json
+
 ## [2.2.4] - 2026-01-25
 
 ### Fixed
