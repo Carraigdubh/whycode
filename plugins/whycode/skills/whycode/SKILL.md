@@ -235,6 +235,9 @@ This keeps the orchestrator's context clean for coordination.
    - new: start fresh
    IF selection requires a runId: prompt to choose from list
    IF Linear is disabled and selection is review/resolve: fallback to new with warning
+   IF selection == review:
+     ASK user: "Include docs sync in review? [Y/n]"
+     Store reviewDocsSync = true/false
 
 5. ASK user for completion mode (strict/partial)
    Store in whycode-state.json as completionMode
@@ -898,6 +901,18 @@ FOR EACH plan in plans:
     - Keep notes concise and factual.
     """
 
+  # Log docs sync
+  USE Task tool with subagent_type "whycode:state-agent":
+    {
+      "action": "update-progress",
+      "data": {
+        "plan": plan.id,
+        "task": "docs-sync",
+        "status": "complete",
+        "summary": "Project docs synced to docs/project documentation/ and INDEX.md updated."
+      }
+    }
+
   # 8. UPDATE LINEAR (only after verification passes)
   IF linear enabled AND exists(docs/whycode/decisions/linear-mapping.json):
     USE Task tool with subagent_type "whycode:context-loader-agent":
@@ -946,6 +961,25 @@ loopState = {
   "status": "starting"
 }
 WRITE docs/whycode/loop-state/phase6-review.json = loopState
+
+IF reviewDocsSync == true:
+  # Ensure project docs are up to date before review
+  USE Task tool with subagent_type "whycode:docs-agent":
+    prompt: """
+    Sync project documentation before review.
+    - Update docs/project documentation/* to reflect current code.
+    - Append a run note to docs/project documentation/INDEX.md.
+    """
+  USE Task tool with subagent_type "whycode:state-agent":
+    {
+      "action": "update-progress",
+      "data": {
+        "plan": "phase6-review",
+        "task": "docs-sync",
+        "status": "complete",
+        "summary": "Project docs synced before review."
+      }
+    }
 
 WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1

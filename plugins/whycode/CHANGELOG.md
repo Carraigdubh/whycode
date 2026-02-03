@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.7] - 2026-01-25
+
+### Added
+- Optional docs sync during review mode
+
 ## [2.2.6] - 2026-01-25
 
 ### Changed

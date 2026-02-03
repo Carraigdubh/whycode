@@ -895,8 +895,9 @@ Different technology combinations require specific configurations. Rather than h
 - Review agents analyze implemented code
 - Issues logged to Linear
 - Critical issues trigger fixes (re-enters Phase 5)
+- Optional docs sync can run before review if selected at startup
 
-**Output:** `docs/review/quality-report.md`
+**Output:** `docs/whycode/review/quality-report.md`
 
 ---
 
