@@ -226,7 +226,8 @@ This keeps the orchestrator's context clean for coordination.
    SHOW last 5 runs with name + startedAt
 
 4. RUN SELECTION (if prior runs exist)
-   Offer: resume | rerun | review | resolve | new
+   ASK user:
+     "Choose a startup action: resume | rerun | review | resolve | new"
    - resume: continue current in-progress run
    - rerun: start a new run based on selected runId (optionally revert prior changes)
    - review: re-run tests + code review for selected runId

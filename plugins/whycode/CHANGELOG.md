@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.6] - 2026-01-25
+
+### Changed
+- Run selection is now an explicit startup prompt
+
 ## [2.2.5] - 2026-01-25
 
 ### Added
