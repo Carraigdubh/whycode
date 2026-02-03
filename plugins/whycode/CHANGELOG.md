@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.4] - 2026-01-25
+
+### Fixed
+- Version check now reads plugin.json from CLAUDE_PLUGIN_ROOT
+
 ## [2.2.3] - 2026-01-25
 
 ### Changed

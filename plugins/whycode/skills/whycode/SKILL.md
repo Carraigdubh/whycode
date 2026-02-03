@@ -178,7 +178,7 @@ This keeps the orchestrator's context clean for coordination.
 
 ```
 0. DISPLAY VERSION AND CHECK FOR UPDATES
-   READ: .claude-plugin/plugin.json → version (e.g., "2.0.0")
+   READ: ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json → version (e.g., "2.2.3")
    SHOW: "🔧 WhyCode v{version}"
 
    CHECK FOR UPDATES:
