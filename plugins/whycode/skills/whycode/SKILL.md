@@ -224,6 +224,37 @@ This keeps the orchestrator's context clean for coordination.
    USE Task tool with subagent_type "whycode:state-agent":
      { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
    SHOW last 5 runs with name + startedAt
+   IF list-runs returns missing run records:
+     FOR EACH missing runDir:
+       USE Task tool with subagent_type "whycode:state-agent":
+         {
+           "action": "init-run",
+           "data": {
+             "runId": "{missingRunId}",
+             "targetDir": "docs/whycode/runs/{missingRunId}",
+             "meta": {
+               "startedAt": "UNKNOWN",
+               "version": "{version}",
+               "flags": [],
+               "name": "Migrated {missingRunId}",
+               "completionMode": "partial",
+               "runType": "migrated"
+             }
+           }
+         }
+       USE Task tool with subagent_type "whycode:state-agent":
+         {
+           "action": "append-run-event",
+           "data": {
+             "runId": "{missingRunId}",
+             "targetDir": "docs/whycode/runs/{missingRunId}",
+             "event": {
+               "type": "migrated",
+               "timestamp": NOW(),
+               "summary": "Backfilled missing run record."
+             }
+           }
+         }
 
 4. RUN SELECTION (if prior runs exist)
    ASK user:
@@ -238,6 +269,34 @@ This keeps the orchestrator's context clean for coordination.
    IF selection == review:
      ASK user: "Include docs sync in review? [Y/n]"
      Store reviewDocsSync = true/false
+
+   RUN RECORDING (MANDATORY FOR ALL ACTIONS):
+   - resume:
+     - Use existing runId from docs/whycode/state.json if present; otherwise fallback to generated runId.
+     - If run.json missing, call init-run with runType="resume".
+     - Append run event:
+       { type: "resume", timestamp: NOW(), summary: "Resumed run from saved state." }
+   - rerun:
+     - Create a new runId for the rerun.
+     - init-run meta must include:
+       { runType: "rerun", parentRunId: "<selectedRunId>", name, completionMode }
+     - Append run event: { type: "rerun", ... }
+   - review:
+     - Create a new runId for the review.
+     - init-run meta must include:
+       { runType: "review", parentRunId: "<selectedRunId>", name, completionMode }
+     - Append run event: { type: "review", ... }
+   - resolve:
+     - Create a new runId for the resolve action.
+     - init-run meta must include:
+       { runType: "resolve", parentRunId: "<selectedRunId>", name, completionMode }
+     - Append run event: { type: "resolve", ... }
+   - new:
+     - Use generated runId with runType="new".
+     - Append run event: { type: "new", ... }
+   SUMMARY RULE:
+   - Every action (resume/rerun/review/resolve/fix/new) must write
+     docs/whycode/runs/{runId}/summary.md before exiting the action.
 
 5. ASK user for completion mode (strict/partial)
    Store in whycode-state.json as completionMode
@@ -268,7 +327,23 @@ This keeps the orchestrator's context clean for coordination.
            "version": "{version}",
            "flags": [],
            "name": "{runName}",
-           "completionMode": "{completionMode}"
+           "completionMode": "{completionMode}",
+           "runType": "{runType}",
+           "parentRunId": "{parentRunId}"
+         }
+       }
+     }
+   USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "append-run-event",
+       "data": {
+         "runId": runId,
+         "targetDir": "docs/whycode/runs/{runId}",
+         "event": {
+           "type": "{runType}",
+           "timestamp": NOW(),
+           "summary": "{runType} initialized",
+           "meta": { "completionMode": "{completionMode}" }
          }
        }
      }
@@ -1017,6 +1092,15 @@ WRITE docs/whycode/loop-state/phase6-review.json = loopState
 IF critical issues found:
   CREATE fix plans
   RE-ENTER Phase 5 for fixes
+
+# REVIEW RUN SUMMARY (MANDATORY FOR review mode)
+IF runType == "review":
+  WRITE docs/whycode/runs/{runId}/summary.md:
+    - Scope reviewed
+    - Tests executed (if any)
+    - Critical issues + warnings counts
+    - Next steps
+  APPEND brief entry to docs/whycode/audit/log.md
 ```
 
 ---
@@ -1096,6 +1180,41 @@ DISPLAY summary to user
 Triggered by `/whycode fix` or on resume with errors.
 
 ```
+0. INIT FIX RUN RECORD (MANDATORY)
+   - Generate fixRunId (ISO timestamp)
+   - Determine parentRunId from docs/whycode/state.json if available
+   - USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "init-run",
+       "data": {
+         "runId": fixRunId,
+         "targetDir": "docs/whycode/runs/{fixRunId}",
+         "meta": {
+           "startedAt": NOW(),
+           "version": "{version}",
+           "flags": [],
+           "name": "Fix {YYYY-MM-DD HH:MM}",
+           "completionMode": "partial",
+           "runType": "fix",
+           "parentRunId": "{parentRunId}"
+         }
+       }
+     }
+   - USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "append-run-event",
+       "data": {
+         "runId": fixRunId,
+         "targetDir": "docs/whycode/runs/{fixRunId}",
+         "event": {
+           "type": "fix",
+           "timestamp": NOW(),
+           "summary": "Fix and Learn started.",
+           "meta": { "description": "{userDescription||'none'}" }
+         }
+       }
+     }
+
 1. GATHER context:
    - User description (if provided)
    - whycode-state.json lastError
@@ -1118,6 +1237,65 @@ Triggered by `/whycode fix` or on resume with errors.
 5. LOG learning:
    - WRITE docs/errors/error-patterns.json
    - APPEND docs/errors/learnings.md
+
+6. WRITE fix run summary (MANDATORY):
+   - docs/whycode/runs/{fixRunId}/summary.md
+   - Include: issue description, files changed, tests run, outcome, next steps
+   - APPEND brief entry to docs/whycode/audit/log.md
+```
+
+---
+
+## Log-Only Mode
+
+Triggered by `/whycode log` or `/whycode log "desc"`.
+
+Use this to record a manual fix or change that happened outside the orchestrator.
+No plans or agents are run. Only a run record + summary are created.
+
+```
+1. IF no description provided:
+   ASK user for a short summary of what was changed.
+
+2. INIT LOG RUN RECORD (MANDATORY)
+   - Generate logRunId (ISO timestamp)
+   - Determine parentRunId from docs/whycode/state.json if available
+   - USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "init-run",
+       "data": {
+         "runId": logRunId,
+         "targetDir": "docs/whycode/runs/{logRunId}",
+         "meta": {
+           "startedAt": NOW(),
+           "version": "{version}",
+           "flags": [],
+           "name": "Log {YYYY-MM-DD HH:MM}",
+           "completionMode": "partial",
+           "runType": "log",
+           "parentRunId": "{parentRunId}"
+         }
+       }
+     }
+   - USE Task tool with subagent_type "whycode:state-agent":
+     {
+       "action": "append-run-event",
+       "data": {
+         "runId": logRunId,
+         "targetDir": "docs/whycode/runs/{logRunId}",
+         "event": {
+           "type": "log",
+           "timestamp": NOW(),
+           "summary": "Log-only record created.",
+           "meta": { "description": "{userDescription}" }
+         }
+       }
+     }
+
+3. WRITE log summary (MANDATORY):
+   - docs/whycode/runs/{logRunId}/summary.md
+   - Include: description, files changed (if known), tests run (if any), next steps
+   - APPEND brief entry to docs/whycode/audit/log.md
 ```
 
 ---
@@ -1190,6 +1368,8 @@ project/
 | `/whycode` | Start full workflow |
 | `/whycode fix` | Fix and Learn mode |
 | `/whycode fix "desc"` | Fix with description |
+| `/whycode log` | Record a manual change (no orchestration) |
+| `/whycode log "desc"` | Record a manual change with description |
 | `/implement` | Skip to implementation |
 
 ---

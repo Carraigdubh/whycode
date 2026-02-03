@@ -74,6 +74,8 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 /whycode              # Start full 8-phase workflow
 /whycode fix          # Fix and Learn mode
 /whycode fix "desc"   # Fix with description
+/whycode log          # Record a manual change (no orchestration)
+/whycode log "desc"   # Record a manual change with description
 ```
 
 ## Startup Switches (Interactive)
@@ -89,6 +91,13 @@ Each run is archived under `docs/whycode/runs/{runId}` with:
 - `run.json` (name, version, completionMode, branch/PR)
 - `loop-state/` (iteration history)
 - `commits.json` (per-plan commit list)
+- `summary.md` (what happened, validations, next steps)
+
+All execution modes are recorded:
+- full runs (`/whycode`)
+- fix runs (`/whycode fix`)
+- review/resolve/rerun/resume actions
+- log-only records (`/whycode log`)
 
 Project source-of-truth docs live in `docs/project documentation/` and are synced after each plan.
 

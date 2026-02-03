@@ -90,11 +90,14 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
    - Check that documented features match implementation
 
 5. **Project Docs Update** (if `docs/project documentation/` exists):
-   - Update PRD/TECH_SPEC/API_SPEC/DATA_SCHEMA/NOTIFICATIONS/UI_SPEC if affected
+   - Detect relevant docs by filename and update only what matches:
+     - PRD.md, TECH_SPEC.md, DATA_SCHEMA.md, API_SPEC.md, NOTIFICATIONS.md, UI_SPEC.md
+     - TECH stack and database details should reflect `docs/whycode/decisions/tech-stack.json`
    - Append a run note to `docs/project documentation/INDEX.md`:
      - Run name/ID
      - Plans completed
      - Requirements pending (if any)
+     - Sync timestamp
 
 6. **Return Status**: `{ "status": "complete", "docsGenerated": [...] }`
 

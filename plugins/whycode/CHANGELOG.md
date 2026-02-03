@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.9] - 2026-02-03
+
+### Added
+- `/whycode log` to record manual fixes without running orchestration
+
+## [2.2.8] - 2026-02-03
+
+### Added
+- Run records for fix/review/resolve/rerun/resume modes
+- Backfill of missing run.json entries during startup
+- Run event logging via state-agent
+
 ## [2.2.7] - 2026-01-25
 
 ### Added

@@ -215,6 +215,9 @@ Each run is archived under `docs/whycode/runs/{runId}` and includes:
 - `run.json` (name, version, completionMode, branch/PR)
 - `loop-state/` (iteration history)
 - `commits.json` (per-plan commit list)
+- `summary.md` (what happened, validations, next steps)
+
+All execution modes are recorded (full runs, fix runs, review/resolve/rerun/resume).
 
 Startup shows recent runs with name + start time. Completed runs are archived automatically.
 
@@ -426,6 +429,7 @@ When something goes wrong:
 4. WhyCode proposes updates to itself to prevent recurrence
 5. With your approval, WhyCode updates its own files
 6. The learning is recorded for future reference
+7. A fix run record is created in `docs/whycode/runs/{runId}` with a summary
 
 ### Triggering Fix and Learn
 
@@ -451,6 +455,11 @@ What would you like to do?
 
 # Without description (will prompt you)
 /whycode fix
+```
+
+**Log-only command (manual change record):**
+```bash
+/whycode log "Fixed homepage colors and removed Browse Cleaners"
 ```
 
 ### Issue Categories
@@ -1654,6 +1663,8 @@ project/
 | `/whycode spec` | Run only specification synthesis |
 | `/whycode fix` | **Fix and Learn** - Analyze error, fix it, update harness to prevent recurrence |
 | `/whycode fix "desc"` | Fix and Learn with issue description |
+| `/whycode log` | **Log-only** - Record a manual change (no orchestration) |
+| `/whycode log "desc"` | Log-only with description |
 | `/implement` | Skip to implementation (requires existing specs) |
 | `/compact` | Manually compact context |
 | `/tasks` | View running background tasks |

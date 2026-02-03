@@ -12,3 +12,7 @@ Project documentation stays in `docs/project documentation/`.
 
 ## What does NOT live here
 - Project documentation (`docs/project documentation/`)
+
+## Run Records
+Every execution mode is recorded under `runs/` (full runs, fix, review, resolve, rerun, resume).
+Each run contains `run.json` and a short `summary.md`.
