@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-02-08
+
+### Added
+- Hard startup compliance gate in SKILL.md requiring full read of skill + references before orchestration
+- Startup compliance artifact: `docs/whycode/audit/startup-check.json`
+- Explicit mandatory `/whycode` execution rule block in repository `CLAUDE.md`
+- README section with exact `CLAUDE.md` wording for mandatory WhyCode flow
+
 ## [2.2.9] - 2026-02-03
 
 ### Added

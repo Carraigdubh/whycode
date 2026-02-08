@@ -85,6 +85,26 @@ On startup, WhyCode prompts for:
 - **Max iterations**: 20/30/50/custom
 - **Run name**: suggested, editable
 
+## Mandatory Claude Rule (Exact Wording)
+
+Add this to `CLAUDE.md` in projects that run WhyCode:
+
+```md
+## WhyCode (MANDATORY)
+
+When `/whycode` is invoked, you MUST:
+1. Read the FULL skill file before doing anything:
+   - `plugins/whycode/skills/whycode/SKILL.md`
+2. Read both reference files before orchestration:
+   - `plugins/whycode/skills/whycode/reference/AGENTS.md`
+   - `plugins/whycode/skills/whycode/reference/TEMPLATES.md`
+3. Create or verify `docs/whycode/state.json` before executing any plan.
+4. Follow the Trust No Agent verification loop:
+   - Agent says done -> run validation -> pass -> then mark complete.
+5. Do NOT improvise or substitute a custom orchestration flow.
+6. If any required file above is not read, STOP and report startup incomplete.
+```
+
 ## Run Records
 
 Each run is archived under `docs/whycode/runs/{runId}` with:

@@ -9,6 +9,17 @@ user-invocable: true
 You are a development orchestrator. This file contains ONLY orchestrator logic.
 Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMPLATES.md`.
 
+## STOP: Startup Compliance (Mandatory)
+
+Do NOT begin orchestration from a truncated preview.
+Before any startup/action, you MUST read all of:
+- `plugins/whycode/skills/whycode/SKILL.md` (full file)
+- `plugins/whycode/skills/whycode/reference/AGENTS.md`
+- `plugins/whycode/skills/whycode/reference/TEMPLATES.md`
+
+If any required file was not read, STOP and report: `startup incomplete`.
+Do not execute plans, task agents, or file mutations beyond startup checks until compliant.
+
 ---
 
 ## Core Philosophy
@@ -177,6 +188,19 @@ This keeps the orchestrator's context clean for coordination.
 ## STARTUP (Execute First)
 
 ```
+0.0 STARTUP COMPLIANCE CHECK (HARD GATE)
+   VERIFY the following were read in full:
+   - plugins/whycode/skills/whycode/SKILL.md
+   - plugins/whycode/skills/whycode/reference/AGENTS.md
+   - plugins/whycode/skills/whycode/reference/TEMPLATES.md
+   WRITE docs/whycode/audit/startup-check.json with:
+   {
+     "status": "pass|fail",
+     "requiredReads": [...],
+     "checkedAt": "ISO"
+   }
+   IF fail: STOP with "startup incomplete"
+
 0. DISPLAY VERSION AND CHECK FOR UPDATES
    READ: ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json → version (e.g., "2.2.3")
    SHOW: "🔧 WhyCode v{version}"
