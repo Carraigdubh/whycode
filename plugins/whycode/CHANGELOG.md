@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-02-08
+
+### Changed
+- Version bump only
+
 ## [2.3.0] - 2026-02-08
 
 ### Added
