@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.6] - 2026-02-16
+
+### Changed
+- Fix-target run selection now requires explicit UI options for `Show older runs` and `Show all runs`.
+- Run selection loop now maps those options to paging actions and stays on Fix target until valid run selection.
+
+## [2.3.5] - 2026-02-16
+
+### Changed
+- Startup run listing now supports paging controls (`more`, `all`, `continue`) so older runs can be selected.
+- Run selection now requires concrete runId selection and allows expanding the run list before proceeding.
+- Fix mode run selection explicitly supports paging controls for older run browsing.
+- Run selection now loops on invalid input and stays on target selection until a valid run index/runId is chosen.
+
 ## [2.3.4] - 2026-02-16
 
 ### Changed

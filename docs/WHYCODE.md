@@ -211,6 +211,7 @@ Run: /plugin update whycode@whycode-marketplace
 `/whycode fix` always creates a new `fix` child run and links it with `parentRunId`; it must not silently resume.
 Run selection supports paging controls so you can reach older runs: `more`, `all`, `continue`.
 Run selection is blocking and cannot advance until a valid run index or runId is selected.
+Run selection UI must include explicit choices for `Show older runs` and `Show all runs`.
 If a fix is significant (schema/cross-platform/core architecture impact), architecture approval is required before code changes.
 
 **Dependencies:**

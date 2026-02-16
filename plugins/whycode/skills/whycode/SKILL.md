@@ -311,8 +311,12 @@ This keeps the orchestrator's context clean for coordination.
    - new: start fresh
    IF selection requires a runId:
      - LOOP until valid selection:
-       - prompt user: "Select run by index or runId (or type more/all)"
-       - if input == more/all: expand list and re-prompt
+       - prompt user with explicit selectable options:
+         1) Pick run by index/runId
+         2) Show older runs
+         3) Show all runs
+       - map option 2 -> `more`, option 3 -> `all`
+       - if input/option == more/all: expand list and re-prompt
        - if input matches a visible index or known runId: selectedRunId = resolved runId; BREAK
        - else: show "Invalid run selection" and re-prompt
      - do not proceed until selectedRunId is set
@@ -1252,7 +1256,11 @@ Triggered by `/whycode fix` or on resume with errors.
    - Execute STARTUP steps 3,5,6,7,10,11.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
-     - Support run browsing controls during this selection: `more` / `all`
+     - Present explicit selectable controls:
+       1) Pick run by index/runId
+       2) Show older runs
+       3) Show all runs
+     - Map controls to browsing actions (`more` / `all`)
      - Stay on Fix target step until a valid runId/index is selected
      - Store selected run as parentRunId
      - Do NOT use `resume` action in fix mode
