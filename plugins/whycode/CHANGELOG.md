@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.4] - 2026-02-16
+
+### Changed
+- Startup run listing now supports paging controls (`more`, `all`, `continue`) so older runs can be selected.
+- Run selection now requires concrete runId selection and allows expanding the run list before proceeding.
+- Fix mode run selection explicitly supports paging controls for older run browsing.
+
 ## [2.3.3] - 2026-02-16
 
 ### Changed

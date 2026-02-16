@@ -247,7 +247,13 @@ This keeps the orchestrator's context clean for coordination.
 3. SHOW previous runs (if any)
    USE Task tool with subagent_type "whycode:state-agent":
      { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
-   SHOW last 5 runs with name + startedAt
+   SORT runs by startedAt (newest first; unknown dates last)
+   SHOW first 5 runs with index + runId + name + startedAt + runType
+   IF more than 5 runs exist:
+     ASK user: "Show older runs? [more/all/continue]"
+     - more: show next page of 10 runs, then ask again until user says continue
+     - all: show all remaining runs
+     - continue: move to next startup step
    IF list-runs returns missing run records:
      FOR EACH missing runDir:
        USE Task tool with subagent_type "whycode:state-agent":
@@ -288,7 +294,10 @@ This keeps the orchestrator's context clean for coordination.
    - review: re-run tests + code review for selected runId
    - resolve: check pending requirements and apply fixes for selected runId
    - new: start fresh
-   IF selection requires a runId: prompt to choose from list
+   IF selection requires a runId:
+     - prompt user to choose from shown runs
+     - allow `more` / `all` to show older runs before choosing
+     - do not proceed until a concrete runId is selected
    IF Linear is disabled and selection is review/resolve: fallback to new with warning
    IF selection == review:
      ASK user: "Include docs sync in review? [Y/n]"
@@ -1225,6 +1234,7 @@ Triggered by `/whycode fix` or on resume with errors.
    - Execute STARTUP steps 3,5,6,7,10,11.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
+     - Support run browsing controls during this selection: `more` / `all`
      - Store selected run as parentRunId
      - Do NOT use `resume` action in fix mode
      - Always create a NEW run with runType="fix" and parentRunId="{selectedRunId}"
