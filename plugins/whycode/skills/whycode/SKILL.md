@@ -1222,15 +1222,24 @@ Triggered by `/whycode fix` or on resume with errors.
 
 ```
 0. RE-RUN STARTUP GATES (MANDATORY, NO SHORTCUTS)
-   - Execute STARTUP steps 3-11 exactly as written:
+   - Execute STARTUP steps 3,5,6,7,10,11.
+   - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
+     - ASK user to select the run to fix from previous runs (required)
+     - Store selected run as parentRunId
+     - Do NOT use `resume` action in fix mode
+     - Always create a NEW run with runType="fix" and parentRunId="{selectedRunId}"
+   - ASK user for issue description if not provided in `/whycode fix "desc"`:
+     "What problems did you find in that run?"
+   - Do not proceed while issue description is empty.
+   - Persist issue description in run event metadata and summary.
+   - Continue with:
      - list previous runs
-     - ask startup action (resume|rerun|review|resolve|new)
      - ask completion mode
      - ask max iterations
      - ask run name
      - init run record
      - init run branch
-   - Set runType="fix" for this run and append a fix run event.
+   - Set runType="fix", parentRunId="{selectedRunId}" for this run and append a fix run event.
    - If any startup prompt is skipped, STOP with "startup incomplete".
 
 1. GATHER context:

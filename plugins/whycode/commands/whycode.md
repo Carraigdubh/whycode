@@ -19,10 +19,13 @@ Hard execution rule:
 - Do not implement or mutate product code before startup gates are complete.
 - Startup gates are complete only after ALL of these are done:
   1. Previous runs were listed and shown to user
-  2. User selected startup action (`resume|rerun|review|resolve|new`)
-  3. User selected completion mode (`strict|partial`)
-  4. User selected max iterations
-  5. User confirmed run name
-  6. Run branch was initialized
+  2. User selected completion mode (`strict|partial`)
+  3. User selected max iterations
+  4. User confirmed run name
+  5. Run branch was initialized
 - If a startup gate is missing, stop and report: `startup incomplete`.
 - For significant fixes (schema/data model changes, cross-platform changes, new core components, or >3 files changed), architecture design and user approval are mandatory before implementation.
+- `/whycode fix` additional mandatory gates:
+  - User selects which prior run to fix (parentRunId)
+  - User provides a problem description (from argument or prompt)
+  - Fix mode must create a new `runType=fix` child run; it must not silently route to `resume`

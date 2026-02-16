@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- Fix mode now requires explicit parent run selection and explicit issue description before any implementation work.
+- Fix mode no longer reuses generic startup action routing (`resume|rerun|review|resolve|new`); it always creates a new `runType=fix` child run linked by `parentRunId`.
+
 ## [2.3.2] - 2026-02-16
 
 ### Changed

@@ -207,6 +207,8 @@ Run: /plugin update whycode@whycode-marketplace
 9. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
 
 `/whycode fix` uses the same startup gates and cannot skip directly to implementation.
+`/whycode fix` must ask which run to fix and what problems were found (if not passed as an argument).
+`/whycode fix` always creates a new `fix` child run and links it with `parentRunId`; it must not silently resume.
 If a fix is significant (schema/cross-platform/core architecture impact), architecture approval is required before code changes.
 
 **Dependencies:**
