@@ -440,6 +440,23 @@ This keeps the orchestrator's context clean for coordination.
 
    # Store in state
    Store integrations in whycode-state.json
+
+14. STARTUP GATE RECEIPT (MANDATORY)
+   WRITE docs/whycode/audit/startup-gate.json:
+   {
+     "status": "pass",
+     "runListed": true,
+     "runActionSelected": true,
+     "completionModeSelected": true,
+     "maxIterationsSelected": true,
+     "runNameConfirmed": true,
+     "branchInitialized": true,
+     "checkedAt": "ISO"
+   }
+   HARD RULE:
+   - Do NOT execute implementation (phases 5-8), fix mutations, or task agents
+     unless startup-gate status is "pass".
+   - If any field is missing/false, STOP and report: "startup incomplete".
 ```
 
 ---
@@ -1204,40 +1221,17 @@ DISPLAY summary to user
 Triggered by `/whycode fix` or on resume with errors.
 
 ```
-0. INIT FIX RUN RECORD (MANDATORY)
-   - Generate fixRunId (ISO timestamp)
-   - Determine parentRunId from docs/whycode/state.json if available
-   - USE Task tool with subagent_type "whycode:state-agent":
-     {
-       "action": "init-run",
-       "data": {
-         "runId": fixRunId,
-         "targetDir": "docs/whycode/runs/{fixRunId}",
-         "meta": {
-           "startedAt": NOW(),
-           "version": "{version}",
-           "flags": [],
-           "name": "Fix {YYYY-MM-DD HH:MM}",
-           "completionMode": "partial",
-           "runType": "fix",
-           "parentRunId": "{parentRunId}"
-         }
-       }
-     }
-   - USE Task tool with subagent_type "whycode:state-agent":
-     {
-       "action": "append-run-event",
-       "data": {
-         "runId": fixRunId,
-         "targetDir": "docs/whycode/runs/{fixRunId}",
-         "event": {
-           "type": "fix",
-           "timestamp": NOW(),
-           "summary": "Fix and Learn started.",
-           "meta": { "description": "{userDescription||'none'}" }
-         }
-       }
-     }
+0. RE-RUN STARTUP GATES (MANDATORY, NO SHORTCUTS)
+   - Execute STARTUP steps 3-11 exactly as written:
+     - list previous runs
+     - ask startup action (resume|rerun|review|resolve|new)
+     - ask completion mode
+     - ask max iterations
+     - ask run name
+     - init run record
+     - init run branch
+   - Set runType="fix" for this run and append a fix run event.
+   - If any startup prompt is skipped, STOP with "startup incomplete".
 
 1. GATHER context:
    - User description (if provided)
@@ -1252,18 +1246,36 @@ Triggered by `/whycode fix` or on resume with errors.
    - INTEGRATION: Service configuration issues
    - STATE: Corruption/resumption issues
 
-3. APPLY immediate fix to project
+3. SIGNIFICANCE CHECK (MANDATORY BEFORE ANY CODE CHANGE)
+   Mark `isSignificant=true` if ANY of:
+   - schema/database/data contract changes
+   - cross-platform impact (web + mobile/desktop/backend)
+   - new core components/services
+   - expected change touches >3 files
 
-4. PROPOSE whycode update (requires approval):
+4. IF isSignificant == true:
+   - Run Architecture phase first (Phase 4 flow):
+     1) present Minimal/Clean/Balanced options
+     2) ask user to choose
+     3) design architecture and write:
+        - docs/adr/ADR-002-architecture.md
+        - docs/whycode/architecture/OVERVIEW.md
+   - ASK user for explicit approval before implementation:
+     "Approve architecture and proceed to implementation? [Y/n]"
+   - If user does not approve, STOP. Do not implement.
+
+5. APPLY fix to project (only after startup gates and, when required, architecture approval)
+
+6. PROPOSE whycode update (requires approval):
    - Show diff of proposed changes
    - ASK: "Apply these updates? [Y/n]"
 
-5. LOG learning:
+7. LOG learning:
    - WRITE docs/errors/error-patterns.json
    - APPEND docs/errors/learnings.md
 
-6. WRITE fix run summary (MANDATORY):
-   - docs/whycode/runs/{fixRunId}/summary.md
+8. WRITE fix run summary (MANDATORY):
+   - docs/whycode/runs/{runId}/summary.md
    - Include: issue description, files changed, tests run, outcome, next steps
    - APPEND brief entry to docs/whycode/audit/log.md
 ```

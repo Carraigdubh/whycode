@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-02-16
+
+### Changed
+- `/whycode` command now includes a hard execution rule that blocks implementation until startup gates are complete.
+- Fix mode now requires the same interactive startup gates as normal runs (run listing, action selection, completion mode, max iterations, run name, branch init).
+- Added mandatory startup gate receipt at `docs/whycode/audit/startup-gate.json`; orchestration must stop with `startup incomplete` if any gate is missing.
+- Fix mode now enforces a significance check and mandatory architecture approval before implementation for significant changes.
+
 ## [2.3.1] - 2026-02-08
 
 ### Changed

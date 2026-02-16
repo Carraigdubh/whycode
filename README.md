@@ -85,6 +85,9 @@ On startup, WhyCode prompts for:
 - **Max iterations**: 20/30/50/custom
 - **Run name**: suggested, editable
 
+Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
+For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
+
 ## Mandatory Claude Rule (Exact Wording)
 
 Add this to `CLAUDE.md` in projects that run WhyCode:

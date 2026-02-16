@@ -200,8 +200,14 @@ Run: /plugin update whycode@whycode-marketplace
 2. **Changelog Display** - Shows what's new if update available
 3. **State Recovery** - Checks for existing `whycode-state.json` to resume
 4. **Run Management** - Archives completed runs and lists recent runs
-5. **Completion Mode** - Prompts for `strict` or `partial`
-6. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
+5. **Run Selection** - Prompts for `resume | rerun | review | resolve | new`
+6. **Completion Mode** - Prompts for `strict` or `partial`
+7. **Max Iterations + Run Name** - Prompts for iteration limit and run name
+8. **Branch Init** - Initializes run branch before implementation
+9. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
+
+`/whycode fix` uses the same startup gates and cannot skip directly to implementation.
+If a fix is significant (schema/cross-platform/core architecture impact), architecture approval is required before code changes.
 
 **Dependencies:**
 - **Linear API (LINEAR_API_KEY)** (optional) - Issue tracking integration
