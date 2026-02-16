@@ -248,12 +248,27 @@ This keeps the orchestrator's context clean for coordination.
    USE Task tool with subagent_type "whycode:state-agent":
      { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
    SORT runs by startedAt (newest first; unknown dates last)
-   SHOW first 5 runs with index + runId + name + startedAt + runType
-   IF more than 5 runs exist:
-     ASK user: "Show older runs? [more/all/continue]"
-     - more: show next page of 10 runs, then ask again until user says continue
-     - all: show all remaining runs
-     - continue: move to next startup step
+   pageSize = 5
+   pageStart = 0
+   SHOW runs[pageStart:pageStart+pageSize] with index + runId + name + startedAt + runType
+   IF totalRuns > pageSize:
+     LOOP:
+       ASK user: "Run list controls: more | all | continue"
+       IF reply == "more":
+         pageStart = pageStart + pageSize
+         IF pageStart >= totalRuns:
+           SHOW: "No older runs left."
+         ELSE:
+           SHOW next page (up to pageSize)
+         CONTINUE LOOP
+       IF reply == "all":
+         SHOW all remaining runs not yet shown
+         CONTINUE LOOP
+       IF reply == "continue":
+         BREAK LOOP
+       ELSE:
+         SHOW: "Invalid choice. Use more, all, or continue."
+         CONTINUE LOOP
    IF list-runs returns missing run records:
      FOR EACH missing runDir:
        USE Task tool with subagent_type "whycode:state-agent":
@@ -295,9 +310,12 @@ This keeps the orchestrator's context clean for coordination.
    - resolve: check pending requirements and apply fixes for selected runId
    - new: start fresh
    IF selection requires a runId:
-     - prompt user to choose from shown runs
-     - allow `more` / `all` to show older runs before choosing
-     - do not proceed until a concrete runId is selected
+     - LOOP until valid selection:
+       - prompt user: "Select run by index or runId (or type more/all)"
+       - if input == more/all: expand list and re-prompt
+       - if input matches a visible index or known runId: selectedRunId = resolved runId; BREAK
+       - else: show "Invalid run selection" and re-prompt
+     - do not proceed until selectedRunId is set
    IF Linear is disabled and selection is review/resolve: fallback to new with warning
    IF selection == review:
      ASK user: "Include docs sync in review? [Y/n]"
@@ -1235,6 +1253,7 @@ Triggered by `/whycode fix` or on resume with errors.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
      - Support run browsing controls during this selection: `more` / `all`
+     - Stay on Fix target step until a valid runId/index is selected
      - Store selected run as parentRunId
      - Do NOT use `resume` action in fix mode
      - Always create a NEW run with runType="fix" and parentRunId="{selectedRunId}"

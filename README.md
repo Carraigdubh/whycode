@@ -87,6 +87,7 @@ On startup, WhyCode prompts for:
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
 Run selection supports paging controls so older runs can be chosen: `more` (next page), `all` (show all), `continue`.
+Selection is blocking: it stays on run selection until a valid run index/runId is chosen.
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
