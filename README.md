@@ -98,6 +98,7 @@ Use this instruction text in Claude Code (copy/paste):
 
 ```text
 Open CLAUDE.md and replace the entire section titled "WhyCode (MANDATORY)" with the exact block below. Do not paraphrase, merge, or keep older WhyCode rules.
+Also remove any project-local `plugins/whycode/` rule references from CLAUDE.md; the mandatory reads must use `${CLAUDE_PLUGIN_ROOT}` paths.
 ```
 
 Exact block to insert:
@@ -107,10 +108,10 @@ Exact block to insert:
 
 When `/whycode` is invoked, you MUST:
 1. Read the FULL skill file before doing anything:
-   - `plugins/whycode/skills/whycode/SKILL.md`
+   - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md`
 2. Read both reference files before orchestration:
-   - `plugins/whycode/skills/whycode/reference/AGENTS.md`
-   - `plugins/whycode/skills/whycode/reference/TEMPLATES.md`
+   - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md`
+   - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md`
 3. Create or verify `docs/whycode/state.json` before executing any plan.
 4. Follow the Trust No Agent verification loop:
    - Agent says done -> run validation -> pass -> then mark complete.

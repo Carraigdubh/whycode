@@ -35,7 +35,7 @@ whycode-marketplace/
 ## Key Files
 
 - **`plugins/whycode/.claude-plugin/plugin.json`** - Plugin version number (update this for releases)
-- **`plugins/whycode/skills/whycode/SKILL.md`** - Main orchestrator logic and phase definitions
+- **`${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md`** - Main orchestrator logic and phase definitions
 - **`plugins/whycode/agents/*.md`** - Individual agent behavior definitions
 - **`plugins/whycode/CHANGELOG.md`** - Update this with version changes
 
@@ -43,10 +43,10 @@ whycode-marketplace/
 
 When `/whycode` is invoked, you MUST:
 1. Read the FULL skill file before doing anything:
-   - `plugins/whycode/skills/whycode/SKILL.md`
+   - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md`
 2. Read both reference files before orchestration:
-   - `plugins/whycode/skills/whycode/reference/AGENTS.md`
-   - `plugins/whycode/skills/whycode/reference/TEMPLATES.md`
+   - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md`
+   - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md`
 3. Create or verify `docs/whycode/state.json` before executing any plan.
 4. Follow the Trust No Agent verification loop:
    - Agent says done -> run validation -> pass -> then mark complete.

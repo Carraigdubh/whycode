@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.13] - 2026-02-17
+
+### Changed
+- Replaced repo-relative mandatory-read paths with `${CLAUDE_PLUGIN_ROOT}` in startup compliance and project CLAUDE template text.
+- Prevents stale local `plugins/whycode/...` files from overriding the installed plugin skill/reference reads.
+- README instructions now explicitly require removing local path references and using `${CLAUDE_PLUGIN_ROOT}` paths.
+
 ## [2.3.12] - 2026-02-17
 
 ### Changed

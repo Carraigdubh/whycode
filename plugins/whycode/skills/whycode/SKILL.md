@@ -13,9 +13,9 @@ Agent definitions are in `reference/AGENTS.md`. Templates are in `reference/TEMP
 
 Do NOT begin orchestration from a truncated preview.
 Before any startup/action, you MUST read all of:
-- `plugins/whycode/skills/whycode/SKILL.md` (full file)
-- `plugins/whycode/skills/whycode/reference/AGENTS.md`
-- `plugins/whycode/skills/whycode/reference/TEMPLATES.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md` (full file)
+- `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md`
 
 If any required file was not read, STOP and report: `startup incomplete`.
 Do not execute plans, task agents, or file mutations beyond startup checks until compliant.
@@ -190,9 +190,9 @@ This keeps the orchestrator's context clean for coordination.
 ```
 0.0 STARTUP COMPLIANCE CHECK (HARD GATE)
    VERIFY the following were read in full:
-   - plugins/whycode/skills/whycode/SKILL.md
-   - plugins/whycode/skills/whycode/reference/AGENTS.md
-   - plugins/whycode/skills/whycode/reference/TEMPLATES.md
+   - ${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md
+   - ${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md
+   - ${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md
    WRITE docs/whycode/audit/startup-check.json with:
    {
      "status": "pass|fail",
