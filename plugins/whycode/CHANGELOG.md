@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.11] - 2026-02-17
+
+### Changed
+- Startup/fix version banner now has a hard source-of-truth rule: read only from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
+- Added explicit guardrail to prevent showing version from run/state metadata.
+
 ## [2.3.10] - 2026-02-17
 
 ### Changed

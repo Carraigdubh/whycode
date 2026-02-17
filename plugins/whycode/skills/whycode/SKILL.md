@@ -204,6 +204,10 @@ This keeps the orchestrator's context clean for coordination.
 0. DISPLAY VERSION AND CHECK FOR UPDATES
    READ: ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json → version (e.g., "2.2.3")
    SHOW: "🔧 WhyCode v{version}"
+   HARD RULE:
+   - Version banner MUST come from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` only.
+   - Do NOT derive or display version from `docs/whycode/state.json`, run records, or memory.
+   - If run/state metadata has a different version, show a warning and continue with plugin.json version.
 
    CHECK FOR UPDATES:
    If WebFetch is available, check remote version and changelog.
@@ -1321,6 +1325,8 @@ Triggered by `/whycode fix` or on resume with errors.
 
 ```
 0. RE-RUN STARTUP GATES (MANDATORY, NO SHORTCUTS)
+   - Re-read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and display fix-mode banner using that version.
+   - Never display fix-mode version from existing run/state metadata.
    - Execute STARTUP steps 3,5,6,7,10,11.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
