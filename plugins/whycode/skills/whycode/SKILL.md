@@ -1277,12 +1277,10 @@ WHILE loopState.currentIteration < loopMaxIterations:
     3. READ docs/whycode/loop-state/phase7-docs.json for iteration history
 
     TASK:
-    Generate project documentation:
-    - README.md (project overview, setup, usage)
-    - CHANGELOG.md (Keep a Changelog format)
-    - CONTRIBUTING.md (dev setup, standards)
-    - docs/api/*.md (API documentation)
-    - docs/DEPLOYMENT.md (deployment guide)
+    Generate and sync project documentation:
+    - Prefer `docs/project documentation/` as canonical output when present
+    - If project-docs folder is absent, generate standard docs files (README.md, docs/api/*.md, docs/DEPLOYMENT.md)
+    - Do NOT modify `CLAUDE.md`
 
     OUTPUT (MANDATORY):
     Write docs/whycode/loop-state/phase7-docs-result.json with:
@@ -1362,6 +1360,16 @@ Triggered by `/whycode fix` or on resume with errors.
    - INTEGRATION: Service configuration issues
    - STATE: Corruption/resumption issues
 
+2.5 LINEAR TRACKING (MANDATORY WHEN ENABLED)
+   IF linearEnabled == true:
+     - Resolve teamId from docs/whycode/state.json (linearTeamId)
+     - USE whycode:linear-agent to create a fix issue:
+       title: "Fix {runName}"
+       description: include parentRunId + issue description + runId
+       teamId: linearTeamId
+     - If parentRunId has mapped Linear issue, add comment linking the new fix run
+     - Record created issue ID in docs/whycode/runs/{runId}/run.json (meta.linearIssueId)
+
 3. SIGNIFICANCE CHECK (MANDATORY BEFORE ANY CODE CHANGE)
    Mark `isSignificant=true` if ANY of:
    - schema/database/data contract changes
@@ -1394,6 +1402,8 @@ Triggered by `/whycode fix` or on resume with errors.
    - docs/whycode/runs/{runId}/summary.md
    - Include: issue description, files changed, tests run, outcome, next steps
    - APPEND brief entry to docs/whycode/audit/log.md
+   - IF linearEnabled == true:
+     - USE whycode:linear-agent add-comment on the fix issue with summary + outcome
 ```
 
 ---

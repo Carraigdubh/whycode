@@ -210,6 +210,7 @@ Run: /plugin update whycode@whycode-marketplace
 `/whycode fix` uses the same startup gates and cannot skip directly to implementation.
 `/whycode fix` must ask which run to fix and what problems were found (if not passed as an argument).
 `/whycode fix` always creates a new `fix` child run and links it with `parentRunId`; it must not silently resume.
+If Linear is enabled, `/whycode fix` must create/update Linear tracking for the fix run.
 Run selection supports paging controls so you can reach older runs: `more`, `all`, `continue`.
 Run selection is blocking and cannot advance until a valid run index or runId is selected.
 Run selection UI must include explicit choices for `Show older runs` and `Show all runs`.
@@ -261,6 +262,7 @@ If a push fails, the plan is marked `PARTIAL_COMPLETE` with instructions.
 Canonical docs live under `docs/project documentation/`.
 After each plan, the docs agent syncs changes and appends a run note to
 `docs/project documentation/INDEX.md`.
+`CLAUDE.md` is not part of docs sync and should not be modified by docs-agent.
 
 ---
 

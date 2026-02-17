@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.10] - 2026-02-17
+
+### Changed
+- Fix mode now mandates Linear tracking when Linear is enabled (create/update fix issue + summary comment).
+- Phase 7 docs generation now prioritizes `docs/project documentation/` and explicitly excludes `CLAUDE.md`.
+- docs-agent guardrails now forbid editing `CLAUDE.md`.
+
 ## [2.3.9] - 2026-02-17
 
 ### Changed

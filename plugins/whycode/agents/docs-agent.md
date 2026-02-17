@@ -48,6 +48,7 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
 - Document technologies that weren't used
 - Use incorrect package manager commands in examples
 - Make assumptions about the tech stack
+- Modify `CLAUDE.md` (this file is operator policy, not project documentation)
 
 **VIOLATIONS OF IMMUTABLE_DECISIONS ARE TASK FAILURES.**
 
@@ -77,12 +78,10 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
    - Identify API endpoints, components, utilities
 
 3. **Generate Documentation**:
-   - README.md - Project overview, setup, usage
-   - CHANGELOG.md - Keep a Changelog format
-   - CONTRIBUTING.md - Development setup, standards
-   - docs/api/*.md - API documentation
-   - docs/DEPLOYMENT.md - Deployment guide
-   - Update `docs/project documentation/` with any changes found
+   - Primary target: `docs/project documentation/` (when present)
+   - Generate/update canonical project docs there first
+   - Only generate root docs files (README.md, docs/api/*.md, docs/DEPLOYMENT.md) when project-docs folder is absent
+   - Never edit `CLAUDE.md`
 
 4. **Validate Accuracy**:
    - Ensure all commands work with the actual package manager
@@ -100,6 +99,11 @@ Your task packet contains an `IMMUTABLE_DECISIONS` section. These are **USER-SPE
      - Sync timestamp
 
 6. **Return Status**: `{ "status": "complete", "docsGenerated": [...] }`
+
+## Hard Guardrails
+
+- `CLAUDE.md` is out of scope for this agent.
+- If asked to edit `CLAUDE.md`, refuse and log a note in the docs result payload.
 
 ## Document Templates
 
