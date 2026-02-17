@@ -478,15 +478,21 @@ This keeps the orchestrator's context clean for coordination.
    # Check for Linear (in order of priority)
    linearKeyDetected = false
 
-   # 1. First check .env.local for LINEAR_API_KEY
+   # 1. First check .env.local for LINEAR_API_KEY (ignore comments/examples)
    IF exists(.env.local):
      envLocal = READ .env.local
-     IF envLocal contains "LINEAR_API_KEY=":
-       LINEAR_API_KEY = extract value from envLocal
-       linearKeyDetected = true
-       SHOW: "✓ Linear API key found in .env.local"
-       linearEnabled = true
-       linearMethod = "api"
+     FOR EACH line in envLocal:
+       trimmed = trim(line)
+       IF trimmed == "" OR trimmed startsWith "#":
+         CONTINUE
+       IF trimmed matches "^LINEAR_API_KEY\\s*=\\s*.+$":
+         LINEAR_API_KEY = extract value from trimmed
+         IF LINEAR_API_KEY is not empty:
+           linearKeyDetected = true
+           SHOW: "✓ Linear API key found in .env.local"
+           linearEnabled = true
+           linearMethod = "api"
+           BREAK
 
    # 2. Finally check environment variable
    ELIF env.LINEAR_API_KEY exists:
@@ -558,7 +564,7 @@ This keeps the orchestrator's context clean for coordination.
    - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"
    - startup-gate.json contains true for:
-     runListed, completionModeSelected, maxIterationsSelected,
+     runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
      runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
    - if startup-gate.json.linearKeyDetected == true:
      startup-gate.json.linearInitialized == true
@@ -1128,13 +1134,25 @@ FOR EACH plan in plans:
     → Updates ROADMAP.md, STATE.md, whycode-state.json
 
   # 5. PROJECT DOCS SYNC (keep source-of-truth docs current)
+  docsSyncStartedAt = NOW()
   USE Task tool with subagent_type "whycode:docs-agent":
     prompt: """
     Sync project documentation after Plan {plan.id}.
+    - Canonical docs path is `docs/project documentation/`.
+    - If `docs/project documentation/` does not exist, CREATE it.
+    - If `docs/project documentation/INDEX.md` does not exist, CREATE it.
     - Update docs/project documentation/* to reflect changes from this plan.
-    - Append a run note to docs/project documentation/INDEX.md.
+    - Append a run note to docs/project documentation/INDEX.md that includes:
+      `runId={runId}`, `planId={plan.id}`, and current timestamp.
     - Keep notes concise and factual.
     """
+
+  # HARD VERIFICATION: do not trust docs-agent completion claim
+  USE Task tool with subagent_type "whycode:context-loader-agent":
+    { "action": "read-file", "target": "docs/project documentation/INDEX.md" }
+    → Returns indexText
+  IF indexText does not contain "runId={runId}" OR indexText does not contain "planId={plan.id}":
+    STOP with "docs sync incomplete"
 
   # Log docs sync
   USE Task tool with subagent_type "whycode:state-agent":
@@ -1197,14 +1215,23 @@ loopState = {
 }
 WRITE docs/whycode/loop-state/phase6-review.json = loopState
 
-IF reviewDocsSync == true:
+  IF reviewDocsSync == true:
   # Ensure project docs are up to date before review
   USE Task tool with subagent_type "whycode:docs-agent":
     prompt: """
     Sync project documentation before review.
+    - Canonical docs path is `docs/project documentation/`.
+    - If `docs/project documentation/` does not exist, CREATE it.
+    - If `docs/project documentation/INDEX.md` does not exist, CREATE it.
     - Update docs/project documentation/* to reflect current code.
-    - Append a run note to docs/project documentation/INDEX.md.
+    - Append a run note to docs/project documentation/INDEX.md that includes:
+      `runId={runId}`, `planId=phase6-review`, and current timestamp.
     """
+  USE Task tool with subagent_type "whycode:context-loader-agent":
+    { "action": "read-file", "target": "docs/project documentation/INDEX.md" }
+    → Returns reviewIndexText
+  IF reviewIndexText does not contain "runId={runId}" OR reviewIndexText does not contain "planId=phase6-review":
+    STOP with "docs sync incomplete"
   USE Task tool with subagent_type "whycode:state-agent":
     {
       "action": "update-progress",
@@ -1296,8 +1323,13 @@ WHILE loopState.currentIteration < loopMaxIterations:
 
     TASK:
     Generate and sync project documentation:
-    - Prefer `docs/project documentation/` as canonical output when present
-    - If project-docs folder is absent, generate standard docs files (README.md, docs/api/*.md, docs/DEPLOYMENT.md)
+    - Use `docs/project documentation/` as canonical output path.
+    - If `docs/project documentation/` is absent, CREATE it.
+    - If `docs/project documentation/INDEX.md` is absent, CREATE it.
+    - Update docs/project documentation/* to reflect current code and architecture state.
+    - Append a run note to docs/project documentation/INDEX.md with:
+      `runId={runId}`, `planId=phase7-docs`, and current timestamp.
+    - If additional standard docs are needed (README.md, docs/api/*.md, docs/DEPLOYMENT.md), generate them as secondary outputs.
     - Do NOT modify `CLAUDE.md`
 
     OUTPUT (MANDATORY):
@@ -1308,7 +1340,13 @@ WHILE loopState.currentIteration < loopMaxIterations:
 
   result = READ docs/whycode/loop-state/phase7-docs-result.json
   IF result.outcome == "PLAN_COMPLETE":
-    BREAK
+    USE Task tool with subagent_type "whycode:context-loader-agent":
+      { "action": "read-file", "target": "docs/project documentation/INDEX.md" }
+      → Returns docsIndexText
+    IF docsIndexText contains "runId={runId}" AND docsIndexText contains "planId=phase7-docs":
+      BREAK
+    ELSE:
+      CONTINUE
 
 loopState.status = "completed"
 WRITE docs/whycode/loop-state/phase7-docs.json = loopState

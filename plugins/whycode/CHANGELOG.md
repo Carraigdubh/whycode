@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.15] - 2026-02-17
+
+### Changed
+- Hardened docs sync behavior to auto-create `docs/project documentation/` and `docs/project documentation/INDEX.md` when missing before documentation updates.
+- Added fail-closed verification for docs sync: post-plan, pre-review, and phase-7 docs flows now require `INDEX.md` run markers (`runId` + `planId`) or stop with `docs sync incomplete`.
+- Startup auditor now explicitly requires `runActionSelected=true` alongside other mandatory startup gate fields.
+- Tightened `.env.local` Linear detection to ignore commented/example lines and only accept valid `LINEAR_API_KEY=...` assignments.
+
 ## [2.3.14] - 2026-02-17
 
 ### Changed
