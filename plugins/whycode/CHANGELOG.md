@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.16] - 2026-02-17
+
+### Changed
+- Hardened command loading to avoid stale persisted-output reuse: `/whycode` command no longer injects SKILL content via inline `cat`; it now requires direct file reads from `${CLAUDE_PLUGIN_ROOT}` at runtime.
+- This prevents old command payload cache artifacts from pinning execution to outdated skill text after plugin upgrades.
+
 ## [2.3.15] - 2026-02-17
 
 ### Changed

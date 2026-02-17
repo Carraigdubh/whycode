@@ -5,11 +5,11 @@ argument-hint: "[fix [description]]"
 
 # WhyCode Command
 
-Read and execute the WhyCode skill:
-
-```!
-cat "${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md"
-```
+Read and execute the WhyCode skill from disk (do not use cached or persisted command output).
+You must read these files directly before startup:
+- `${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md` (full file)
+- `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md`
 
 Follow the instructions in the skill file above. This is the WhyCode development orchestrator.
 
