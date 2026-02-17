@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.14] - 2026-02-17
+
+### Changed
+- Linear integration is now fail-closed at startup: if a Linear key is detected, startup must successfully initialize Linear and capture `linearTeamId` or stop with `startup incomplete`.
+- Startup gate/auditor now validate `linearKeyDetected` and `linearInitialized` when a key is present.
+
 ## [2.3.13] - 2026-02-17
 
 ### Changed

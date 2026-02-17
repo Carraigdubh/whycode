@@ -476,17 +476,21 @@ This keeps the orchestrator's context clean for coordination.
 13. DISCOVER integrations:
 
    # Check for Linear (in order of priority)
+   linearKeyDetected = false
+
    # 1. First check .env.local for LINEAR_API_KEY
    IF exists(.env.local):
      envLocal = READ .env.local
      IF envLocal contains "LINEAR_API_KEY=":
        LINEAR_API_KEY = extract value from envLocal
+       linearKeyDetected = true
        SHOW: "✓ Linear API key found in .env.local"
        linearEnabled = true
        linearMethod = "api"
 
    # 2. Finally check environment variable
    ELIF env.LINEAR_API_KEY exists:
+     linearKeyDetected = true
      SHOW: "✓ Linear API key found in environment"
      linearEnabled = true
      linearMethod = "api"
@@ -500,13 +504,19 @@ This keeps the orchestrator's context clean for coordination.
    IF linearEnabled:
      USE Task tool with subagent_type "whycode:linear-agent" to list teams
      IF teamsResult.status != "success":
-       SHOW: "○ Linear disabled: {teamsResult.error}"
-       linearEnabled = false
+       SHOW: "✗ Linear initialization failed: {teamsResult.error}"
+       STOP with "startup incomplete"
      ELSE:
       teams = teamsResult.teams
       ASK user to select team from list (always prompt)
       linearTeamId = selected team
       Store linearTeamId in whycode-state.json
+      IF linearTeamId is missing/empty:
+        STOP with "startup incomplete"
+
+   # HARD RULE: If key exists, Linear must be initialized
+   IF linearKeyDetected == true AND (linearEnabled != true OR linearTeamId is missing/empty):
+     STOP with "startup incomplete"
 
    # Context7 is optional and disabled by default in this marketplace build
    SHOW: "○ Context7 disabled (no MCP in marketplace build)"
@@ -516,19 +526,21 @@ This keeps the orchestrator's context clean for coordination.
    Store integrations in whycode-state.json
 
 14. STARTUP GATE RECEIPT (MANDATORY)
-   WRITE docs/whycode/audit/startup-gate.json:
-   {
-     "status": "pass",
+  WRITE docs/whycode/audit/startup-gate.json:
+  {
+    "status": "pass",
      "runListed": true,
      "runActionSelected": true,
      "completionModeSelected": true,
      "maxIterationsSelected": true,
      "runNameConfirmed": true,
-     "runRecordInitialized": true,
-     "runRecordVisible": true,
-     "branchInitialized": true,
-     "checkedAt": "ISO"
-   }
+    "runRecordInitialized": true,
+    "runRecordVisible": true,
+    "linearKeyDetected": linearKeyDetected,
+    "linearInitialized": (linearEnabled == true AND linearTeamId is not empty),
+    "branchInitialized": true,
+    "checkedAt": "ISO"
+  }
    HARD RULE:
    - Do NOT execute implementation (phases 5-8), fix mutations, or task agents
      unless startup-gate status is "pass".
@@ -548,6 +560,8 @@ This keeps the orchestrator's context clean for coordination.
    - startup-gate.json contains true for:
      runListed, completionModeSelected, maxIterationsSelected,
      runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
+   - if startup-gate.json.linearKeyDetected == true:
+     startup-gate.json.linearInitialized == true
    WRITE docs/whycode/audit/startup-audit.json:
    {
      "status": "pass|fail",
