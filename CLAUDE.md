@@ -51,7 +51,10 @@ When `/whycode` is invoked, you MUST:
 4. Follow the Trust No Agent verification loop:
    - Agent says done -> run validation -> pass -> then mark complete.
 5. Do NOT improvise or substitute a custom orchestration flow.
-6. If any required file above is not read, STOP and report startup incomplete.
+6. Verify startup artifacts before execution:
+   - `docs/whycode/audit/startup-gate.json` has `status: pass`
+   - `docs/whycode/audit/startup-audit.json` has `status: pass`
+7. If any required file above is not read or any startup artifact is failing/missing, STOP and report startup incomplete.
 
 ## Development Workflow
 

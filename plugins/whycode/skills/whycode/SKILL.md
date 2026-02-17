@@ -529,6 +529,35 @@ This keeps the orchestrator's context clean for coordination.
    - Do NOT execute implementation (phases 5-8), fix mutations, or task agents
      unless startup-gate status is "pass".
    - If any field is missing/false, STOP and report: "startup incomplete".
+
+14.5 STARTUP AUDITOR (MANDATORY, INDEPENDENT VERIFICATION)
+   USE Task tool with subagent_type "whycode:state-agent":
+     { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
+   USE Task tool with subagent_type "whycode:context-loader-agent":
+     { "action": "read-json", "target": "docs/whycode/runs/{runId}/run.json" }
+   USE Task tool with subagent_type "whycode:context-loader-agent":
+     { "action": "read-json", "target": "docs/whycode/audit/startup-gate.json" }
+   VERIFY ALL:
+   - list-runs includes current runId
+   - run.json exists and contains: runId, name, runType, completionMode, startedAt
+   - startup-gate.json has status="pass"
+   - startup-gate.json contains true for:
+     runListed, completionModeSelected, maxIterationsSelected,
+     runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
+   WRITE docs/whycode/audit/startup-audit.json:
+   {
+     "status": "pass|fail",
+     "runId": "{runId}",
+     "checkedAt": "ISO",
+     "checks": {
+       "runVisibleInList": true|false,
+       "runJsonValid": true|false,
+       "startupGatePass": true|false
+     },
+     "failures": ["..."]
+   }
+   IF startup-audit status != "pass":
+     STOP with "startup incomplete"
 ```
 
 ---

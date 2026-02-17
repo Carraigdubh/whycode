@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.8] - 2026-02-17
+
+### Changed
+- Added mandatory startup auditor gate (`docs/whycode/audit/startup-audit.json`) with fail-closed behavior.
+- Startup now independently verifies run visibility, run.json integrity, and startup-gate pass before execution.
+- Added deterministic startup evaluation checklist at `docs/STARTUP_EVALS.md`.
+- Updated `CLAUDE.md`/README mandatory rule text to require both startup gate and startup audit pass.
+
 ## [2.3.7] - 2026-02-17
 
 ### Changed

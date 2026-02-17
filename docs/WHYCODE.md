@@ -204,7 +204,8 @@ Run: /plugin update whycode@whycode-marketplace
 6. **Completion Mode** - Prompts for `strict` or `partial`
 7. **Max Iterations + Run Name** - Prompts for iteration limit and run name
 8. **Branch Init** - Initializes run branch before implementation
-9. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
+9. **Startup Auditor** - Verifies run visibility + startup-gate receipts before execution
+10. **Integration Discovery** - Detects Linear API key, Context7, Chrome extension
 
 `/whycode fix` uses the same startup gates and cannot skip directly to implementation.
 `/whycode fix` must ask which run to fix and what problems were found (if not passed as an argument).

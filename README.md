@@ -92,6 +92,7 @@ Run selection must include explicit options for `Show older runs` and `Show all 
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
 Startup now includes a run-visibility gate: the current run must exist in `docs/whycode/runs` and appear in `list-runs` before execution continues.
+Startup now includes an independent startup-auditor gate: `docs/whycode/audit/startup-audit.json` must be `pass` before any implementation starts.
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 
 ## Mandatory Claude Rule (Exact Wording)
@@ -111,7 +112,10 @@ When `/whycode` is invoked, you MUST:
 4. Follow the Trust No Agent verification loop:
    - Agent says done -> run validation -> pass -> then mark complete.
 5. Do NOT improvise or substitute a custom orchestration flow.
-6. If any required file above is not read, STOP and report startup incomplete.
+6. Verify startup artifacts before execution:
+   - `docs/whycode/audit/startup-gate.json` has `status: pass`
+   - `docs/whycode/audit/startup-audit.json` has `status: pass`
+7. If any required file above is not read or any startup artifact is failing/missing, STOP and report startup incomplete.
 ```
 
 ## Run Records
