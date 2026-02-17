@@ -32,9 +32,17 @@ claude plugin uninstall whycode@whycode-marketplace --scope project || true
 claude plugin marketplace remove whycode-marketplace || true
 claude plugin marketplace add Carraigdubh/whycode
 claude plugin install whycode@whycode-marketplace --scope project
+claude plugin list
 ```
 
 Then restart Claude Code.
+
+If the version is not current after reinstall, run:
+
+```bash
+claude plugin update whycode@whycode-marketplace --scope project
+claude plugin list
+```
 
 ### Known Issues
 
@@ -67,6 +75,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 /whycode              # Start full 8-phase workflow
 /whycode fix          # Fix and Learn mode
 /whycode fix "desc"   # Fix with description
+/whycode doctor       # Diagnose active plugin/version/path/cache issues
 /whycode log          # Record a manual change (no orchestration)
 /whycode log "desc"   # Record a manual change with description
 ```
@@ -237,8 +246,9 @@ git push
 
 ### Version Bump
 1. Update `plugins/whycode/.claude-plugin/plugin.json` → `version`
-2. Update `plugins/whycode/CHANGELOG.md`
-3. Commit and push
+2. Update `.claude-plugin/marketplace.json` → plugin `version`
+3. Update `plugins/whycode/CHANGELOG.md`
+4. Commit and push
 
 ### Testing Locally
 ```bash

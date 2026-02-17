@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.17] - 2026-02-17
+
+### Added
+- Added `/whycode:doctor` command to diagnose active plugin/version/path provenance and detect stale cache or override conditions before running WhyCode.
+
+### Changed
+- Updated marketplace metadata version to `2.3.17` so marketplace update signaling aligns with plugin releases.
+
 ## [2.3.16] - 2026-02-17
 
 ### Changed
