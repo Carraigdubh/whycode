@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.18] - 2026-02-17
+
+### Changed
+- `/whycode:doctor` now supports interactive self-heal for project `CLAUDE.md` path drift:
+  - detects stale `plugins/whycode/...` path references
+  - shows replacement preview
+  - asks approval
+  - applies fixes and re-runs checks
+- Doctor output now reports `Applied Fixes` in addition to remaining fix commands.
+
 ## [2.3.17] - 2026-02-17
 
 ### Added

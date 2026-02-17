@@ -5,7 +5,7 @@ argument-hint: ""
 
 # WhyCode Doctor
 
-Run a diagnosis only. Do not mutate product code.
+Run diagnosis first, then offer safe auto-fixes for configuration drift.
 
 Checks (in order):
 1. Read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and report version.
@@ -21,6 +21,25 @@ Output format:
 - `Doctor Status: PASS|FAIL`
 - `Active Plugin Version: ...`
 - `Findings:` bullet list
-- `Fix Commands:` exact terminal commands to resolve any failures
+- `Applied Fixes:` bullet list (if any)
+- `Fix Commands:` exact terminal commands for unresolved items
 
-If any critical mismatch is detected, print `Doctor Status: FAIL` and include full remediation commands.
+Auto-fix policy:
+- Do not change product code.
+- You MAY patch project configuration files when drift is detected and the user approves.
+- Primary auto-fix target: `CLAUDE.md` WhyCode path drift.
+
+`CLAUDE.md` remediation (interactive):
+1. If `CLAUDE.md` contains any of:
+   - `plugins/whycode/skills/whycode/SKILL.md`
+   - `plugins/whycode/skills/whycode/reference/AGENTS.md`
+   - `plugins/whycode/skills/whycode/reference/TEMPLATES.md`
+2. Show a concise diff preview for replacements:
+   - `plugins/whycode/skills/whycode/SKILL.md` -> `${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md`
+   - `plugins/whycode/skills/whycode/reference/AGENTS.md` -> `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md`
+   - `plugins/whycode/skills/whycode/reference/TEMPLATES.md` -> `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md`
+3. Ask: `Apply these CLAUDE.md fixes now? [Y/n]`
+4. If approved, apply replacements, report updated lines, then re-run all doctor checks.
+5. If declined, keep `Doctor Status: FAIL` and provide fix commands.
+
+If critical mismatches remain after optional auto-fixes, print `Doctor Status: FAIL`.

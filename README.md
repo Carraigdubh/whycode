@@ -80,6 +80,8 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 /whycode log "desc"   # Record a manual change with description
 ```
 
+`/whycode doctor` can now offer to auto-fix stale WhyCode path references in project `CLAUDE.md` and then re-run diagnostics.
+
 ## Startup Switches (Interactive)
 
 On startup, WhyCode prompts for:
