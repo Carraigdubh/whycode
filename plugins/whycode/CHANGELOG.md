@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.19] - 2026-02-17
+
+### Added
+- Startup now prompts for `agentTeamsMode` (`off` or `review-teams`) and persists it in state.
+
+### Changed
+- Phase 6 review can now run in `review-teams` mode, using an Agent Teams lead/delegate pattern when available.
+- Added fail-safe fallback: if teams are unavailable at runtime, review falls back to standard execution.
+- Startup gate/auditor now requires `agentTeamsModeSelected=true`.
+
 ## [2.3.18] - 2026-02-17
 
 ### Changed

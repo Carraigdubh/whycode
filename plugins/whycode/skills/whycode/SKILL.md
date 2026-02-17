@@ -363,6 +363,12 @@ This keeps the orchestrator's context clean for coordination.
 6. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as loopMaxIterations
 
+6.5 ASK user for review execution mode
+   Prompt: "Review execution mode? off | review-teams"
+   - off: Use current single-agent review loop
+   - review-teams: Use Agent Teams for Phase 6 review (experimental)
+   Store as agentTeamsMode in whycode-state.json
+
 7. ASK user to confirm or edit run name (default: {suggestedRunName})
    Store in run meta
 
@@ -539,6 +545,7 @@ This keeps the orchestrator's context clean for coordination.
      "runActionSelected": true,
      "completionModeSelected": true,
      "maxIterationsSelected": true,
+     "agentTeamsModeSelected": true,
      "runNameConfirmed": true,
     "runRecordInitialized": true,
     "runRecordVisible": true,
@@ -564,8 +571,9 @@ This keeps the orchestrator's context clean for coordination.
    - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"
    - startup-gate.json contains true for:
-     runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
-     runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
+    runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
+    agentTeamsModeSelected,
+    runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
    - if startup-gate.json.linearKeyDetected == true:
      startup-gate.json.linearInitialized == true
    WRITE docs/whycode/audit/startup-audit.json:
@@ -1247,27 +1255,54 @@ WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
   DELETE docs/whycode/loop-state/phase6-review-result.json (if exists)
 
-  USE Task tool(
-    subagent_type: "whycode:review-agent",
-    prompt: """
-    You are executing a code review (iteration {loopState.currentIteration}).
+  IF agentTeamsMode == "review-teams":
+    # Agent Teams mode (experimental): use a lead to delegate review/test/docs in parallel.
+    # Requires Claude Code experimental teams enabled in settings.
+    USE Task tool(
+      subagent_type: "general-purpose",
+      prompt: """
+      You are the Phase 6 review lead (iteration {loopState.currentIteration}).
 
-    ⛔ FRESH CONTEXT - Read all state from files.
+      Use Agent Teams delegation if available to parallelize:
+      1) Quality/security/code-review
+      2) Validation run (typecheck/lint/test/build/smoke)
+      3) Review-doc updates
 
-    SETUP:
-    1. READ docs/whycode/reference/AGENTS.md for protocol
-    2. READ docs/whycode/loop-state/phase6-review.json for iteration history
+      Team execution requirements:
+      - Keep this lead session coordination-only.
+      - Delegate work in parallel to teammates.
+      - Consolidate outputs into:
+        - docs/review/quality-report.md
+        - docs/review/critical-issues.md
+      - If teammate mode is unavailable, FALL BACK to sequential execution in this lead and still produce outputs.
 
-    TASK:
-    Review code quality in categories: Quality, Bugs, Conventions, Security.
-    Write docs/review/quality-report.md.
-    Append critical findings to docs/review/critical-issues.md.
+      OUTPUT (MANDATORY):
+      Write docs/whycode/loop-state/phase6-review-result.json with:
+      { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
+      """
+    )
+  ELSE:
+    USE Task tool(
+      subagent_type: "whycode:review-agent",
+      prompt: """
+      You are executing a code review (iteration {loopState.currentIteration}).
 
-    OUTPUT (MANDATORY):
-    Write docs/whycode/loop-state/phase6-review-result.json with:
-    { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
-    """
-  )
+      ⛔ FRESH CONTEXT - Read all state from files.
+
+      SETUP:
+      1. READ docs/whycode/reference/AGENTS.md for protocol
+      2. READ docs/whycode/loop-state/phase6-review.json for iteration history
+
+      TASK:
+      Review code quality in categories: Quality, Bugs, Conventions, Security.
+      Write docs/review/quality-report.md.
+      Append critical findings to docs/review/critical-issues.md.
+
+      OUTPUT (MANDATORY):
+      Write docs/whycode/loop-state/phase6-review-result.json with:
+      { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
+      """
+    )
 
   result = READ docs/whycode/loop-state/phase6-review-result.json
   IF result.outcome == "PLAN_COMPLETE":

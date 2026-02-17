@@ -87,6 +87,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 On startup, WhyCode prompts for:
 - **Completion mode**: `strict` (all verifications must pass) or `partial` (build/typecheck clean with requirements logged)
 - **Max iterations**: 20/30/50/custom
+- **Review execution mode**: `off` or `review-teams` (experimental Agent Teams for Phase 6)
 - **Run name**: suggested, editable
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
@@ -101,6 +102,23 @@ If more than 5 runs exist, fix mode must show explicit `Show older runs` and `Sh
 Startup now includes a run-visibility gate: the current run must exist in `docs/whycode/runs` and appear in `list-runs` before execution continues.
 Startup now includes an independent startup-auditor gate: `docs/whycode/audit/startup-audit.json` must be `pass` before any implementation starts.
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
+
+### Agent Teams (Experimental)
+
+`review-teams` mode only affects Phase 6 review. Startup/fix gates and implementation flow remain unchanged.
+
+Enable in Claude settings:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "teammateMode": "tmux"
+}
+```
+
+If teams are unavailable at runtime, WhyCode falls back to standard review execution.
 
 ## Mandatory Claude Rule (Exact Wording)
 
