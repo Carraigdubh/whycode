@@ -1335,6 +1335,18 @@ Triggered by `/whycode fix` or on resume with errors.
        2) Show older runs
        3) Show all runs
      - Map controls to browsing actions (`more` / `all`)
+     - IF totalRuns > 5:
+       - controls 2 and 3 are mandatory and must be visible before parent run selection continues
+       - WRITE docs/whycode/audit/fix-target-gate.json:
+         {
+           "status": "pass|fail",
+           "runId": "{runId}",
+           "totalRuns": totalRuns,
+           "hasShowOlderRunsControl": true|false,
+           "hasShowAllRunsControl": true|false,
+           "checkedAt": "ISO"
+         }
+       - IF status != "pass": STOP with "startup incomplete"
      - Stay on Fix target step until a valid runId/index is selected
      - Store selected run as parentRunId
      - Do NOT use `resume` action in fix mode

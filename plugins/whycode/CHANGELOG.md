@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.12] - 2026-02-17
+
+### Changed
+- Added a fail-closed fix-target gate: when runs exceed 5, `Show older runs` and `Show all runs` controls must be present before Parent Run selection continues.
+- Fix mode now writes `docs/whycode/audit/fix-target-gate.json` and stops with `startup incomplete` if controls are missing.
+
 ## [2.3.11] - 2026-02-17
 
 ### Changed

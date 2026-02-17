@@ -85,6 +85,7 @@ Run selection must include explicit options for `Show older runs` and `Show all 
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
 If Linear is configured, fix runs must also create/update Linear records (same as normal WhyCode runs).
+If more than 5 runs exist, fix mode must show explicit `Show older runs` and `Show all runs` controls before Parent Run can continue.
 Startup now includes a run-visibility gate: the current run must exist in `docs/whycode/runs` and appear in `list-runs` before execution continues.
 Startup now includes an independent startup-auditor gate: `docs/whycode/audit/startup-audit.json` must be `pass` before any implementation starts.
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.

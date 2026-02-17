@@ -214,6 +214,7 @@ If Linear is enabled, `/whycode fix` must create/update Linear tracking for the 
 Run selection supports paging controls so you can reach older runs: `more`, `all`, `continue`.
 Run selection is blocking and cannot advance until a valid run index or runId is selected.
 Run selection UI must include explicit choices for `Show older runs` and `Show all runs`.
+If total runs > 5, fix mode must fail closed unless both controls are present and validated.
 Startup now enforces run-record visibility: if the active run is missing from run listing, it is backfilled before proceeding.
 If a fix is significant (schema/cross-platform/core architecture impact), architecture approval is required before code changes.
 
