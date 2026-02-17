@@ -363,10 +363,11 @@ This keeps the orchestrator's context clean for coordination.
 6. ASK user for max iterations (20/30/50/custom)
    Store in whycode-state.json as loopMaxIterations
 
-6.5 ASK user for review execution mode
-   Prompt: "Review execution mode? off | review-teams"
-   - off: Use current single-agent review loop
-   - review-teams: Use Agent Teams for Phase 6 review (experimental)
+6.5 ASK user for execution speed mode
+   Prompt: "Execution speed mode? off | review-teams | turbo-teams"
+   - off: Use current single-agent orchestration path
+   - review-teams: Use Agent Teams for Phase 6 review only (experimental)
+   - turbo-teams: Use Agent Teams lead/delegate in Phases 5/6/7 when available (experimental)
    Store as agentTeamsMode in whycode-state.json
 
 7. ASK user to confirm or edit run name (default: {suggestedRunName})
@@ -537,6 +538,10 @@ This keeps the orchestrator's context clean for coordination.
    # Store in state
    Store integrations in whycode-state.json
 
+   # Backward compatibility for resumed/legacy runs
+   IF agentTeamsMode is missing/empty:
+     agentTeamsMode = "off"
+
 14. STARTUP GATE RECEIPT (MANDATORY)
   WRITE docs/whycode/audit/startup-gate.json:
   {
@@ -546,6 +551,7 @@ This keeps the orchestrator's context clean for coordination.
      "completionModeSelected": true,
      "maxIterationsSelected": true,
      "agentTeamsModeSelected": true,
+     "agentTeamsMode": "{agentTeamsMode}",
      "runNameConfirmed": true,
     "runRecordInitialized": true,
     "runRecordVisible": true,
@@ -898,10 +904,55 @@ FOR EACH plan in plans:
     WRITE docs/whycode/loop-state/{plan.id}.json = loopState
     APPEND docs/whycode/loop-state/{plan.id}-run.log: "{NOW()} START runId={runId} agent={agentType} iteration={loopState.currentIteration}"
 
-    USE Task tool(
-      description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
-      subagent_type: agentType,
-      prompt: """
+    IF agentTeamsMode == "turbo-teams":
+      USE Task tool(
+        description: "Execute plan {plan.id} iteration {loopState.currentIteration} (turbo teams)",
+        subagent_type: "general-purpose",
+        prompt: """
+        You are a turbo execution lead for plan {plan.id}, iteration {loopState.currentIteration}.
+        runId: {runId}
+
+        Goal: maximize speed via Agent Teams delegation without weakening verification.
+
+        REQUIRED SETUP:
+        1. READ docs/whycode/PLAN.md
+        2. READ docs/whycode/loop-state/{plan.id}.json
+        3. READ docs/whycode/reference/AGENTS.md
+        4. CHECK git log --oneline -10
+
+        EXECUTION:
+        - If Agent Teams are available, delegate plan tasks in parallel to specialist teammates.
+        - Keep this lead session coordination-only and merge teammate outputs.
+        - If teams are unavailable, FALL BACK to sequential execution in this lead.
+
+        OUTPUT (MANDATORY):
+        Write docs/whycode/loop-state/{plan.id}-result.json with:
+        {
+          "planId": "{plan.id}",
+          "iteration": {loopState.currentIteration},
+          "outcome": "PLAN_COMPLETE" | "incomplete" | "blocked",
+          "tasksCompleted": [...],
+          "tasksPending": [...],
+          "taskStatus": [
+            { "id": "task-001", "status": "done", "verifiedBy": "<verify>", "verifiedAt": "ISO" }
+          ],
+          "selfValidation": {
+            "typecheck": { "status": "pass|fail", "exitCode": N },
+            "lint": { "status": "pass|fail", "exitCode": N },
+            "test": { "status": "pass|fail", "passed": N, "failed": N },
+            "build": { "status": "pass|fail", "exitCode": N },
+            "smoke": { "status": "pass|fail", "appStarted": true|false }
+          },
+          "filesChanged": { "created": [...], "modified": [...] },
+          "notes": "..."
+        }
+        """
+      )
+    ELSE:
+      USE Task tool(
+        description: "Execute plan {plan.id} iteration {loopState.currentIteration}",
+        subagent_type: agentType,
+        prompt: """
       === SUBAGENT RUNNING via Task tool ===
       This block is executed in a separate subagent context.
       runId: {runId}
@@ -984,7 +1035,8 @@ FOR EACH plan in plans:
       The orchestrator VERIFIES externally after you claim PLAN_COMPLETE.
       If verification fails, you'll be run again with the error.
       """
-    )
+      )
+    ENDIF
 
     # Record subagent start for auditing
     loopState.lastSubagentStartedAt = NOW()
@@ -1255,8 +1307,8 @@ WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
   DELETE docs/whycode/loop-state/phase6-review-result.json (if exists)
 
-  IF agentTeamsMode == "review-teams":
-    # Agent Teams mode (experimental): use a lead to delegate review/test/docs in parallel.
+  IF agentTeamsMode == "review-teams" OR agentTeamsMode == "turbo-teams":
+      # Agent Teams mode (experimental): use a lead to delegate review/test/docs in parallel.
     # Requires Claude Code experimental teams enabled in settings.
     USE Task tool(
       subagent_type: "general-purpose",
@@ -1344,34 +1396,59 @@ WHILE loopState.currentIteration < loopMaxIterations:
   loopState.currentIteration += 1
   DELETE docs/whycode/loop-state/phase7-docs-result.json (if exists)
 
-  USE Task tool(
-    subagent_type: "whycode:docs-agent",
-    prompt: """
-    You are generating documentation (iteration {loopState.currentIteration}).
+  IF agentTeamsMode == "turbo-teams":
+    USE Task tool(
+      subagent_type: "general-purpose",
+      prompt: """
+      You are Phase 7 docs lead (iteration {loopState.currentIteration}).
+      Use Agent Teams delegation when available to speed docs generation and validation.
+      If teams are unavailable, fall back to sequential execution.
 
-    ⛔ FRESH CONTEXT - Read all state from files.
+      TASK:
+      Generate and sync project documentation:
+      - Use `docs/project documentation/` as canonical output path.
+      - If `docs/project documentation/` is absent, CREATE it.
+      - If `docs/project documentation/INDEX.md` is absent, CREATE it.
+      - Update docs/project documentation/* to reflect current code and architecture state.
+      - Append a run note to docs/project documentation/INDEX.md with:
+        `runId={runId}`, `planId=phase7-docs`, and current timestamp.
+      - Do NOT modify `CLAUDE.md`
 
-    SETUP:
-    1. READ docs/whycode/reference/AGENTS.md for protocol
-    2. READ docs/whycode/reference/TEMPLATES.md for formats
-    3. READ docs/whycode/loop-state/phase7-docs.json for iteration history
+      OUTPUT (MANDATORY):
+      Write docs/whycode/loop-state/phase7-docs-result.json with:
+      { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
+      """
+    )
+  ELSE:
+    USE Task tool(
+      subagent_type: "whycode:docs-agent",
+      prompt: """
+      You are generating documentation (iteration {loopState.currentIteration}).
 
-    TASK:
-    Generate and sync project documentation:
-    - Use `docs/project documentation/` as canonical output path.
-    - If `docs/project documentation/` is absent, CREATE it.
-    - If `docs/project documentation/INDEX.md` is absent, CREATE it.
-    - Update docs/project documentation/* to reflect current code and architecture state.
-    - Append a run note to docs/project documentation/INDEX.md with:
-      `runId={runId}`, `planId=phase7-docs`, and current timestamp.
-    - If additional standard docs are needed (README.md, docs/api/*.md, docs/DEPLOYMENT.md), generate them as secondary outputs.
-    - Do NOT modify `CLAUDE.md`
+      ⛔ FRESH CONTEXT - Read all state from files.
 
-    OUTPUT (MANDATORY):
-    Write docs/whycode/loop-state/phase7-docs-result.json with:
-    { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
-    """
-  )
+      SETUP:
+      1. READ docs/whycode/reference/AGENTS.md for protocol
+      2. READ docs/whycode/reference/TEMPLATES.md for formats
+      3. READ docs/whycode/loop-state/phase7-docs.json for iteration history
+
+      TASK:
+      Generate and sync project documentation:
+      - Use `docs/project documentation/` as canonical output path.
+      - If `docs/project documentation/` is absent, CREATE it.
+      - If `docs/project documentation/INDEX.md` is absent, CREATE it.
+      - Update docs/project documentation/* to reflect current code and architecture state.
+      - Append a run note to docs/project documentation/INDEX.md with:
+        `runId={runId}`, `planId=phase7-docs`, and current timestamp.
+      - If additional standard docs are needed (README.md, docs/api/*.md, docs/DEPLOYMENT.md), generate them as secondary outputs.
+      - Do NOT modify `CLAUDE.md`
+
+      OUTPUT (MANDATORY):
+      Write docs/whycode/loop-state/phase7-docs-result.json with:
+      { "outcome": "PLAN_COMPLETE" | "incomplete", "notes": "..." }
+      """
+    )
+  ENDIF
 
   result = READ docs/whycode/loop-state/phase7-docs-result.json
   IF result.outcome == "PLAN_COMPLETE":
@@ -1414,7 +1491,7 @@ Triggered by `/whycode fix` or on resume with errors.
 0. RE-RUN STARTUP GATES (MANDATORY, NO SHORTCUTS)
    - Re-read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and display fix-mode banner using that version.
    - Never display fix-mode version from existing run/state metadata.
-   - Execute STARTUP steps 3,5,6,7,10,11.
+   - Execute STARTUP steps 3,5,6,6.5,7,10,11.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
      - Present explicit selectable controls:
@@ -1446,6 +1523,7 @@ Triggered by `/whycode fix` or on resume with errors.
      - list previous runs
      - ask completion mode
      - ask max iterations
+     - ask execution speed mode (off | review-teams | turbo-teams)
      - ask run name
      - init run record
      - init run branch

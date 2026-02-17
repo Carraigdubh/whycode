@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.20] - 2026-02-17
+
+### Added
+- Added `turbo-teams` execution speed mode for maximum throughput with Agent Teams lead/delegate flow.
+
+### Changed
+- Startup now prompts for `agentTeamsMode` with three options: `off`, `review-teams`, `turbo-teams`.
+- Phase 5 implementation loop can run in turbo lead/delegate mode with automatic fallback to standard execution if teams are unavailable.
+- Phase 6 review teams mode now accepts both `review-teams` and `turbo-teams`.
+- Phase 7 docs loop can run in turbo lead/delegate mode with fallback to standard docs-agent execution.
+- Fix mode startup flow now explicitly includes execution speed mode selection.
+- Added backward-compatibility default: if `agentTeamsMode` is missing in resumed/legacy state, default to `off`.
+
 ## [2.3.19] - 2026-02-17
 
 ### Added

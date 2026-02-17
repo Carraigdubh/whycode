@@ -87,7 +87,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 On startup, WhyCode prompts for:
 - **Completion mode**: `strict` (all verifications must pass) or `partial` (build/typecheck clean with requirements logged)
 - **Max iterations**: 20/30/50/custom
-- **Review execution mode**: `off` or `review-teams` (experimental Agent Teams for Phase 6)
+- **Execution speed mode**: `off`, `review-teams`, or `turbo-teams` (experimental Agent Teams acceleration)
 - **Run name**: suggested, editable
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
@@ -105,7 +105,11 @@ For significant fixes (schema/cross-platform/core architecture changes), archite
 
 ### Agent Teams (Experimental)
 
-`review-teams` mode only affects Phase 6 review. Startup/fix gates and implementation flow remain unchanged.
+- `off`: default behavior (fully backward compatible)
+- `review-teams`: Agent Teams only in Phase 6 review
+- `turbo-teams`: Agent Teams lead/delegate in Phases 5, 6, and 7 for maximum speed
+
+Startup/fix gates and run recording remain unchanged across all modes.
 
 Enable in Claude settings:
 
