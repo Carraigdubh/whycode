@@ -22,7 +22,8 @@ Hard execution rule:
   2. User selected completion mode (`strict|partial`)
   3. User selected max iterations
   4. User confirmed run name
-  5. Run branch was initialized
+  5. Run record was initialized AND visible in run list
+  6. Run branch was initialized
 - If a startup gate is missing, stop and report: `startup incomplete`.
 - For significant fixes (schema/data model changes, cross-platform changes, new core components, or >3 files changed), architecture design and user approval are mandatory before implementation.
 - `/whycode fix` additional mandatory gates:

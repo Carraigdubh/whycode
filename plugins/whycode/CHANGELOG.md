@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.7] - 2026-02-17
+
+### Changed
+- Added a mandatory run-record visibility gate after `init-run`; startup now re-lists runs and verifies the active runId is discoverable.
+- If the active run is missing from run listing, WhyCode backfills the run record and appends a `backfill` event before continuing.
+- Startup gate receipt now includes `runRecordInitialized` and `runRecordVisible`.
+
 ## [2.3.6] - 2026-02-16
 
 ### Changed

@@ -403,6 +403,45 @@ This keeps the orchestrator's context clean for coordination.
        }
      }
 
+10.5 VERIFY RUN RECORD VISIBILITY (MANDATORY)
+   USE Task tool with subagent_type "whycode:state-agent":
+     { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
+   IF current runId is NOT present in list-runs result:
+     SHOW: "Run record missing from list. Backfilling now."
+     USE Task tool with subagent_type "whycode:state-agent":
+       {
+         "action": "init-run",
+         "data": {
+           "runId": runId,
+           "targetDir": "docs/whycode/runs/{runId}",
+           "meta": {
+             "startedAt": NOW(),
+             "version": "{version}",
+             "flags": ["backfilled"],
+             "name": "{runName}",
+             "completionMode": "{completionMode}",
+             "runType": "{runType}",
+             "parentRunId": "{parentRunId}"
+           }
+         }
+       }
+     USE Task tool with subagent_type "whycode:state-agent":
+       {
+         "action": "append-run-event",
+         "data": {
+           "runId": runId,
+           "targetDir": "docs/whycode/runs/{runId}",
+           "event": {
+             "type": "backfill",
+             "timestamp": NOW(),
+             "summary": "Run record backfilled because it was missing from run list."
+           }
+         }
+       }
+     RE-RUN list-runs and verify runId is now present
+   IF runId still missing after backfill:
+     STOP with "startup incomplete"
+
 11. INIT RUN BRANCH (GitHub flow)
    USE Task tool with subagent_type "whycode:git-agent":
      {
@@ -481,6 +520,8 @@ This keeps the orchestrator's context clean for coordination.
      "completionModeSelected": true,
      "maxIterationsSelected": true,
      "runNameConfirmed": true,
+     "runRecordInitialized": true,
+     "runRecordVisible": true,
      "branchInitialized": true,
      "checkedAt": "ISO"
    }

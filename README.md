@@ -91,6 +91,7 @@ Selection is blocking: it stays on run selection until a valid run index/runId i
 Run selection must include explicit options for `Show older runs` and `Show all runs` in the prompt UI.
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
+Startup now includes a run-visibility gate: the current run must exist in `docs/whycode/runs` and appear in `list-runs` before execution continues.
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 
 ## Mandatory Claude Rule (Exact Wording)
