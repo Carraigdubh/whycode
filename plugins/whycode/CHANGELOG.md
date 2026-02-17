@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.9] - 2026-02-17
+
+### Changed
+- README now specifies terminal-first installation and a terminal-only clean reinstall flow as the reliable path.
+- README now includes exact instruction text for Claude Code to replace the entire `WhyCode (MANDATORY)` section in project `CLAUDE.md`.
+- README explicitly requires replacing older WhyCode rule blocks rather than merging/paraphrasing.
+
 ## [2.3.8] - 2026-02-17
 
 ### Changed

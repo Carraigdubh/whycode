@@ -8,26 +8,9 @@ Development orchestrator with multi-agent workflows. Uses GSD+ methodology and w
 
 ## Installation
 
-### Method 1: Using the Plugin UI (Recommended)
+### Terminal Install (Preferred)
 
-The most reliable method inside Claude Code:
-
-```bash
-# Step 1: Add the marketplace
-/plugin marketplace add Carraigdubh/whycode
-
-# Step 2: Open plugin manager
-/plugin
-
-# Step 3: Go to "Discover" tab → Select "whycode" → Press Enter to install
-# Step 4: Choose "project" scope when prompted
-```
-
-**Note:** WhyCode includes its own loop mechanism (whycode-loop) - no external plugins needed.
-
-### Method 2: Using Terminal Commands
-
-Run these commands in your terminal **before** starting Claude Code:
+Run these commands in your terminal before starting Claude Code:
 
 ```bash
 # Add marketplace
@@ -40,7 +23,18 @@ claude plugin install whycode@whycode-marketplace --scope project
 claude
 ```
 
-**Note:** WhyCode includes its own loop mechanism - no additional setup needed.
+### Terminal Reinstall (Clean Reset, Recommended)
+
+Use this exact sequence when updating or fixing install issues:
+
+```bash
+claude plugin uninstall whycode@whycode-marketplace --scope project || true
+claude plugin marketplace remove whycode-marketplace || true
+claude plugin marketplace add Carraigdubh/whycode
+claude plugin install whycode@whycode-marketplace --scope project
+```
+
+Then restart Claude Code.
 
 ### Known Issues
 
@@ -49,9 +43,8 @@ claude
 This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issues). The slash command sometimes triggers a conversational response instead of executing.
 
 **Workarounds:**
-1. Use the `/plugin` UI method (Method 1 above)
-2. Use terminal commands (Method 2 above)
-3. Try running the command again
+1. Use terminal commands (Installation section above)
+2. Run the terminal reinstall sequence (clean reset)
 
 **Plugin shows "already installed" but `/whycode` not available:**
 
@@ -97,7 +90,15 @@ For significant fixes (schema/cross-platform/core architecture changes), archite
 
 ## Mandatory Claude Rule (Exact Wording)
 
-Add this to `CLAUDE.md` in projects that run WhyCode:
+In each project that runs WhyCode, replace any existing WhyCode section in `CLAUDE.md` with the block below exactly.
+
+Use this instruction text in Claude Code (copy/paste):
+
+```text
+Open CLAUDE.md and replace the entire section titled "WhyCode (MANDATORY)" with the exact block below. Do not paraphrase, merge, or keep older WhyCode rules.
+```
+
+Exact block to insert:
 
 ```md
 ## WhyCode (MANDATORY)
