@@ -14,7 +14,7 @@ You handle git/GitHub operations for WhyCode. Keep output concise and structured
 
 ```json
 {
-  "action": "init-branch" | "push-branch" | "create-pr" | "get-commit" | "list-commits",
+  "action": "init-branch" | "push-branch" | "create-pr" | "create-issue" | "get-commit" | "list-commits",
   "data": { ... }
 }
 ```
@@ -73,6 +73,35 @@ Create a PR for the current branch using GitHub CLI.
 2. RUN: git rev-parse --abbrev-ref HEAD
 3. RUN: gh pr create --title "WhyCode: {runName}" --body "Run {runId}" --base {baseBranch} --head {branch}
 4. RETURN PR URL
+```
+
+### create-issue
+Create a GitHub issue for capability gaps or follow-up work.
+
+**Input:**
+```json
+{
+  "action": "create-issue",
+  "data": {
+    "title": "WhyCode capability gap: Expo + Next specialist agents",
+    "body": "Detected stack ...",
+    "labels": ["whycode", "capability-gap", "agent-request"],
+    "repo": "owner/repo"
+  }
+}
+```
+
+**Workflow:**
+```
+1. VERIFY gh exists: gh --version
+2. VERIFY authentication: gh auth status
+3. BUILD command:
+   - base: gh issue create --title "{title}" --body "{body}"
+   - if labels provided: add repeated --label "{label}"
+   - if repo provided: add --repo "{repo}"
+4. RUN command and capture issue URL from stdout
+5. PARSE issue number from URL when possible
+6. RETURN issue URL + number
 ```
 
 ### list-commits

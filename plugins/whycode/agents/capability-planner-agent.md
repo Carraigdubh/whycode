@@ -84,6 +84,14 @@ Rules:
   - Convex: `convex` dependency or `convex/` folder
   - Vercel: `vercel.json` or `.vercel/`
 - Compare detected stack to available agent catalog from `docs/whycode/reference/AGENTS.md`.
+- Routing MUST prefer specialists when available:
+  - Expo/RN -> `whycode:frontend-native-agent`
+  - Web/Next -> `whycode:frontend-web-agent`
+  - Convex -> `whycode:backend-convex-agent`
+  - Clerk/Auth -> `whycode:backend-auth-agent`
+  - Vercel deploy -> `whycode:deploy-vercel-agent`
+- If both Expo/RN and Web/Next are detected, routingPlan must include two frontend entries (`frontend-native` and `frontend-web`) when specialists are available.
+- Generic `whycode:frontend-agent` / `whycode:backend-agent` should be used only as explicit fallback with reason.
 - Mandatory specialist-gap rules:
   - If Expo/RN detected and `whycode:frontend-native-agent` is missing, add a gap.
   - If Web/Next detected and `whycode:frontend-web-agent` is missing, add a gap.
@@ -96,3 +104,4 @@ Rules:
 - If `docs/whycode/tech-capabilities.json` exists, merge updates (preserve `firstSeenAt`, refresh `lastSeenAt`, add newly detected tech).
 - If it does not exist, create it.
 - Report conservative coverage only. Do not claim "fully covered" if required specialist agents are absent.
+- In `notes`, clearly explain why each surface used specialist vs fallback routing.

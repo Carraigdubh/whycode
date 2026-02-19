@@ -22,7 +22,12 @@ Full agent definitions are in `../../../agents/`:
 | Agent (invoke as) | Model | Color | Description |
 |-------------------|-------|-------|-------------|
 | `whycode:backend-agent` | opus | blue | Backend APIs, database, server logic |
+| `whycode:backend-convex-agent` | opus | cobalt | Convex schema/functions/index/auth patterns |
+| `whycode:backend-auth-agent` | opus | indigo | Clerk-focused authN/authZ, middleware, webhook safety |
 | `whycode:frontend-agent` | opus | green | UI components, pages, client logic |
+| `whycode:frontend-web-agent` | opus | emerald | Next.js/web frontend with App Router best practices |
+| `whycode:frontend-native-agent` | opus | lime | Expo/React Native frontend and mobile runtime correctness |
+| `whycode:deploy-vercel-agent` | sonnet | violet | Vercel deployment/env/runtime readiness |
 | `whycode:test-agent` | haiku | yellow | Unit/integration testing |
 | `whycode:e2e-agent` | haiku | orange | E2E UI testing (Chrome for web, Maestro for Expo) |
 | `whycode:review-agent` | opus | red | Code quality, bugs, security |
@@ -37,7 +42,7 @@ Full agent definitions are in `../../../agents/`:
 | `whycode:linear-agent` | haiku | indigo | Linear API interactions |
 | `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
 | `whycode:state-agent` | haiku | brown | Update state files |
-| `whycode:git-agent` | haiku | black | Git/GitHub operations (branch, push, PR) |
+| `whycode:git-agent` | haiku | black | Git/GitHub operations (branch, push, PR, issue) |
 
 Each agent file contains:
 - **Frontmatter**: `name`, `description`, `model`, `color`, `tools` (scoped)

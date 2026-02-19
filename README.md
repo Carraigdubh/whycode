@@ -89,6 +89,7 @@ On startup, WhyCode prompts for:
 - **Max iterations**: 20/30/50/custom
 - **Execution speed mode**: `off`, `review-teams`, or `turbo-teams` (experimental Agent Teams acceleration)
 - **Capability decision** (when gaps are detected): `fallback`, `issue`, `pr-scaffold`, or `cancel`
+  - `issue` now attempts immediate GitHub issue creation via `gh issue create` (with fallback requirement logging if GitHub auth is missing)
 - **Run name**: suggested, editable
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
@@ -209,12 +210,17 @@ WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR
 | 7 | Documentation | Autonomous |
 | 8 | Handoff | Autonomous |
 
-**7 Specialized Agents:**
+**Specialist + Core Agents:**
 
 | Agent | Purpose |
 |-------|---------|
 | `backend-agent` | Backend APIs, database, server logic |
+| `backend-convex-agent` | Convex schema/functions/index/auth patterns |
+| `backend-auth-agent` | Clerk-focused authN/authZ, middleware, webhook safety |
 | `frontend-agent` | UI components, pages, client logic |
+| `frontend-web-agent` | Next.js/web frontend specialist |
+| `frontend-native-agent` | Expo/React Native frontend specialist |
+| `deploy-vercel-agent` | Vercel deploy/env/runtime specialist |
 | `test-agent` | Unit/integration testing |
 | `e2e-agent` | E2E UI testing (Chrome for web, Maestro for Expo) |
 | `review-agent` | Code quality, bugs, security |
@@ -230,7 +236,7 @@ WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR
 - **Version Checking**: Shows updates on startup with changelog
 - **Run Archiving**: Each run stored under `docs/whycode/runs/{runId}`
 - **Partial Completion**: Records unmet requirements without blocking all progress
-- **GitHub Workflow**: Per-run branch + PR, auto-push after each plan
+- **GitHub Workflow**: Per-run branch + PR, auto-push after each plan; capability-gap issue option can open GitHub issues directly
 
 ## Repository Structure
 
@@ -241,9 +247,14 @@ whycode-marketplace/                    # Git repo root
 ├── plugins/whycode/                    # Plugin files
 │   ├── .claude-plugin/plugin.json
 │   ├── CHANGELOG.md
-│   ├── agents/                         # 7 agent definitions
+│   ├── agents/                         # Core + specialist agent definitions
 │   │   ├── backend-agent.md
+│   │   ├── backend-convex-agent.md
+│   │   ├── backend-auth-agent.md
 │   │   ├── frontend-agent.md
+│   │   ├── frontend-web-agent.md
+│   │   ├── frontend-native-agent.md
+│   │   ├── deploy-vercel-agent.md
 │   │   ├── test-agent.md
 │   │   ├── e2e-agent.md
 │   │   ├── review-agent.md

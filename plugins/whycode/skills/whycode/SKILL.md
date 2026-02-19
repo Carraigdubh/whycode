@@ -90,7 +90,12 @@ The smoke test ACTUALLY RUNS THE APP and checks for:
 | Agent | Model | Color |
 |-------|-------|-------|
 | `whycode:backend-agent` | opus | blue |
+| `whycode:backend-convex-agent` | opus | cobalt |
+| `whycode:backend-auth-agent` | opus | indigo |
 | `whycode:frontend-agent` | opus | green |
+| `whycode:frontend-web-agent` | opus | emerald |
+| `whycode:frontend-native-agent` | opus | lime |
+| `whycode:deploy-vercel-agent` | sonnet | violet |
 | `whycode:test-agent` | haiku | yellow |
 | `whycode:e2e-agent` | haiku | orange |
 | `whycode:review-agent` | opus | red |
@@ -105,6 +110,7 @@ The smoke test ACTUALLY RUNS THE APP and checks for:
 | `whycode:linear-agent` | haiku | indigo | Linear API interactions |
 | `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
 | `whycode:state-agent` | haiku | brown | Update state files |
+| `whycode:git-agent` | haiku | black | Git/GitHub operations (branch, push, PR, issue) |
 | `whycode:capability-planner-agent` | haiku | slate | Detect stack capability gaps and recommend routing/escalation |
 
 Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
@@ -633,16 +639,64 @@ This keeps the orchestrator's context clean for coordination.
        4) cancel
      capabilityDecision = user selection
      IF capabilityDecision == "issue":
-       USE Task tool with subagent_type "whycode:state-agent":
+       issueTitle = "WhyCode capability gaps: {runName} ({runId})"
+       issueBody = """
+       WhyCode detected missing specialist coverage.
+
+       Run:
+       - runId: {runId}
+       - runName: {runName}
+
+       Detected stack:
+       {capabilityPlan.detectedStack}
+
+       Routing plan:
+       {capabilityPlan.routingPlan}
+
+       Gaps:
+       {capabilityPlan.gaps}
+
+       Requested action:
+       - Add specialist agents and routing support.
+       """
+       USE Task tool with subagent_type "whycode:git-agent":
          {
-           "action": "append-requirements",
+           "action": "create-issue",
            "data": {
-             "target": "docs/whycode/requirements/pending.json",
-             "requirements": [
-               "Create WhyCode GitHub issue for capability gaps from docs/whycode/capability-plan.json"
-             ]
+             "title": issueTitle,
+             "body": issueBody,
+             "labels": ["whycode", "capability-gap", "agent-request"]
            }
          }
+         → Returns issueResult
+       IF issueResult.status == "success":
+         SHOW: "Created GitHub issue: {issueResult.data.url}"
+         USE Task tool with subagent_type "whycode:state-agent":
+           {
+             "action": "write-json",
+             "data": {
+               "target": "docs/whycode/decisions/capability-decision.json",
+               "json": {
+                 "runId": "{runId}",
+                 "decision": "issue",
+                 "createdAt": "ISO",
+                 "issueUrl": "{issueResult.data.url}",
+                 "issueNumber": "{issueResult.data.number}",
+                 "status": "created"
+               }
+             }
+           }
+       ELSE:
+         USE Task tool with subagent_type "whycode:state-agent":
+           {
+             "action": "append-requirements",
+             "data": {
+               "target": "docs/whycode/requirements/pending.json",
+               "requirements": [
+                 "GitHub issue creation failed for capability gaps. Authenticate gh and create issue manually from docs/whycode/capability-plan.json."
+               ]
+             }
+           }
      IF capabilityDecision == "pr-scaffold":
        USE Task tool with subagent_type "whycode:state-agent":
          {
@@ -980,11 +1034,22 @@ FOR EACH plan in plans:
   # - No external plugin dependency
   # - No cross-session hook bugs
 
-  agentType = SELECT based on plan.type:
+  agentType = SELECT based on plan.type + capabilityPlan + plan intent:
     - "standard" or "auto" → "general-purpose"
     - "tdd" → "whycode:test-agent"
-    - "frontend" → "whycode:frontend-agent"
-    - "backend" → "whycode:backend-agent"
+    - "frontend":
+      - if capabilityPlan.detectedStack includes Expo/React Native AND plan context mentions native/mobile/expo:
+        - if whycode:frontend-native-agent exists in docs/whycode/reference/AGENTS.md → "whycode:frontend-native-agent"
+      - else if capabilityPlan.detectedStack includes Next/Web:
+        - if whycode:frontend-web-agent exists in docs/whycode/reference/AGENTS.md → "whycode:frontend-web-agent"
+      - else → "whycode:frontend-agent" (fallback)
+    - "backend":
+      - if plan context mentions auth/clerk AND whycode:backend-auth-agent exists → "whycode:backend-auth-agent"
+      - else if capabilityPlan.detectedStack includes Convex AND whycode:backend-convex-agent exists → "whycode:backend-convex-agent"
+      - else → "whycode:backend-agent" (fallback)
+    - "deploy":
+      - if capabilityPlan.detectedStack includes Vercel AND whycode:deploy-vercel-agent exists → "whycode:deploy-vercel-agent"
+      - else → "general-purpose"
 
   # Initialize loop state
   loopState = {

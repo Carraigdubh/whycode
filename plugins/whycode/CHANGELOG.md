@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.26] - 2026-02-19
+
+### Added
+- Added specialist agents:
+  - `whycode:frontend-native-agent` (Expo/React Native)
+  - `whycode:frontend-web-agent` (Next.js/Web)
+  - `whycode:backend-convex-agent` (Convex)
+  - `whycode:backend-auth-agent` (Clerk/auth)
+  - `whycode:deploy-vercel-agent` (Vercel deploy)
+
+### Changed
+- Capability planner routing rules now explicitly prefer specialists over generic frontend/backend agents when available.
+- Execution routing rules in `SKILL.md` now select specialist agents for frontend/backend/deploy plans based on detected stack and plan intent, with generic fallback for backward compatibility.
+- Capability decision `issue` now attempts immediate GitHub issue creation via `whycode:git-agent` (`gh issue create`) and records issue metadata under `docs/whycode/decisions/capability-decision.json` when successful.
+- `whycode:git-agent` now supports `create-issue`.
+- Updated README and agent catalog documentation for specialist-agent coverage and capability-gap issue behavior.
+
 ## [2.3.25] - 2026-02-19
 
 ### Fixed
