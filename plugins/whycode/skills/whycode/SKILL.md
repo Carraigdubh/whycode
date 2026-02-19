@@ -275,7 +275,7 @@ This keeps the orchestrator's context clean for coordination.
        ELSE:
          SHOW: "Invalid choice. Use more, all, or continue."
          CONTINUE LOOP
-   IF list-runs returns missing run records:
+  IF list-runs returns missing run records:
      FOR EACH missing runDir:
        USE Task tool with subagent_type "whycode:state-agent":
          {
@@ -304,8 +304,23 @@ This keeps the orchestrator's context clean for coordination.
                "timestamp": NOW(),
                "summary": "Backfilled missing run record."
              }
-           }
-         }
+          }
+        }
+
+3.5 CAPABILITY PREFLIGHT (EARLY VISIBILITY)
+   USE Task tool with subagent_type "whycode:capability-planner-agent":
+     prompt: """
+     Run an early capability preflight before run action selection.
+     - Detect stack and surfaces from project files/docs.
+     - Compare against current WhyCode agent catalog.
+     - Write docs/whycode/capability-plan.json using required schema.
+     """
+   READ docs/whycode/capability-plan.json as earlyCapabilityPlan
+   SHOW: "Capability preflight summary (before run action):"
+   SHOW earlyCapabilityPlan.detectedStack
+   SHOW earlyCapabilityPlan.routingPlan
+   IF earlyCapabilityPlan.status == "gaps_found":
+     SHOW earlyCapabilityPlan.gaps
 
 4. RUN SELECTION (if prior runs exist)
    ASK user:
@@ -543,7 +558,7 @@ This keeps the orchestrator's context clean for coordination.
 13.5 CAPABILITY PLANNING (MANDATORY BEFORE EXECUTION)
    USE Task tool with subagent_type "whycode:capability-planner-agent":
      prompt: """
-     Analyze project capability coverage before execution.
+     Analyze project capability coverage before execution (final pass after startup selections).
      - Detect stack and surfaces from project files/docs.
      - Compare needs to current WhyCode agent catalog.
      - Recommend routing and flag capability gaps.
@@ -1541,7 +1556,7 @@ Triggered by `/whycode fix` or on resume with errors.
 0. RE-RUN STARTUP GATES (MANDATORY, NO SHORTCUTS)
    - Re-read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and display fix-mode banner using that version.
    - Never display fix-mode version from existing run/state metadata.
-   - Execute STARTUP steps 3,5,6,6.5,7,10,11,13,13.5.
+   - Execute STARTUP steps 3,3.5,5,6,6.5,7,10,11,13,13.5.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
      - Present explicit selectable controls:

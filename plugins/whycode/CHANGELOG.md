@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.22] - 2026-02-17
+
+### Changed
+- Capability preflight now runs before Run Action selection, so stack/routing/gaps are visible earlier in startup.
+- Capability planner now uses deterministic stack checks for Expo, Next/Web, Clerk, Convex, and Vercel against available agent catalog.
+- Tightened gap logic so mandatory specialist gaps cannot be reported as `status=ok`.
+- Fix mode startup now includes early capability preflight (`STARTUP step 3.5`).
+
 ## [2.3.21] - 2026-02-17
 
 ### Added
