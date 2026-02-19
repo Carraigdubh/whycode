@@ -33,6 +33,12 @@ Write `docs/whycode/capability-plan.json` with:
 {
   "status": "ok" | "gaps_found",
   "detectedStack": ["..."],
+  "deploymentContext": {
+    "mode": "github-integration|vercel-cli|hybrid|unknown",
+    "vercelCliAvailable": true,
+    "githubIntegrationDetected": true,
+    "evidence": ["..."]
+  },
   "routingPlan": [
     {
       "surface": "frontend-web|frontend-native|backend|deploy|shared",
@@ -58,6 +64,12 @@ Also write/update `docs/whycode/tech-capabilities.json` with:
 {
   "lastUpdatedAt": "ISO",
   "lastUpdatedRunId": "run-id",
+  "deploymentContext": {
+    "mode": "github-integration|vercel-cli|hybrid|unknown",
+    "vercelCliAvailable": true,
+    "githubIntegrationDetected": true,
+    "evidence": ["..."]
+  },
   "technologies": [
     {
       "name": "Expo",
@@ -83,6 +95,14 @@ Rules:
   - Clerk: `@clerk/*` dependency
   - Convex: `convex` dependency or `convex/` folder
   - Vercel: `vercel.json` or `.vercel/`
+- Detect deployment topology deterministically:
+  - Vercel CLI availability: shell check `command -v vercel` success.
+  - GitHub integration markers: `.github/workflows/*` references to Vercel deployment OR docs/config explicitly stating GitHub auto-deploy.
+  - Classify deployment mode:
+    - both true -> `hybrid`
+    - github only -> `github-integration`
+    - cli only -> `vercel-cli`
+    - neither -> `unknown`
 - Compare detected stack to available agent catalog from `docs/whycode/reference/AGENTS.md`.
 - Routing MUST prefer specialists when available:
   - Expo/RN -> `whycode:frontend-native-agent`
@@ -105,3 +125,4 @@ Rules:
 - If it does not exist, create it.
 - Report conservative coverage only. Do not claim "fully covered" if required specialist agents are absent.
 - In `notes`, clearly explain why each surface used specialist vs fallback routing.
+- In `notes`, include deployment mode and why it affects deploy-agent routing (for example, "GitHub integration detected: avoid direct deploy mutation by default").

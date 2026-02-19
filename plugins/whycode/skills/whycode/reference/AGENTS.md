@@ -27,7 +27,7 @@ Full agent definitions are in `../../../agents/`:
 | `whycode:frontend-agent` | opus | green | UI components, pages, client logic |
 | `whycode:frontend-web-agent` | opus | emerald | Next.js/web frontend with App Router best practices |
 | `whycode:frontend-native-agent` | opus | lime | Expo/React Native frontend and mobile runtime correctness |
-| `whycode:deploy-vercel-agent` | sonnet | violet | Vercel deployment/env/runtime readiness |
+| `whycode:deploy-vercel-agent` | sonnet | violet | Vercel deployment/env/runtime readiness with topology detection (GitHub integration vs CLI) |
 | `whycode:test-agent` | haiku | yellow | Unit/integration testing |
 | `whycode:e2e-agent` | haiku | orange | E2E UI testing (Chrome for web, Maestro for Expo) |
 | `whycode:review-agent` | opus | red | Code quality, bugs, security |

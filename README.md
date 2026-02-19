@@ -237,6 +237,7 @@ WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR
 - **Run Archiving**: Each run stored under `docs/whycode/runs/{runId}`
 - **Partial Completion**: Records unmet requirements without blocking all progress
 - **GitHub Workflow**: Per-run branch + PR, auto-push after each plan; capability-gap issue option can open GitHub issues directly
+- **Deployment Topology Aware**: Vercel specialist now detects `github-integration` vs `vercel-cli` vs `hybrid` and applies safe mode-aware behavior
 
 ## Repository Structure
 

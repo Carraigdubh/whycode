@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.27] - 2026-02-19
+
+### Changed
+- Hardened `whycode:deploy-vercel-agent` with explicit deployment topology detection:
+  - detects `github-integration`, `vercel-cli`, `hybrid`, or `unknown`
+  - uses mode-aware safety behavior (no direct production deploy by default when GitHub integration is detected)
+  - requires explicit release-path reporting and skipped-action safety reporting
+- Expanded `whycode:capability-planner-agent` output to include deployment context (`deploymentContext`) in both `capability-plan.json` and `tech-capabilities.json`.
+- Capability planner now requires deterministic deployment-mode evidence and deployment-aware notes.
+- Updated README and AGENTS catalog text to reflect deployment-topology-aware behavior.
+
 ## [2.3.26] - 2026-02-19
 
 ### Added
