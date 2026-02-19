@@ -83,6 +83,22 @@ When adding or updating a specialist agent (directly or from a capability-gap is
 4. Update `README.md` when user-facing behavior or setup expectations change.
 5. Treat missing policy updates as incomplete work.
 
+### Issue + Drift Intake (Mandatory)
+
+When working in this repository, start by checking open WhyCode issues and agent drift signals:
+1. List open issues and label candidate work:
+   - `new-agent`
+   - `agent-update`
+   - `policy/docs`
+2. Propose a prioritized queue before implementation.
+3. Do not auto-implement all issues without explicit user selection.
+4. Treat API/docs drift as first-class work:
+   - upstream API changes
+   - official documentation changes
+   - dependency/runtime version shifts
+   - repeated runtime failures pointing to stale agent guidance
+5. For specialist-agent updates, refresh specialist metadata and `lastVerifiedAt`.
+
 ### Version Bump Checklist
 - [ ] `plugins/whycode/.claude-plugin/plugin.json` → `version`
 - [ ] `.claude-plugin/marketplace.json` → `version` in plugins array

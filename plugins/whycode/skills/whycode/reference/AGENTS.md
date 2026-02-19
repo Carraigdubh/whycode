@@ -85,6 +85,29 @@ When implementing a new specialist agent in the WhyCode repository:
 - If behavior visible to plugin users changes, update `README.md`.
 - Do not mark agent work complete until policy/docs updates are included.
 
+## Specialist Metadata Contract (Mandatory)
+
+Every specialist agent file must include a `Specialist Metadata (Mandatory)` section with:
+- `sourceDocs`: canonical vendor documentation links used as source-of-truth
+- `versionScope`: supported framework/provider version range assumptions
+- `lastVerifiedAt`: ISO date when metadata/docs were last validated
+- `driftTriggers`: conditions that require agent refresh (API/docs/dependency/runtime shifts)
+
+These metadata fields are required for both:
+- new specialist agents
+- specialist agent updates triggered by issue intake or drift intake
+
+## Issue + Drift Intake Protocol (Mandatory for WhyCode repo work)
+
+When implementing WhyCode repository changes:
+- Start with open issue intake (new agent / agent update / policy-docs categorization).
+- Include drift intake:
+  - vendor docs or API contract changes
+  - dependency/runtime version changes
+  - repeated execution failures attributable to stale agent guidance
+- Propose prioritized queue; execute selected items only.
+- When implementing selected specialist-agent work, update specialist metadata and `lastVerifiedAt`.
+
 ---
 
 ## Autonomous Execution via whycode-loop

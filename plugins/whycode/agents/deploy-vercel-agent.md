@@ -111,3 +111,16 @@ Before implementation, write specialist preflight artifact:
 - Vercel Functions observability/logs: https://vercel.com/docs/observability/runtime-logs
 - Vercel CLI: https://vercel.com/docs/cli
 - Vercel GitHub integration: https://vercel.com/docs/deployments/git/vercel-for-github
+
+## Specialist Metadata (Mandatory)
+
+- sourceDocs:
+  - https://vercel.com/docs/deployments/environments
+  - https://vercel.com/docs/cli
+  - https://vercel.com/docs/deployments/git/vercel-for-github
+- versionScope: "Vercel platform current stable (project topology overrides allowed)"
+- lastVerifiedAt: "2026-02-19"
+- driftTriggers:
+  - Vercel deployment topology/workflow changes
+  - Vercel CLI command/flag changes
+  - Vercel environment/runtime behavior changes

@@ -94,3 +94,16 @@ Minimum shape:
 - Next.js data fetching: https://nextjs.org/docs/app/building-your-application/data-fetching
 - Next.js image optimization: https://nextjs.org/docs/app/building-your-application/optimizing/images
 - Next.js production checklist: https://nextjs.org/docs/app/guides/production-checklist
+
+## Specialist Metadata (Mandatory)
+
+- sourceDocs:
+  - https://nextjs.org/docs/app/building-your-application/rendering/server-components
+  - https://nextjs.org/docs/app/building-your-application/data-fetching
+  - https://nextjs.org/docs/app/guides/production-checklist
+- versionScope: "Next.js 16+ / React 19+ (project-specific overrides allowed)"
+- lastVerifiedAt: "2026-02-19"
+- driftTriggers:
+  - Next.js major/minor upgrade
+  - App Router or caching behavior changes
+  - React major upgrade

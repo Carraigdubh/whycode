@@ -16,6 +16,16 @@ Checks (in order):
    - `plugins/whycode/` in project root (must not exist for consumer projects)
 5. Check likely stale cache markers in `~/.claude/paste-cache` and `~/.claude/plugins/cache/whycode-marketplace/whycode/`.
 6. Check `docs/whycode/audit/startup-check.json` and `docs/whycode/audit/startup-audit.json` (if present) for path/version mismatches.
+7. Specialist contract checks (for each specialist agent file):
+   - required section exists: `## Specialist Preflight (Mandatory)` (or equivalent mode-gate section for Convex/Vercel)
+   - required section exists: `## Specialist Metadata (Mandatory)`
+   - metadata fields exist:
+     - `sourceDocs:`
+     - `versionScope:`
+     - `lastVerifiedAt:`
+     - `driftTriggers:`
+8. Staleness check for specialist metadata:
+   - if `lastVerifiedAt` is older than 90 days, mark WARNING and recommend metadata refresh.
 
 Output format:
 - `Doctor Status: PASS|FAIL`
@@ -43,3 +53,7 @@ Auto-fix policy:
 5. If declined, keep `Doctor Status: FAIL` and provide fix commands.
 
 If critical mismatches remain after optional auto-fixes, print `Doctor Status: FAIL`.
+
+Specialist contract severity:
+- Missing specialist preflight section or metadata section/fields => `FAIL`
+- Stale `lastVerifiedAt` (> 90 days) => `WARNING`

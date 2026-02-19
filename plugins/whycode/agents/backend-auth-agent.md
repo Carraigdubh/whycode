@@ -93,3 +93,16 @@ Minimum shape:
 - Clerk + Next.js integration: https://clerk.com/docs/quickstarts/nextjs
 - Clerk route protection (Next.js): https://clerk.com/docs/reference/nextjs/clerk-middleware
 - Clerk webhooks (signature verification): https://clerk.com/docs/webhooks/overview
+
+## Specialist Metadata (Mandatory)
+
+- sourceDocs:
+  - https://clerk.com/docs/quickstarts/nextjs
+  - https://clerk.com/docs/reference/nextjs/clerk-middleware
+  - https://clerk.com/docs/webhooks/overview
+- versionScope: "Clerk Next.js SDK current stable (project-specific overrides allowed)"
+- lastVerifiedAt: "2026-02-19"
+- driftTriggers:
+  - Clerk SDK major/minor upgrade
+  - Clerk middleware API changes
+  - Clerk webhook/signature contract changes

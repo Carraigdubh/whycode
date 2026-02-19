@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.31] - 2026-02-19
+
+### Changed
+- Added mandatory WhyCode-repo intake policy:
+  - open issue intake and categorization before specialist-agent work
+  - drift intake for API/docs/dependency/runtime changes affecting existing specialist agents
+  - prioritized queue proposal before execution
+- Added Specialist Metadata Contract across specialist agents:
+  - `sourceDocs`
+  - `versionScope`
+  - `lastVerifiedAt`
+  - `driftTriggers`
+- Updated `/whycode doctor` checks to validate specialist preflight/metadata sections and flag stale `lastVerifiedAt` (> 90 days).
+- Updated repository policies/docs (`CLAUDE.md`, `AGENTS.md`, `README.md`) so new specialist-agent builds require policy-file review and metadata maintenance.
+- Updated marketplace manifest version to match plugin release version.
+
 ## [2.3.30] - 2026-02-19
 
 ### Changed

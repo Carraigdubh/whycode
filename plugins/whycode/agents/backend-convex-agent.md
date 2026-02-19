@@ -104,3 +104,16 @@ Include the selected mode and safety decisions:
 - Convex mutation functions: https://docs.convex.dev/functions/mutation-functions
 - Convex indexes: https://docs.convex.dev/database/reading-data/indexes/
 - Convex auth: https://docs.convex.dev/auth
+
+## Specialist Metadata (Mandatory)
+
+- sourceDocs:
+  - https://docs.convex.dev/functions/query-functions
+  - https://docs.convex.dev/functions/mutation-functions
+  - https://docs.convex.dev/auth
+- versionScope: "Convex current stable (project-specific deployment-mode overrides allowed)"
+- lastVerifiedAt: "2026-02-19"
+- driftTriggers:
+  - Convex function model or deployment mode contract changes
+  - Convex CLI or deployment environment variable changes
+  - Convex auth integration changes

@@ -95,3 +95,16 @@ Minimum shape:
 - EAS Update runtime compatibility: https://docs.expo.dev/eas-update/runtime-versions/
 - Update deployment strategy: https://docs.expo.dev/eas-update/deployment/
 - React Native performance overview: https://reactnative.dev/docs/performance
+
+## Specialist Metadata (Mandatory)
+
+- sourceDocs:
+  - https://docs.expo.dev/router/introduction/
+  - https://docs.expo.dev/eas-update/runtime-versions/
+  - https://reactnative.dev/docs/performance
+- versionScope: "Expo SDK 54+ / React Native 0.81+ (project-specific overrides allowed)"
+- lastVerifiedAt: "2026-02-19"
+- driftTriggers:
+  - Expo SDK major/minor upgrade
+  - Expo Router breaking change notices
+  - React Native major version upgrade

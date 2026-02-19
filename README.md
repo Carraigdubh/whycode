@@ -119,6 +119,19 @@ Any new specialist agent (manual addition or capability-gap issue/PR request) mu
 - Write `docs/whycode/audit/specialist-preflight-{planId}.json` before implementation.
 - Include blocked commands/reasons when safety gates prevent execution.
 - For new specialist-agent builds in WhyCode repo, read `CLAUDE.md` + `AGENTS.md` first, and update `CLAUDE.md`/`AGENTS.md`/`README.md` when policy or user-visible behavior changes.
+- Add Specialist Metadata in each specialist agent:
+  - `sourceDocs`
+  - `versionScope`
+  - `lastVerifiedAt`
+  - `driftTriggers`
+
+### WhyCode Repo Intake Rule (Mandatory)
+
+When working in the WhyCode repository itself:
+- Start with open-issue intake and classify candidates (`new-agent`, `agent-update`, `policy/docs`).
+- Run drift intake for existing specialist agents (API/docs/dependency/runtime changes).
+- Propose prioritized queue; do not auto-implement all issues without explicit selection.
+- Update specialist metadata (`lastVerifiedAt`) when agent guidance is refreshed.
 
 ### Agent Teams (Experimental)
 
