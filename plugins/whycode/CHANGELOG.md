@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.25] - 2026-02-19
+
+### Fixed
+- Applied fail-closed specialist coverage audit to early capability preflight (startup step 3.5), not only final capability planning.
+- Prevents preflight from displaying false "full coverage" when required specialist agents are missing.
+
 ## [2.3.24] - 2026-02-19
 
 ### Changed

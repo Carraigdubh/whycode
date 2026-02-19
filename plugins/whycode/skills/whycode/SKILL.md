@@ -317,6 +317,33 @@ This keeps the orchestrator's context clean for coordination.
      - Create/update docs/whycode/tech-capabilities.json (persistent tech catalog).
      """
    READ docs/whycode/capability-plan.json as earlyCapabilityPlan
+   # Independent consistency audit for preflight (do not trust planner claims)
+   USE Task tool with subagent_type "whycode:context-loader-agent":
+     { "action": "read-file", "target": "docs/whycode/reference/AGENTS.md" }
+     → Returns preflightAgentCatalogText
+
+   preflightMissingSpecialists = []
+   IF earlyCapabilityPlan.detectedStack includes "Expo" OR earlyCapabilityPlan.detectedStack includes "React Native":
+     IF preflightAgentCatalogText does not contain "whycode:frontend-native-agent":
+       preflightMissingSpecialists.append("whycode:frontend-native-agent")
+   IF earlyCapabilityPlan.detectedStack includes "Next" OR earlyCapabilityPlan.detectedStack includes "Web":
+     IF preflightAgentCatalogText does not contain "whycode:frontend-web-agent":
+       preflightMissingSpecialists.append("whycode:frontend-web-agent")
+   IF earlyCapabilityPlan.detectedStack includes "Convex":
+     IF preflightAgentCatalogText does not contain "whycode:backend-convex-agent":
+       preflightMissingSpecialists.append("whycode:backend-convex-agent")
+   IF earlyCapabilityPlan.detectedStack includes "Clerk":
+     IF preflightAgentCatalogText does not contain "whycode:backend-auth-agent":
+       preflightMissingSpecialists.append("whycode:backend-auth-agent")
+   IF earlyCapabilityPlan.detectedStack includes "Vercel":
+     IF preflightAgentCatalogText does not contain "whycode:deploy-vercel-agent":
+       preflightMissingSpecialists.append("whycode:deploy-vercel-agent")
+
+   IF preflightMissingSpecialists.length > 0:
+     earlyCapabilityPlan.status = "gaps_found"
+     SHOW: "Capability preflight override: missing specialist agents detected."
+     SHOW preflightMissingSpecialists
+
    SHOW: "Capability preflight summary (before run action):"
    SHOW earlyCapabilityPlan.detectedStack
    SHOW earlyCapabilityPlan.routingPlan
