@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.21] - 2026-02-17
+
+### Added
+- Added `whycode:capability-planner-agent` to detect stack coverage and capability gaps before execution.
+- Startup now generates `docs/whycode/capability-plan.json` and requires explicit user decision on gap handling (`fallback`, `issue`, `pr-scaffold`, `cancel`).
+
+### Changed
+- Startup gate/auditor now require capability-planning completion and capability-decision recording.
+- Fix mode startup flow now includes capability planning and decision recording before execution.
+
 ## [2.3.20] - 2026-02-17
 
 ### Added

@@ -88,6 +88,7 @@ On startup, WhyCode prompts for:
 - **Completion mode**: `strict` (all verifications must pass) or `partial` (build/typecheck clean with requirements logged)
 - **Max iterations**: 20/30/50/custom
 - **Execution speed mode**: `off`, `review-teams`, or `turbo-teams` (experimental Agent Teams acceleration)
+- **Capability decision** (when gaps are detected): `fallback`, `issue`, `pr-scaffold`, or `cancel`
 - **Run name**: suggested, editable
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
@@ -101,6 +102,7 @@ If a Linear key is detected at startup, WhyCode now fails closed unless Linear i
 If more than 5 runs exist, fix mode must show explicit `Show older runs` and `Show all runs` controls before Parent Run can continue.
 Startup now includes a run-visibility gate: the current run must exist in `docs/whycode/runs` and appear in `list-runs` before execution continues.
 Startup now includes an independent startup-auditor gate: `docs/whycode/audit/startup-audit.json` must be `pass` before any implementation starts.
+Startup now includes capability planning: `docs/whycode/capability-plan.json` is generated and any capability-gap decision is user-selected and audited.
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 
 ### Agent Teams (Experimental)

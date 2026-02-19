@@ -105,6 +105,7 @@ The smoke test ACTUALLY RUNS THE APP and checks for:
 | `whycode:linear-agent` | haiku | indigo | Linear API interactions |
 | `whycode:context-loader-agent` | haiku | gray | Read files, return summaries |
 | `whycode:state-agent` | haiku | brown | Update state files |
+| `whycode:capability-planner-agent` | haiku | slate | Detect stack capability gaps and recommend routing/escalation |
 
 Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 
@@ -116,6 +117,7 @@ Built-in agents that do NOT need prefix: `Explore`, `Plan`, `general-purpose`
 - Skip smoke tests - EVERY validation MUST include "smoke" to catch runtime errors
 - Call Linear API directly (use `whycode:linear-agent`)
 - Update state files directly (use `whycode:state-agent`)
+- Skip capability planning when startup requires it (use `whycode:capability-planner-agent`)
 - Run git/GitHub commands directly (use `whycode:git-agent`)
 
 **HARD RULE (Autonomous Phases 5-8):** Any read/write outside of `docs/whycode/PLAN.md` and `docs/whycode/loop-state/*.json` must be done via a subagent.
@@ -538,6 +540,51 @@ This keeps the orchestrator's context clean for coordination.
    # Store in state
    Store integrations in whycode-state.json
 
+13.5 CAPABILITY PLANNING (MANDATORY BEFORE EXECUTION)
+   USE Task tool with subagent_type "whycode:capability-planner-agent":
+     prompt: """
+     Analyze project capability coverage before execution.
+     - Detect stack and surfaces from project files/docs.
+     - Compare needs to current WhyCode agent catalog.
+     - Recommend routing and flag capability gaps.
+     - Write docs/whycode/capability-plan.json using required schema.
+     """
+   READ docs/whycode/capability-plan.json as capabilityPlan
+   IF capabilityPlan.status == "gaps_found":
+     SHOW routing plan + gaps to user
+     ASK user to choose action:
+       1) fallback
+       2) issue
+       3) pr-scaffold
+       4) cancel
+     capabilityDecision = user selection
+     IF capabilityDecision == "issue":
+       USE Task tool with subagent_type "whycode:state-agent":
+         {
+           "action": "append-requirements",
+           "data": {
+             "target": "docs/whycode/requirements/pending.json",
+             "requirements": [
+               "Create WhyCode GitHub issue for capability gaps from docs/whycode/capability-plan.json"
+             ]
+           }
+         }
+     IF capabilityDecision == "pr-scaffold":
+       USE Task tool with subagent_type "whycode:state-agent":
+         {
+           "action": "append-requirements",
+           "data": {
+             "target": "docs/whycode/requirements/pending.json",
+             "requirements": [
+               "Create WhyCode repo PR scaffold for new agent(s) from docs/whycode/capability-plan.json"
+             ]
+           }
+         }
+     IF capabilityDecision == "cancel":
+       STOP with "startup incomplete"
+   ELSE:
+     capabilityDecision = "proceed"
+
    # Backward compatibility for resumed/legacy runs
    IF agentTeamsMode is missing/empty:
      agentTeamsMode = "off"
@@ -552,6 +599,9 @@ This keeps the orchestrator's context clean for coordination.
      "maxIterationsSelected": true,
      "agentTeamsModeSelected": true,
      "agentTeamsMode": "{agentTeamsMode}",
+     "capabilityPlanningCompleted": true,
+     "capabilityDecisionRecorded": true,
+     "capabilityDecision": "{capabilityDecision}",
      "runNameConfirmed": true,
     "runRecordInitialized": true,
     "runRecordVisible": true,
@@ -578,7 +628,7 @@ This keeps the orchestrator's context clean for coordination.
    - startup-gate.json has status="pass"
    - startup-gate.json contains true for:
     runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
-    agentTeamsModeSelected,
+    agentTeamsModeSelected, capabilityPlanningCompleted, capabilityDecisionRecorded,
     runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
    - if startup-gate.json.linearKeyDetected == true:
      startup-gate.json.linearInitialized == true
@@ -1491,7 +1541,7 @@ Triggered by `/whycode fix` or on resume with errors.
 0. RE-RUN STARTUP GATES (MANDATORY, NO SHORTCUTS)
    - Re-read `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and display fix-mode banner using that version.
    - Never display fix-mode version from existing run/state metadata.
-   - Execute STARTUP steps 3,5,6,6.5,7,10,11.
+   - Execute STARTUP steps 3,5,6,6.5,7,10,11,13,13.5.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
      - Present explicit selectable controls:
@@ -1527,6 +1577,7 @@ Triggered by `/whycode fix` or on resume with errors.
      - ask run name
      - init run record
      - init run branch
+     - run capability planning and record capability decision
    - Set runType="fix", parentRunId="{selectedRunId}" for this run and append a fix run event.
    - If any startup prompt is skipped, STOP with "startup incomplete".
 
