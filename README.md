@@ -111,6 +111,14 @@ When Convex is detected, WhyCode now tracks `convexContext.mode` and persists th
 Capability output is now independently audited against `docs/whycode/reference/AGENTS.md`; missing required specialists force `gaps_found` (fail-closed).
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 
+### Specialist Agent Creation Rule (Mandatory)
+
+Any new specialist agent (manual addition or capability-gap issue/PR request) must include a specialist preflight gate:
+- Resolve specialist context from capability outputs + `docs/whycode/decisions/*.json`.
+- Fail closed when context is ambiguous.
+- Write `docs/whycode/audit/specialist-preflight-{planId}.json` before implementation.
+- Include blocked commands/reasons when safety gates prevent execution.
+
 ### Agent Teams (Experimental)
 
 - `off`: default behavior (fully backward compatible)

@@ -51,6 +51,9 @@ Command policy:
   - Prefer code-only changes plus validation.
 - If mode is `unknown`:
   - Return `blocked` with required clarification instead of guessing.
+- Write specialist preflight artifact before implementation:
+  - `docs/whycode/audit/specialist-preflight-{planId}.json`
+  - include `agent=whycode:backend-convex-agent`, effective `convexMode`, source, and blocked commands.
 
 ## Best-Practice Checklist
 
@@ -90,7 +93,8 @@ Include the selected mode and safety decisions:
   "convexMode": "local-dev|cloud-dev|cloud-live|unknown",
   "modeSource": "user-decision|capability-plan|default-unknown",
   "commandsSkippedForSafety": ["..."],
-  "requiresUserInput": false
+  "requiresUserInput": false,
+  "specialistPreflightPath": "docs/whycode/audit/specialist-preflight-{planId}.json"
 }
 ```
 

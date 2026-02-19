@@ -146,3 +146,4 @@ Rules:
 - In `notes`, clearly explain why each surface used specialist vs fallback routing.
 - In `notes`, include deployment mode and why it affects deploy-agent routing (for example, "GitHub integration detected: avoid direct deploy mutation by default").
 - In `notes`, include Convex mode and why it affects backend-convex behavior (for example, "cloud-live: avoid local deployment workflows by default").
+- If recommending a new specialist agent, include in `notes` that the new agent must implement the Specialist Preflight Gate Contract.

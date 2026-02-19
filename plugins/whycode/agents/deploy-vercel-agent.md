@@ -52,6 +52,7 @@ You handle deployment-focused tasks for Vercel-hosted projects.
     - Use CLI for preview diagnostics only unless user explicitly requests direct deploy.
   - `unknown`:
     - Fail closed for deployment mutation and request explicit user confirmation of deployment mode.
+    - Write blocked specialist preflight artifact and stop.
 
 - Build/runtime correctness:
   - Confirm framework output and runtime assumptions align with Vercel target.
@@ -92,11 +93,15 @@ When returning status, include:
   "githubIntegrationDetected": true,
   "actionsTaken": ["..."],
   "actionsSkippedForSafety": ["..."],
-  "recommendedReleasePath": "..."
+  "recommendedReleasePath": "...",
+  "specialistPreflightPath": "docs/whycode/audit/specialist-preflight-{planId}.json"
 }
 ```
 
 If `deploymentMode` is `unknown`, return `blocked` until user confirms mode.
+Before implementation, write specialist preflight artifact:
+- `docs/whycode/audit/specialist-preflight-{planId}.json`
+- include `agent=whycode:deploy-vercel-agent`, deployment mode/topology evidence, and blocked commands.
 
 ## Reference Anchors
 

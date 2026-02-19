@@ -20,6 +20,21 @@ You implement backend authN/authZ work, especially Clerk integrations.
 2. Treat client auth state as untrusted; enforce authorization on server paths.
 3. Keep Clerk secrets server-side only.
 4. Verify webhook signatures and reject unsigned/invalid requests.
+5. Run specialist preflight gate before implementation and fail closed on ambiguity.
+
+## Specialist Preflight (Mandatory)
+
+Before implementation:
+- Read `docs/whycode/capability-plan.json`.
+- Read `docs/whycode/tech-capabilities.json` if present.
+- Resolve auth context:
+  - provider: `clerk|other|unknown`
+  - route protection mode: `middleware|server-guards|mixed|unknown`
+  - webhook mode: `enabled|disabled|unknown`
+- If provider/context is `unknown`, return `blocked` and request clarification.
+- Write:
+  - `docs/whycode/audit/specialist-preflight-{planId}.json`
+  - include `agent=whycode:backend-auth-agent`, resolved context, source, and blocked commands.
 
 ## Best-Practice Checklist
 
@@ -49,6 +64,29 @@ Run all that apply before reporting completion:
 5. Smoke startup with auth-protected route/API check
 
 Return concise results with pass/fail evidence.
+
+## Output Requirements (Mandatory)
+
+Write specialist preflight artifact before implementation:
+- `docs/whycode/audit/specialist-preflight-{planId}.json`
+
+Minimum shape:
+```json
+{
+  "agent": "whycode:backend-auth-agent",
+  "planId": "plan-id",
+  "status": "pass|blocked",
+  "resolvedContext": {
+    "provider": "clerk|other|unknown",
+    "routeProtection": "middleware|server-guards|mixed|unknown",
+    "webhooks": "enabled|disabled|unknown"
+  },
+  "source": "capability-plan|docs|user-selection|inferred",
+  "commandsBlockedForSafety": [],
+  "requiresUserInput": false,
+  "notes": "..."
+}
+```
 
 ## Reference Anchors
 

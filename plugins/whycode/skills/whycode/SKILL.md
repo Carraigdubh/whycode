@@ -700,6 +700,10 @@ This keeps the orchestrator's context clean for coordination.
 
        Requested action:
        - Add specialist agents and routing support.
+       - For each new specialist agent, implement the Specialist Preflight Gate Contract:
+         * Resolve specialist context deterministically.
+         * Fail closed on unknown/ambiguous context.
+         * Write docs/whycode/audit/specialist-preflight-{planId}.json before implementation.
        """
        USE Task tool with subagent_type "whycode:git-agent":
          {
@@ -746,7 +750,8 @@ This keeps the orchestrator's context clean for coordination.
            "data": {
              "target": "docs/whycode/requirements/pending.json",
              "requirements": [
-               "Create WhyCode repo PR scaffold for new agent(s) from docs/whycode/capability-plan.json"
+               "Create WhyCode repo PR scaffold for new agent(s) from docs/whycode/capability-plan.json",
+               "Every new specialist agent must implement the Specialist Preflight Gate Contract (context resolution + fail-closed + specialist-preflight artifact)."
              ]
            }
          }
@@ -1098,6 +1103,16 @@ FOR EACH plan in plans:
       - if capabilityPlan.detectedStack includes Vercel AND whycode:deploy-vercel-agent exists → "whycode:deploy-vercel-agent"
       - else → "general-purpose"
 
+  specialistAgents = [
+    "whycode:frontend-native-agent",
+    "whycode:frontend-web-agent",
+    "whycode:backend-convex-agent",
+    "whycode:backend-auth-agent",
+    "whycode:deploy-vercel-agent"
+  ]
+  specialistPreflightRequired = specialistAgents includes agentType
+  specialistPreflightPath = "docs/whycode/audit/specialist-preflight-{plan.id}.json"
+
   # Initialize loop state
   loopState = {
     "planId": plan.id,
@@ -1198,6 +1213,12 @@ FOR EACH plan in plans:
 
       ⛔ FRESH CONTEXT - You must read ALL state from files. You have no memory of previous iterations.
 
+      Specialist rule:
+      - If you are a specialist agent (`frontend-native`, `frontend-web`, `backend-convex`, `backend-auth`, `deploy-vercel`),
+        you MUST run Specialist Preflight Gate Contract and write:
+        `docs/whycode/audit/specialist-preflight-{plan.id}.json`
+        before implementation.
+
       ## MANDATORY SETUP (DO NOT SKIP)
 
       1. READ docs/whycode/PLAN.md - Your task specification
@@ -1292,6 +1313,25 @@ FOR EACH plan in plans:
     iterationRecord.outcome = result.outcome
     iterationRecord.tasksAttempted = result.tasksCompleted
     APPEND docs/whycode/loop-state/{plan.id}-run.log: "{NOW()} END runId={loopState.currentRunId} outcome={result.outcome}"
+
+    # Specialist preflight gate (agent-owned, fail-closed)
+    IF specialistPreflightRequired:
+      IF NOT exists(specialistPreflightPath):
+        iterationRecord.outcome = "blocked"
+        iterationRecord.errorSummary = "Missing specialist preflight artifact"
+        loopState.status = "blocked"
+        WRITE docs/whycode/loop-state/{plan.id}.json = loopState
+        SHOW: "Plan {plan.id} blocked: specialist preflight artifact missing for {agentType}"
+        BREAK
+
+      specialistPreflight = READ specialistPreflightPath
+      IF specialistPreflight.status != "pass":
+        iterationRecord.outcome = "blocked"
+        iterationRecord.errorSummary = "Specialist preflight did not pass"
+        loopState.status = "blocked"
+        WRITE docs/whycode/loop-state/{plan.id}.json = loopState
+        SHOW: "Plan {plan.id} blocked by specialist preflight: {specialistPreflight.notes}"
+        BREAK
 
     # Log task progress for visibility
     IF result.tasksCompleted.length > 0:

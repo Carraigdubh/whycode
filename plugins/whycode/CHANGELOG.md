@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.29] - 2026-02-19
+
+### Changed
+- Added a cross-cutting **Specialist Preflight Gate Contract** to the shared agent reference, requiring specialist agents to:
+  - resolve specialist context deterministically
+  - fail closed when ambiguous
+  - write `docs/whycode/audit/specialist-preflight-{planId}.json` before implementation
+- Applied specialist preflight requirements across all current specialist agents:
+  - `frontend-native-agent`
+  - `frontend-web-agent`
+  - `backend-auth-agent`
+  - `backend-convex-agent`
+  - `deploy-vercel-agent`
+- Updated capability `issue` and `pr-scaffold` flows so new specialist-agent requests explicitly include the Specialist Preflight Gate Contract as mandatory acceptance criteria.
+- Updated README with mandatory specialist-agent creation rule for both direct additions and issue-driven requests.
+
 ## [2.3.28] - 2026-02-19
 
 ### Changed

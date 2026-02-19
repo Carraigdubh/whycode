@@ -51,6 +51,27 @@ Each agent file contains:
 - **Artifact format**: Output structure
 - **What NOT to do**: Constraints
 
+## Specialist Preflight Gate Contract (Mandatory)
+
+Every specialist agent (for example `frontend-web`, `frontend-native`, `backend-convex`, `backend-auth`, `deploy-vercel`) MUST implement its own preflight gate.
+
+Required specialist preflight behavior:
+- Read specialist context from capability outputs and specialist decision files in `docs/whycode/decisions/`.
+- Resolve required mode/context deterministically (do not guess).
+- Fail closed when required context is unknown or ambiguous.
+- Write a preflight artifact before implementation:
+  - `docs/whycode/audit/specialist-preflight-{planId}.json`
+- Include at minimum:
+  - `agent`
+  - `planId`
+  - `status` (`pass|blocked`)
+  - `resolvedContext` (mode/topology/provider specifics)
+  - `source` (`capability-plan|user-selection|docs|inferred`)
+  - `commandsBlockedForSafety`
+  - `requiresUserInput`
+
+For new specialist-agent requests (manual or GitHub issue flow), this contract is mandatory acceptance criteria.
+
 ---
 
 ## Autonomous Execution via whycode-loop

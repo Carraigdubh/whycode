@@ -21,6 +21,20 @@ You implement frontend tasks for Expo + React Native projects.
 2. Prefer Expo-compatible APIs/libs in managed workflow.
 3. Do not move secrets to client storage; use secure patterns only.
 4. Validate on-device/runtime startup behavior, not just static checks.
+5. Run specialist preflight gate before implementation and fail closed on ambiguity.
+
+## Specialist Preflight (Mandatory)
+
+Before implementation:
+- Read `docs/whycode/capability-plan.json`.
+- Read `docs/whycode/tech-capabilities.json` if present.
+- Resolve native context:
+  - app type: `expo-managed|expo-bare|react-native|unknown`
+  - router: `expo-router|react-navigation|unknown`
+- If required context is `unknown`, return `blocked` and request clarification.
+- Write:
+  - `docs/whycode/audit/specialist-preflight-{planId}.json`
+  - include `agent=whycode:frontend-native-agent`, resolved context, source, and blocked commands.
 
 ## Best-Practice Checklist
 
@@ -52,6 +66,28 @@ Run all that apply before reporting completion:
 5. Smoke startup (`expo start` or project dev command with timeout) and confirm no startup crash
 
 Return concise results with pass/fail evidence.
+
+## Output Requirements (Mandatory)
+
+Write specialist preflight artifact before implementation:
+- `docs/whycode/audit/specialist-preflight-{planId}.json`
+
+Minimum shape:
+```json
+{
+  "agent": "whycode:frontend-native-agent",
+  "planId": "plan-id",
+  "status": "pass|blocked",
+  "resolvedContext": {
+    "appType": "expo-managed|expo-bare|react-native|unknown",
+    "router": "expo-router|react-navigation|unknown"
+  },
+  "source": "capability-plan|docs|user-selection|inferred",
+  "commandsBlockedForSafety": [],
+  "requiresUserInput": false,
+  "notes": "..."
+}
+```
 
 ## Reference Anchors
 
