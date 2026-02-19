@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-02-19
+
+### Changed
+- Promoted WhyCode to a contract-driven specialist-agent system:
+  - specialist preflight gates are required for specialist execution
+  - specialist metadata contract is required for specialist-agent maintenance
+  - issue+drift intake policy is required for WhyCode repository work
+- Revised README with explicit v3 architecture flow (startup gates, planning, decision points, specialist preflight, loop verification, run auditability, and maintainer-mode intake).
+- `/whycode doctor` guidance now includes specialist contract and metadata staleness checks.
+
+### Breaking
+- Specialist-agent execution is now blocked when required preflight artifact is missing or fails.
+- New/updated specialist agents are considered incomplete without required metadata fields:
+  - `sourceDocs`, `versionScope`, `lastVerifiedAt`, `driftTriggers`
+- WhyCode repository specialist-agent work now requires policy-file workflow (`CLAUDE.md` + `AGENTS.md` review/update obligations).
+
 ## [2.3.31] - 2026-02-19
 
 ### Changed

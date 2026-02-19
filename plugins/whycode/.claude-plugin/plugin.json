@@ -1,7 +1,7 @@
 {
   "name": "whycode",
   "description": "Complete development harness for projects, features, and bugs. Orchestrates document intake, PRD creation, architecture design, and autonomous implementation using multi-agent workflows.",
-  "version": "2.3.31",
+  "version": "3.0.0",
   "author": {
     "name": "Carraigdubh"
   },

@@ -4,7 +4,7 @@ Development orchestrator with multi-agent workflows. Uses GSD+ methodology and w
 
 **[Full Documentation](docs/WHYCODE.md)** - Comprehensive guide with all phases, agents, and troubleshooting.
 
-> **v2.1.0**: WhyCode no longer requires the `ralph-wiggum` plugin. The new `whycode-loop` provides fresh 200k context per iteration with no external dependencies.
+> **v3.0.0**: WhyCode now enforces specialist-agent preflight contracts, issue+drift intake in the WhyCode repo, and metadata-backed agent maintenance.
 
 ## Installation
 
@@ -81,6 +81,44 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 ```
 
 `/whycode doctor` can now offer to auto-fix stale WhyCode path references in project `CLAUDE.md` and then re-run diagnostics.
+
+## How WhyCode Works (v3)
+
+WhyCode now runs as a contract-driven orchestration system:
+
+1. Startup gates (fail-closed)
+- Required reads, run selection, run recording, branch setup, startup gate + startup audit.
+- If any required gate fails, WhyCode stops with `startup incomplete`.
+
+2. Capability + context planning
+- Builds `docs/whycode/capability-plan.json` and `docs/whycode/tech-capabilities.json`.
+- Detects stack, routing, specialist gaps, and deployment/context modes.
+
+3. User decision points (no silent assumptions)
+- Required choices for capability gaps (`fallback|issue|pr-scaffold|cancel`).
+- Mode confirmations when context is ambiguous (for example Convex mode).
+
+4. Specialist preflight contract
+- Specialist agents must resolve context deterministically and fail closed on ambiguity.
+- They must write `docs/whycode/audit/specialist-preflight-{planId}.json` before implementation.
+- Orchestrator blocks specialist plan execution if preflight artifact is missing or failing.
+
+5. Trust-no-agent execution loop
+- Agents run in fresh context via whycode-loop.
+- `PLAN_COMPLETE` is externally verified (typecheck/lint/test/build/smoke).
+- Failed verification loops back until pass, blocked, or max iterations.
+
+6. Run history + auditability
+- Each run writes structured artifacts under `docs/whycode/runs/{runId}`.
+- Startup/decision/progress artifacts are recorded for replay and diagnosis.
+
+7. WhyCode-repo maintenance mode
+- In this repository, work starts with open issue intake plus drift intake (API/docs/dependency/runtime changes).
+- Specialist agents are maintained as living contracts with required metadata:
+  - `sourceDocs`
+  - `versionScope`
+  - `lastVerifiedAt`
+  - `driftTriggers`
 
 ## Startup Switches (Interactive)
 

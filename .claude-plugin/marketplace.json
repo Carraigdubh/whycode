@@ -8,7 +8,7 @@
       "name": "whycode",
       "source": "./plugins/whycode",
       "description": "Development orchestrator with multi-agent workflows. GSD+ methodology, 8-phase workflow, specialist + core agents.",
-      "version": "2.3.31"
+      "version": "3.0.0"
     }
   ]
 }
