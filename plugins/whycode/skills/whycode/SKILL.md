@@ -314,6 +314,7 @@ This keeps the orchestrator's context clean for coordination.
      - Detect stack and surfaces from project files/docs.
      - Compare against current WhyCode agent catalog.
      - Write docs/whycode/capability-plan.json using required schema.
+     - Create/update docs/whycode/tech-capabilities.json (persistent tech catalog).
      """
    READ docs/whycode/capability-plan.json as earlyCapabilityPlan
    SHOW: "Capability preflight summary (before run action):"
@@ -563,8 +564,10 @@ This keeps the orchestrator's context clean for coordination.
      - Compare needs to current WhyCode agent catalog.
      - Recommend routing and flag capability gaps.
      - Write docs/whycode/capability-plan.json using required schema.
+     - Create/update docs/whycode/tech-capabilities.json (persistent tech catalog).
      """
    READ docs/whycode/capability-plan.json as capabilityPlan
+   READ docs/whycode/tech-capabilities.json as techCapabilities
    IF capabilityPlan.status == "gaps_found":
      SHOW routing plan + gaps to user
      ASK user to choose action:
@@ -615,6 +618,7 @@ This keeps the orchestrator's context clean for coordination.
      "agentTeamsModeSelected": true,
      "agentTeamsMode": "{agentTeamsMode}",
      "capabilityPlanningCompleted": true,
+     "techCapabilityFileUpdated": true,
      "capabilityDecisionRecorded": true,
      "capabilityDecision": "{capabilityDecision}",
      "runNameConfirmed": true,
@@ -642,8 +646,8 @@ This keeps the orchestrator's context clean for coordination.
    - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"
    - startup-gate.json contains true for:
-    runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
-    agentTeamsModeSelected, capabilityPlanningCompleted, capabilityDecisionRecorded,
+   runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
+    agentTeamsModeSelected, capabilityPlanningCompleted, techCapabilityFileUpdated, capabilityDecisionRecorded,
     runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
    - if startup-gate.json.linearKeyDetected == true:
      startup-gate.json.linearInitialized == true

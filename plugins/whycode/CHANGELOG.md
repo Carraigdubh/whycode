@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.23] - 2026-02-17
+
+### Added
+- Added persistent tech catalog output: `docs/whycode/tech-capabilities.json`.
+- Capability planner now creates the tech catalog when missing and updates it on each run.
+
+### Changed
+- Startup capability preflight and final capability planning now both require tech-catalog update.
+- Startup gate/auditor now include `techCapabilityFileUpdated=true`.
+
 ## [2.3.22] - 2026-02-17
 
 ### Changed

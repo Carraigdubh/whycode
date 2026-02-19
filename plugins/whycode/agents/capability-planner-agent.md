@@ -52,6 +52,26 @@ Write `docs/whycode/capability-plan.json` with:
 }
 ```
 
+Also write/update `docs/whycode/tech-capabilities.json` with:
+
+```json
+{
+  "lastUpdatedAt": "ISO",
+  "lastUpdatedRunId": "run-id",
+  "technologies": [
+    {
+      "name": "Expo",
+      "category": "frontend-native|frontend-web|backend|auth|deploy|integration|maps|other",
+      "firstSeenAt": "ISO",
+      "lastSeenAt": "ISO",
+      "evidence": ["path-or-dependency-marker"],
+      "recommendedSpecialistAgent": "whycode:...",
+      "specialistAgentAvailable": true
+    }
+  ]
+}
+```
+
 Rules:
 
 - Keep output factual and concise.
@@ -70,6 +90,8 @@ Rules:
   - If Convex detected and `whycode:backend-convex-agent` is missing, add a gap.
   - If Clerk detected and `whycode:backend-auth-agent` is missing, add a gap.
   - If Vercel detected and `whycode:deploy-vercel-agent` is missing, add a gap.
-  - If both Expo/RN and Web/Next are detected but only generic frontend routing is available, add a gap for split frontend specialization.
+- If both Expo/RN and Web/Next are detected but only generic frontend routing is available, add a gap for split frontend specialization.
 - If any mandatory specialist gap exists, `status` MUST be `gaps_found`.
 - Only return `status=ok` when mandatory specialist gaps are absent.
+- If `docs/whycode/tech-capabilities.json` exists, merge updates (preserve `firstSeenAt`, refresh `lastSeenAt`, add newly detected tech).
+- If it does not exist, create it.

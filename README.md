@@ -104,6 +104,7 @@ Startup now includes a run-visibility gate: the current run must exist in `docs/
 Startup now includes an independent startup-auditor gate: `docs/whycode/audit/startup-audit.json` must be `pass` before any implementation starts.
 Startup now includes capability planning: `docs/whycode/capability-plan.json` is generated and any capability-gap decision is user-selected and audited.
 Capability preflight now runs before Run Action selection so users can see detected stack/routing/gaps early.
+WhyCode now maintains `docs/whycode/tech-capabilities.json` as a persistent tech catalog (created when missing, updated each run).
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 
 ### Agent Teams (Experimental)
