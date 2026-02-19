@@ -568,6 +568,35 @@ This keeps the orchestrator's context clean for coordination.
      """
    READ docs/whycode/capability-plan.json as capabilityPlan
    READ docs/whycode/tech-capabilities.json as techCapabilities
+   # Independent consistency audit (do not trust planner claims)
+   USE Task tool with subagent_type "whycode:context-loader-agent":
+     { "action": "read-file", "target": "docs/whycode/reference/AGENTS.md" }
+     → Returns agentCatalogText
+
+   requiredSpecialistsMissing = []
+   IF capabilityPlan.detectedStack includes "Expo" OR capabilityPlan.detectedStack includes "React Native":
+     IF agentCatalogText does not contain "whycode:frontend-native-agent":
+       requiredSpecialistsMissing.append("whycode:frontend-native-agent")
+   IF capabilityPlan.detectedStack includes "Next" OR capabilityPlan.detectedStack includes "Web":
+     IF agentCatalogText does not contain "whycode:frontend-web-agent":
+       requiredSpecialistsMissing.append("whycode:frontend-web-agent")
+   IF capabilityPlan.detectedStack includes "Convex":
+     IF agentCatalogText does not contain "whycode:backend-convex-agent":
+       requiredSpecialistsMissing.append("whycode:backend-convex-agent")
+   IF capabilityPlan.detectedStack includes "Clerk":
+     IF agentCatalogText does not contain "whycode:backend-auth-agent":
+       requiredSpecialistsMissing.append("whycode:backend-auth-agent")
+   IF capabilityPlan.detectedStack includes "Vercel":
+     IF agentCatalogText does not contain "whycode:deploy-vercel-agent":
+       requiredSpecialistsMissing.append("whycode:deploy-vercel-agent")
+
+   IF requiredSpecialistsMissing.length > 0:
+     # Force fail-closed behavior even if planner claimed full coverage
+     capabilityPlan.status = "gaps_found"
+     capabilityPlan.recommendedAction = "fallback"
+     SHOW: "Capability audit override: specialist gaps detected in agent catalog."
+     SHOW requiredSpecialistsMissing
+
    IF capabilityPlan.status == "gaps_found":
      SHOW routing plan + gaps to user
      ASK user to choose action:

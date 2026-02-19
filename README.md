@@ -105,6 +105,7 @@ Startup now includes an independent startup-auditor gate: `docs/whycode/audit/st
 Startup now includes capability planning: `docs/whycode/capability-plan.json` is generated and any capability-gap decision is user-selected and audited.
 Capability preflight now runs before Run Action selection so users can see detected stack/routing/gaps early.
 WhyCode now maintains `docs/whycode/tech-capabilities.json` as a persistent tech catalog (created when missing, updated each run).
+Capability output is now independently audited against `docs/whycode/reference/AGENTS.md`; missing required specialists force `gaps_found` (fail-closed).
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 
 ### Agent Teams (Experimental)

@@ -95,3 +95,4 @@ Rules:
 - Only return `status=ok` when mandatory specialist gaps are absent.
 - If `docs/whycode/tech-capabilities.json` exists, merge updates (preserve `firstSeenAt`, refresh `lastSeenAt`, add newly detected tech).
 - If it does not exist, create it.
+- Report conservative coverage only. Do not claim "fully covered" if required specialist agents are absent.

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.24] - 2026-02-19
+
+### Changed
+- Added independent capability consistency audit in startup (orchestrator-side) to verify planner output against `docs/whycode/reference/AGENTS.md`.
+- Added fail-closed override: if required specialists for detected stack are missing, capability status is forced to `gaps_found` even if planner claimed full coverage.
+- Prevents false "fully covered" results for stacks requiring not-yet-built specialist agents.
+
 ## [2.3.23] - 2026-02-17
 
 ### Added
