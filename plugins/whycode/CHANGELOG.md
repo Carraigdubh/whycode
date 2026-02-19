@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.28] - 2026-02-19
+
+### Changed
+- Hardened Convex handling to prevent local-workflow assumptions:
+  - `capability-planner-agent` now models `convexContext.mode` (`local-dev|cloud-dev|cloud-live|unknown|not-applicable`) in both capability outputs.
+  - Startup now fail-closes when Convex mode is ambiguous and requires explicit user selection.
+  - Selected mode is persisted to `docs/whycode/decisions/convex-mode.json`.
+  - Startup gate now requires `convexModeResolved=true` when Convex is detected.
+  - `backend-convex-agent` now enforces mode-aware command policy (no implicit `convex dev --local` for cloud modes; blocked on unknown).
+- Updated README and agent catalog docs for Convex deployment-mode behavior.
+
 ## [2.3.27] - 2026-02-19
 
 ### Changed

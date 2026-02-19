@@ -33,6 +33,10 @@ Write `docs/whycode/capability-plan.json` with:
 {
   "status": "ok" | "gaps_found",
   "detectedStack": ["..."],
+  "convexContext": {
+    "mode": "local-dev|cloud-dev|cloud-live|unknown|not-applicable",
+    "evidence": ["..."]
+  },
   "deploymentContext": {
     "mode": "github-integration|vercel-cli|hybrid|unknown",
     "vercelCliAvailable": true,
@@ -64,6 +68,10 @@ Also write/update `docs/whycode/tech-capabilities.json` with:
 {
   "lastUpdatedAt": "ISO",
   "lastUpdatedRunId": "run-id",
+  "convexContext": {
+    "mode": "local-dev|cloud-dev|cloud-live|unknown|not-applicable",
+    "evidence": ["..."]
+  },
   "deploymentContext": {
     "mode": "github-integration|vercel-cli|hybrid|unknown",
     "vercelCliAvailable": true,
@@ -95,6 +103,17 @@ Rules:
   - Clerk: `@clerk/*` dependency
   - Convex: `convex` dependency or `convex/` folder
   - Vercel: `vercel.json` or `.vercel/`
+- Detect Convex deployment mode deterministically:
+  - Local dev indicators:
+    - package/workspace scripts containing `convex dev --local`
+    - docs/config explicitly indicating local deployment usage
+  - Cloud dev indicators:
+    - `.env.local` contains `CONVEX_DEPLOYMENT=...` (Convex docs: dev deployment name)
+    - no strong production/live indicators
+  - Cloud live indicators:
+    - CI/hosting config uses `CONVEX_DEPLOY_KEY` for deploys
+    - docs/config explicitly indicate live cloud deployment workflow
+  - If conflicting or weak evidence, set mode `unknown` (fail-closed, require user confirmation in startup).
 - Detect deployment topology deterministically:
   - Vercel CLI availability: shell check `command -v vercel` success.
   - GitHub integration markers: `.github/workflows/*` references to Vercel deployment OR docs/config explicitly stating GitHub auto-deploy.
@@ -126,3 +145,4 @@ Rules:
 - Report conservative coverage only. Do not claim "fully covered" if required specialist agents are absent.
 - In `notes`, clearly explain why each surface used specialist vs fallback routing.
 - In `notes`, include deployment mode and why it affects deploy-agent routing (for example, "GitHub integration detected: avoid direct deploy mutation by default").
+- In `notes`, include Convex mode and why it affects backend-convex behavior (for example, "cloud-live: avoid local deployment workflows by default").

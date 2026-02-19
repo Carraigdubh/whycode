@@ -22,7 +22,7 @@ Full agent definitions are in `../../../agents/`:
 | Agent (invoke as) | Model | Color | Description |
 |-------------------|-------|-------|-------------|
 | `whycode:backend-agent` | opus | blue | Backend APIs, database, server logic |
-| `whycode:backend-convex-agent` | opus | cobalt | Convex schema/functions/index/auth patterns |
+| `whycode:backend-convex-agent` | opus | cobalt | Convex schema/functions/index/auth patterns with deployment-mode guardrails |
 | `whycode:backend-auth-agent` | opus | indigo | Clerk-focused authN/authZ, middleware, webhook safety |
 | `whycode:frontend-agent` | opus | green | UI components, pages, client logic |
 | `whycode:frontend-web-agent` | opus | emerald | Next.js/web frontend with App Router best practices |

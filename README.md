@@ -90,6 +90,7 @@ On startup, WhyCode prompts for:
 - **Execution speed mode**: `off`, `review-teams`, or `turbo-teams` (experimental Agent Teams acceleration)
 - **Capability decision** (when gaps are detected): `fallback`, `issue`, `pr-scaffold`, or `cancel`
   - `issue` now attempts immediate GitHub issue creation via `gh issue create` (with fallback requirement logging if GitHub auth is missing)
+- **Convex mode confirmation** (when Convex is detected but ambiguous): `local-dev`, `cloud-dev`, or `cloud-live` (fail-closed)
 - **Run name**: suggested, editable
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
@@ -106,6 +107,7 @@ Startup now includes an independent startup-auditor gate: `docs/whycode/audit/st
 Startup now includes capability planning: `docs/whycode/capability-plan.json` is generated and any capability-gap decision is user-selected and audited.
 Capability preflight now runs before Run Action selection so users can see detected stack/routing/gaps early.
 WhyCode now maintains `docs/whycode/tech-capabilities.json` as a persistent tech catalog (created when missing, updated each run).
+When Convex is detected, WhyCode now tracks `convexContext.mode` and persists the selected mode in `docs/whycode/decisions/convex-mode.json` so Convex agents do not assume local workflows.
 Capability output is now independently audited against `docs/whycode/reference/AGENTS.md`; missing required specialists force `gaps_found` (fail-closed).
 For significant fixes (schema/cross-platform/core architecture changes), architecture approval is required before code changes.
 

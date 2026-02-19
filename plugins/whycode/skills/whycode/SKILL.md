@@ -630,6 +630,48 @@ This keeps the orchestrator's context clean for coordination.
      SHOW: "Capability audit override: specialist gaps detected in agent catalog."
      SHOW requiredSpecialistsMissing
 
+   # Convex mode resolution (fail-closed)
+   convexDetected = (capabilityPlan.detectedStack includes "Convex")
+   convexMode = capabilityPlan.convexContext.mode
+   convexModeResolved = true
+   IF convexDetected AND (convexMode is missing OR convexMode == "unknown"):
+     SHOW: "Convex deployment mode is ambiguous. Select the project mode:"
+     ASK user to choose:
+       1) local-dev
+       2) cloud-dev
+       3) cloud-live
+     convexMode = user selection
+     IF convexMode is missing/empty:
+       convexModeResolved = false
+       STOP with "startup incomplete"
+     USE Task tool with subagent_type "whycode:state-agent":
+       {
+         "action": "write-json",
+         "data": {
+           "target": "docs/whycode/decisions/convex-mode.json",
+           "json": {
+             "runId": "{runId}",
+             "selectedAt": "ISO",
+             "source": "user-selection",
+             "mode": "{convexMode}"
+           }
+         }
+       }
+   ELSE IF convexDetected:
+     USE Task tool with subagent_type "whycode:state-agent":
+       {
+         "action": "write-json",
+         "data": {
+           "target": "docs/whycode/decisions/convex-mode.json",
+           "json": {
+             "runId": "{runId}",
+             "selectedAt": "ISO",
+             "source": "capability-plan",
+             "mode": "{convexMode}"
+           }
+         }
+       }
+
    IF capabilityPlan.status == "gaps_found":
      SHOW routing plan + gaps to user
      ASK user to choose action:
@@ -727,11 +769,13 @@ This keeps the orchestrator's context clean for coordination.
      "maxIterationsSelected": true,
      "agentTeamsModeSelected": true,
      "agentTeamsMode": "{agentTeamsMode}",
-     "capabilityPlanningCompleted": true,
-     "techCapabilityFileUpdated": true,
-     "capabilityDecisionRecorded": true,
-     "capabilityDecision": "{capabilityDecision}",
-     "runNameConfirmed": true,
+    "capabilityPlanningCompleted": true,
+    "techCapabilityFileUpdated": true,
+    "capabilityDecisionRecorded": true,
+    "capabilityDecision": "{capabilityDecision}",
+    "convexModeResolved": (convexDetected == false OR convexModeResolved == true),
+    "convexMode": (convexDetected ? convexMode : "not-applicable"),
+    "runNameConfirmed": true,
     "runRecordInitialized": true,
     "runRecordVisible": true,
     "linearKeyDetected": linearKeyDetected,
@@ -759,6 +803,9 @@ This keeps the orchestrator's context clean for coordination.
    runListed, runActionSelected, completionModeSelected, maxIterationsSelected,
     agentTeamsModeSelected, capabilityPlanningCompleted, techCapabilityFileUpdated, capabilityDecisionRecorded,
     runNameConfirmed, runRecordInitialized, runRecordVisible, branchInitialized
+   - if capabilityPlan.detectedStack includes "Convex":
+     startup-gate.json.convexModeResolved == true
+     startup-gate.json.convexMode in ["local-dev","cloud-dev","cloud-live"]
    - if startup-gate.json.linearKeyDetected == true:
      startup-gate.json.linearInitialized == true
    WRITE docs/whycode/audit/startup-audit.json:

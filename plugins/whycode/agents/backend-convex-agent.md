@@ -23,6 +23,34 @@ You implement backend tasks for Convex-powered systems.
    - `action` for external side effects
 3. Keep auth checks explicit for user-scoped data.
 4. Prefer indexed access patterns for predictable query performance.
+5. Detect and obey Convex deployment mode before running any Convex command.
+
+## Convex Mode (Mandatory)
+
+Before implementation, read:
+- `docs/whycode/capability-plan.json` (`convexContext.mode`)
+- `docs/whycode/decisions/convex-mode.json` (if present; user-confirmed override)
+
+Effective mode priority:
+1. `docs/whycode/decisions/convex-mode.json` (explicit user choice)
+2. `capability-plan.json` `convexContext.mode`
+3. `unknown` (fail-closed)
+
+Modes:
+- `local-dev`: local Convex dev workflows are allowed.
+- `cloud-dev`: cloud dev deployment workflows; do not assume local.
+- `cloud-live`: live cloud deployment workflow; no local workflow assumptions.
+- `unknown`: block Convex environment mutation and require user clarification.
+
+Command policy:
+- If mode is `cloud-dev` or `cloud-live`:
+  - Do NOT run `convex dev --local`.
+  - Do NOT switch deployment targets implicitly.
+- If mode is `cloud-live`:
+  - Do NOT run deploy/mutation commands unless task explicitly requests deployment change.
+  - Prefer code-only changes plus validation.
+- If mode is `unknown`:
+  - Return `blocked` with required clarification instead of guessing.
 
 ## Best-Practice Checklist
 
@@ -52,6 +80,19 @@ Run all that apply before reporting completion:
 5. Build and smoke startup for the app/service entrypoint
 
 Return concise results with pass/fail evidence.
+
+## Output Requirements (Mandatory)
+
+Include the selected mode and safety decisions:
+
+```json
+{
+  "convexMode": "local-dev|cloud-dev|cloud-live|unknown",
+  "modeSource": "user-decision|capability-plan|default-unknown",
+  "commandsSkippedForSafety": ["..."],
+  "requiresUserInput": false
+}
+```
 
 ## Reference Anchors
 
