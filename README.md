@@ -118,6 +118,7 @@ Any new specialist agent (manual addition or capability-gap issue/PR request) mu
 - Fail closed when context is ambiguous.
 - Write `docs/whycode/audit/specialist-preflight-{planId}.json` before implementation.
 - Include blocked commands/reasons when safety gates prevent execution.
+- For new specialist-agent builds in WhyCode repo, read `CLAUDE.md` + `AGENTS.md` first, and update `CLAUDE.md`/`AGENTS.md`/`README.md` when policy or user-visible behavior changes.
 
 ### Agent Teams (Experimental)
 

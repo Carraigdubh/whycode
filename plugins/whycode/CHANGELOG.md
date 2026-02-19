@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.30] - 2026-02-19
+
+### Changed
+- Added mandatory specialist-agent authoring policy so new agent implementation work must:
+  - read WhyCode repository `CLAUDE.md` and `AGENTS.md` first
+  - implement Specialist Preflight Gate Contract
+  - update `CLAUDE.md`/`AGENTS.md` when cross-agent policy changes
+  - update `README.md` when user-visible behavior changes
+- Updated capability gap `issue` and `pr-scaffold` requirements to explicitly include the authoring-policy workflow above.
+- Added repository-level guidance in `CLAUDE.md` to treat missing policy/doc updates as incomplete for specialist-agent work.
+
 ## [2.3.29] - 2026-02-19
 
 ### Changed

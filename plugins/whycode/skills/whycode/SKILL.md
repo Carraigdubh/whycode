@@ -704,6 +704,10 @@ This keeps the orchestrator's context clean for coordination.
          * Resolve specialist context deterministically.
          * Fail closed on unknown/ambiguous context.
          * Write docs/whycode/audit/specialist-preflight-{planId}.json before implementation.
+       - Follow WhyCode specialist authoring protocol:
+         * Read repository CLAUDE.md and AGENTS.md before coding the new agent.
+         * Update CLAUDE.md and AGENTS.md when cross-agent policy/contract behavior changes.
+         * Update README.md when user-visible behavior changes.
        """
        USE Task tool with subagent_type "whycode:git-agent":
          {
@@ -751,7 +755,8 @@ This keeps the orchestrator's context clean for coordination.
              "target": "docs/whycode/requirements/pending.json",
              "requirements": [
                "Create WhyCode repo PR scaffold for new agent(s) from docs/whycode/capability-plan.json",
-               "Every new specialist agent must implement the Specialist Preflight Gate Contract (context resolution + fail-closed + specialist-preflight artifact)."
+               "Every new specialist agent must implement the Specialist Preflight Gate Contract (context resolution + fail-closed + specialist-preflight artifact).",
+               "Every new specialist agent task must read repository CLAUDE.md + AGENTS.md first, and update CLAUDE.md/AGENTS.md/README.md when policy or user-visible behavior changes."
              ]
            }
          }

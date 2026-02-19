@@ -72,6 +72,19 @@ Required specialist preflight behavior:
 
 For new specialist-agent requests (manual or GitHub issue flow), this contract is mandatory acceptance criteria.
 
+## New Specialist Agent Authoring Protocol (Mandatory)
+
+When implementing a new specialist agent in the WhyCode repository:
+- Read policy sources first:
+  - repository `CLAUDE.md`
+  - this file (`docs/whycode/reference/AGENTS.md` in consumer runtime / source `skills/whycode/reference/AGENTS.md`)
+- Implement specialist preflight gate contract in the new agent definition.
+- If adding/changing cross-agent policy, update both:
+  - `CLAUDE.md` (repo development policy)
+  - this file (`AGENTS.md`) (agent execution contract)
+- If behavior visible to plugin users changes, update `README.md`.
+- Do not mark agent work complete until policy/docs updates are included.
+
 ---
 
 ## Autonomous Execution via whycode-loop

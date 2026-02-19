@@ -72,6 +72,17 @@ When `/whycode` is invoked, you MUST:
 5. Update version in `.claude-plugin/marketplace.json` to match
 6. Commit and push
 
+### Creating New Specialist Agents (Mandatory)
+
+When adding or updating a specialist agent (directly or from a capability-gap issue):
+1. Read this file (`CLAUDE.md`) and `plugins/whycode/skills/whycode/reference/AGENTS.md` first.
+2. Implement the Specialist Preflight Gate Contract in the new agent.
+3. If behavior/policy changed, update:
+   - `plugins/whycode/skills/whycode/reference/AGENTS.md` (contract/catalog changes)
+   - this `CLAUDE.md` (repo-wide development-policy changes)
+4. Update `README.md` when user-facing behavior or setup expectations change.
+5. Treat missing policy updates as incomplete work.
+
 ### Version Bump Checklist
 - [ ] `plugins/whycode/.claude-plugin/plugin.json` → `version`
 - [ ] `.claude-plugin/marketplace.json` → `version` in plugins array
