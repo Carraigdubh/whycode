@@ -88,6 +88,18 @@ Run all that apply before reporting completion:
 
 Return concise results with pass/fail evidence.
 
+## Specialist Preflight (Mandatory)
+
+Before implementation:
+- Resolve `deploymentMode` deterministically (`github-integration|vercel-cli|hybrid|unknown`).
+- Resolve CLI context:
+  - `projectLocalVercelCli` (preferred) via `{pm} exec vercel --version`
+  - fallback global probe only when needed
+- If `deploymentMode` is `unknown`, return `blocked` and require user confirmation.
+- Write preflight artifact before implementation:
+  - `docs/whycode/audit/specialist-preflight-{planId}.json`
+  - include agent id, resolved mode, evidence source, and blocked commands.
+
 ## Output Requirements (Mandatory)
 
 When returning status, include:

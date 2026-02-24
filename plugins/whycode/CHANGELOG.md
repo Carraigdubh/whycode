@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.4] - 2026-02-19
+
+### Fixed
+- Added explicit `## Specialist Preflight (Mandatory)` section to `deploy-vercel-agent` so doctor specialist-contract checks recognize the preflight gate consistently.
+- Prevents false `MISSING` preflight status for `deploy-vercel-agent` in doctor output.
+
 ## [3.0.3] - 2026-02-19
 
 ### Changed
