@@ -72,6 +72,18 @@ When `/whycode` is invoked, you MUST:
 5. Update version in `.claude-plugin/marketplace.json` to match
 6. Commit and push
 
+### Codex Pre-Edit Checklist (Mandatory)
+
+Before editing any agent file in this repository, Codex must:
+1. Read `CLAUDE.md`.
+2. Read `plugins/whycode/skills/whycode/reference/AGENTS.md`.
+3. Read the target agent file(s) under `plugins/whycode/agents/`.
+4. Confirm required contracts apply (Specialist Preflight + Specialist Metadata for specialist agents).
+5. If contract/policy behavior changes, update:
+   - `plugins/whycode/skills/whycode/reference/AGENTS.md`
+   - `CLAUDE.md`
+   - `README.md` (if user-visible behavior changed)
+
 ### Creating New Specialist Agents (Mandatory)
 
 When adding or updating a specialist agent (directly or from a capability-gap issue):

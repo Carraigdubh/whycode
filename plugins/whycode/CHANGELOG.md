@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-02-19
+
+### Changed
+- Added explicit Codex pre-edit/build protocol to repository policy:
+  - read `CLAUDE.md` -> `AGENTS.md` -> target agent file(s) before editing
+  - enforce relevant contracts during agent edits
+  - update `CLAUDE.md`/`AGENTS.md`/`README.md` when policy or user-visible behavior changes
+- Added matching Codex build rule to README and AGENTS reference for consistency.
+
 ## [3.0.1] - 2026-02-19
 
 ### Changed

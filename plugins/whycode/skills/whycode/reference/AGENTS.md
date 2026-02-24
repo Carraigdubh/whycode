@@ -85,6 +85,19 @@ When implementing a new specialist agent in the WhyCode repository:
 - If behavior visible to plugin users changes, update `README.md`.
 - Do not mark agent work complete until policy/docs updates are included.
 
+## Codex Build Protocol (Mandatory for This Repo)
+
+When Codex is used to build or update WhyCode agents in this repository, it must run this pre-edit sequence:
+1. Read repository `CLAUDE.md`.
+2. Read this file (`AGENTS.md`).
+3. Read target agent definition file(s) before patching.
+4. Apply required contracts for the target type:
+   - specialist agents: Specialist Preflight Gate + Specialist Metadata
+5. If behavior/policy changed, update the policy/docs set:
+   - `CLAUDE.md`
+   - `AGENTS.md`
+   - `README.md` (when user-visible behavior changed)
+
 ## Specialist Metadata Contract (Mandatory)
 
 Every specialist agent file must include a `Specialist Metadata (Mandatory)` section with:

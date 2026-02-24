@@ -171,6 +171,13 @@ When working in the WhyCode repository itself:
 - Propose prioritized queue; do not auto-implement all issues without explicit selection.
 - Update specialist metadata (`lastVerifiedAt`) when agent guidance is refreshed.
 
+### Codex Build Rule (Mandatory)
+
+When using Codex to build/update WhyCode agents in this repository:
+- Codex must read `CLAUDE.md`, then `AGENTS.md`, then target agent file(s) before editing.
+- Codex must apply required contracts (specialist preflight + metadata for specialist agents).
+- If behavior/policy changes, Codex must update `CLAUDE.md` + `AGENTS.md` and `README.md` when user-visible behavior changes.
+
 ### Agent Teams (Experimental)
 
 - `off`: default behavior (fully backward compatible)
