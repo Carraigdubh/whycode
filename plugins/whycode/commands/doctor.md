@@ -36,6 +36,9 @@ Checks (in order):
      - `driftTriggers:`
 8. Staleness check for specialist metadata:
    - if `lastVerifiedAt` is older than 90 days, mark WARNING and recommend metadata refresh.
+9. If repository contract validator exists:
+   - run `./scripts/validate-whycode-contracts.sh`
+   - fail doctor if script reports contract violations.
 
 Output format:
 - `Doctor Status: PASS|FAIL`

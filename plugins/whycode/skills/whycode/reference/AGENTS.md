@@ -97,6 +97,8 @@ When Codex is used to build or update WhyCode agents in this repository, it must
    - `CLAUDE.md`
    - `AGENTS.md`
    - `README.md` (when user-visible behavior changed)
+6. Run repository contract validator before commit:
+   - `./scripts/validate-whycode-contracts.sh`
 
 ## Specialist Metadata Contract (Mandatory)
 

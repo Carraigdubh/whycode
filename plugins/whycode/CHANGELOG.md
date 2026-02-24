@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.5] - 2026-02-19
+
+### Fixed
+- Added repository contract validator script: `scripts/validate-whycode-contracts.sh`.
+- Added CI enforcement via GitHub Actions: `.github/workflows/contract-validation.yml`.
+- Standardized `backend-convex-agent` with explicit `## Specialist Preflight (Mandatory)` heading for consistent contract checking.
+- Updated Codex policy/docs to require running the contract validator before commit for agent/policy changes.
+- Updated doctor guidance to run repository contract validator when present.
+
 ## [3.0.4] - 2026-02-19
 
 ### Fixed

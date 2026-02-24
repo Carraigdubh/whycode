@@ -181,6 +181,7 @@ When using Codex to build/update WhyCode agents in this repository:
 - Codex must read `CLAUDE.md`, then `AGENTS.md`, then target agent file(s) before editing.
 - Codex must apply required contracts (specialist preflight + metadata for specialist agents).
 - If behavior/policy changes, Codex must update `CLAUDE.md` + `AGENTS.md` and `README.md` when user-visible behavior changes.
+- Codex must run `./scripts/validate-whycode-contracts.sh` before commit for agent/policy changes.
 
 ### Agent Teams (Experimental)
 

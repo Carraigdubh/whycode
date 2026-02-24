@@ -83,6 +83,8 @@ Before editing any agent file in this repository, Codex must:
    - `plugins/whycode/skills/whycode/reference/AGENTS.md`
    - `CLAUDE.md`
    - `README.md` (if user-visible behavior changed)
+6. Run contract validator before commit:
+   - `./scripts/validate-whycode-contracts.sh`
 
 ### Creating New Specialist Agents (Mandatory)
 

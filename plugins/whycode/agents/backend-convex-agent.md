@@ -55,6 +55,17 @@ Command policy:
   - `docs/whycode/audit/specialist-preflight-{planId}.json`
   - include `agent=whycode:backend-convex-agent`, effective `convexMode`, source, and blocked commands.
 
+## Specialist Preflight (Mandatory)
+
+Before implementation:
+- Resolve effective `convexMode` from:
+  - `docs/whycode/decisions/convex-mode.json` (preferred when present)
+  - `docs/whycode/capability-plan.json` (`convexContext.mode`)
+- If mode is ambiguous/unknown, return `blocked` and require explicit user mode selection.
+- Write preflight artifact:
+  - `docs/whycode/audit/specialist-preflight-{planId}.json`
+  - include agent id, resolved mode, source, and blocked commands.
+
 ## Best-Practice Checklist
 
 - Schema and typing:
