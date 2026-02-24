@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-02-19
+
+### Changed
+- Hardened `/whycode doctor` with strict `CLAUDE.md` policy-block validation:
+  - requires `## WhyCode (MANDATORY)` section
+  - requires mandatory lines for plugin-root reads and startup-audit fail-closed rules
+  - fails doctor when section/required lines are missing
+- Added canonical-block remediation flow:
+  - doctor can replace the `WhyCode (MANDATORY)` section from README canonical text
+  - replacement is interactive and re-runs checks after apply
+- Updated README doctor documentation to reflect strict `CLAUDE.md` validation behavior.
+
 ## [3.0.2] - 2026-02-19
 
 ### Changed

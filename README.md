@@ -80,7 +80,11 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 /whycode log "desc"   # Record a manual change with description
 ```
 
-`/whycode doctor` can now offer to auto-fix stale WhyCode path references in project `CLAUDE.md` and then re-run diagnostics.
+`/whycode doctor` now performs strict `CLAUDE.md` validation:
+- path drift checks
+- canonical `## WhyCode (MANDATORY)` block presence checks
+- required-line checks for mandatory plugin paths and startup-audit rules
+If drift is detected, doctor can offer to replace the section with the canonical block from this README.
 
 ## How WhyCode Works (v3)
 
