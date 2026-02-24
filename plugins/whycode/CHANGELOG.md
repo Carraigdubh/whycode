@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-02-19
+
+### Changed
+- Hardened `deploy-vercel-agent` to prefer **project-local Vercel CLI** commands (`{pm} exec vercel ...`) over global binary usage.
+- Added explicit `projectLocalVercelCli` status output field in deploy agent response shape.
+- Updated agent catalog/README descriptions to reflect project-local CLI-first behavior.
+
 ## [3.0.0] - 2026-02-19
 
 ### Changed

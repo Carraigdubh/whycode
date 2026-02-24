@@ -29,7 +29,10 @@ You handle deployment-focused tasks for Vercel-hosted projects.
   - Detect Vercel markers:
     - `vercel.json`, `.vercel/`, `@vercel/*` deps, Next.js on Vercel conventions.
   - Detect Vercel CLI availability:
-    - `command -v vercel` and `vercel --version`.
+    - Prefer project-local CLI first:
+      - `{pm} exec vercel --version` (or workspace equivalent from `PACKAGE_MANAGER_COMMANDS`)
+    - Fallback probe only:
+      - `command -v vercel` and `vercel --version`.
   - Detect GitHub-driven deployment indicators:
     - `.github/workflows/*` containing Vercel deployment steps.
     - Docs/config mentioning "Vercel Git Integration" / "deploy on push".
@@ -45,7 +48,10 @@ You handle deployment-focused tasks for Vercel-hosted projects.
     - Validate build/test locally and prepare safe commit/PR path.
     - Keep instructions focused on branch/PR merge flow and preview verification.
   - `vercel-cli`:
-    - Prefer `vercel build` for preflight and `vercel deploy --prebuilt` only when task explicitly requires deploy.
+    - Prefer project-local CLI commands:
+      - `{pm} exec vercel build`
+      - `{pm} exec vercel deploy --prebuilt` only when task explicitly requires deploy.
+    - Do not prefer global `vercel` binary when project-local CLI is available.
     - Never assume auto-linking; verify project link/context first.
   - `hybrid`:
     - Default to GitHub flow for production safety.
@@ -77,7 +83,7 @@ Run all that apply before reporting completion:
 1. Typecheck
 2. Lint
 3. Tests (if present)
-4. Build (`vercel build` or project build equivalent)
+4. Build (`{pm} exec vercel build` or project build equivalent)
 5. Smoke startup or deployment simulation command used by project
 
 Return concise results with pass/fail evidence.
@@ -90,6 +96,7 @@ When returning status, include:
 {
   "deploymentMode": "github-integration|vercel-cli|hybrid|unknown",
   "vercelCliAvailable": true,
+  "projectLocalVercelCli": true,
   "githubIntegrationDetected": true,
   "actionsTaken": ["..."],
   "actionsSkippedForSafety": ["..."],

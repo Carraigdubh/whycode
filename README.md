@@ -282,7 +282,7 @@ WhyCode creates a **run branch** per run, pushes after each plan, and opens a PR
 | `frontend-agent` | UI components, pages, client logic |
 | `frontend-web-agent` | Next.js/web frontend specialist |
 | `frontend-native-agent` | Expo/React Native frontend specialist |
-| `deploy-vercel-agent` | Vercel deploy/env/runtime specialist |
+| `deploy-vercel-agent` | Vercel deploy/env/runtime specialist (project-local CLI first) |
 | `test-agent` | Unit/integration testing |
 | `e2e-agent` | E2E UI testing (Chrome for web, Maestro for Expo) |
 | `review-agent` | Code quality, bugs, security |
