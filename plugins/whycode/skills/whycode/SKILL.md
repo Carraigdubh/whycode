@@ -225,6 +225,18 @@ This keeps the orchestrator's context clean for coordination.
    runId = ISO timestamp with ":" replaced by "-" (e.g., 2026-01-25T14-33-05Z)
    suggestedRunName = "Run {YYYY-MM-DD HH:MM}"
 
+0.2 PROJECT ROOT ISOLATION (MANDATORY, FAIL-CLOSED)
+   Resolve and bind project root before any WhyCode state/run operations.
+   - preferredRoot = output of `git rev-parse --show-toplevel` when available
+   - fallbackRoot = current working directory
+   - projectRoot = preferredRoot OR fallbackRoot
+   SHOW: "WhyCode project root: {projectRoot}"
+   HARD RULES:
+   - All WhyCode state/run files must be scoped to `{projectRoot}/docs/whycode/...`.
+   - Never read, write, or reference WhyCode state/runs from any other project path.
+   - If context, summaries, or startup content references a different project root path:
+     STOP with "startup incomplete" and report "project isolation failed".
+
 1. MIGRATE legacy state (if present)
    IF exists docs/whycode-state.json:
      MOVE to docs/whycode/legacy/whycode-state.json
@@ -801,6 +813,8 @@ This keeps the orchestrator's context clean for coordination.
   WRITE docs/whycode/audit/startup-gate.json:
   {
     "status": "pass",
+    "projectRoot": "{projectRoot}",
+    "projectRootBound": true,
      "runListed": true,
      "runActionSelected": true,
      "completionModeSelected": true,
@@ -833,9 +847,11 @@ This keeps the orchestrator's context clean for coordination.
      { "action": "read-json", "target": "docs/whycode/runs/{runId}/run.json" }
    USE Task tool with subagent_type "whycode:context-loader-agent":
      { "action": "read-json", "target": "docs/whycode/audit/startup-gate.json" }
-   VERIFY ALL:
-   - list-runs includes current runId
-   - run.json exists and contains: runId, name, runType, completionMode, startedAt
+  VERIFY ALL:
+  - startup-gate.json.projectRoot exists and is non-empty
+  - startup-gate.json.projectRootBound == true
+  - list-runs includes current runId
+  - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"
    - startup-gate.json contains true for:
    runListed, runActionSelected, completionModeSelected, maxIterationsSelected,

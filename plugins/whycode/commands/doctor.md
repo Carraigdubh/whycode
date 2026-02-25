@@ -16,6 +16,12 @@ Checks (in order):
    - `plugins/whycode/` in project root (must not exist for consumer projects)
 5. Check likely stale cache markers in `~/.claude/paste-cache` and `~/.claude/plugins/cache/whycode-marketplace/whycode/`.
 6. Check `docs/whycode/audit/startup-check.json` and `docs/whycode/audit/startup-audit.json` (if present) for path/version mismatches.
+6.6. Project root isolation check (if startup artifacts exist):
+   - Resolve current project root from `git rev-parse --show-toplevel` (fallback: cwd).
+   - Verify `docs/whycode/audit/startup-gate.json` contains:
+     - `projectRoot` equal to current project root
+     - `projectRootBound: true`
+   - If startup artifacts reference another project path, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

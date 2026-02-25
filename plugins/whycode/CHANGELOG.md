@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.8] - 2026-02-25
+
+### Fixed
+- Added mandatory project-root isolation gate at startup to prevent cross-project WhyCode state/run bleed.
+- Startup gate receipt now records `projectRoot` and `projectRootBound`, and startup auditor verifies both.
+- Doctor now checks startup project-root isolation and fails when artifacts point to another project.
+
 ## [3.0.7] - 2026-02-25
 
 ### Fixed
