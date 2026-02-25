@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.9] - 2026-02-25
+
+### Fixed
+- Hardened startup required-read behavior for large files: truncated previews now require chunked direct-disk reads.
+- Explicitly disallowed persisted/cached output as a substitute for required startup reads.
+- Doctor now fails if startup-check artifacts indicate persisted/cached/memory-based required reads.
+
 ## [3.0.8] - 2026-02-25
 
 ### Fixed

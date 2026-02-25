@@ -10,6 +10,7 @@ You must read these files directly before startup:
 - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md` (full file)
 - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md`
+If file preview is truncated/too large, continue with chunked direct-disk reads; never substitute persisted/cached output.
 
 Follow the instructions in the skill file above. This is the WhyCode development orchestrator.
 

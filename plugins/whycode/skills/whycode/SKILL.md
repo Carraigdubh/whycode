@@ -201,12 +201,18 @@ This keeps the orchestrator's context clean for coordination.
    - ${CLAUDE_PLUGIN_ROOT}/skills/whycode/SKILL.md
    - ${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/AGENTS.md
    - ${CLAUDE_PLUGIN_ROOT}/skills/whycode/reference/TEMPLATES.md
+   FILE-SIZE RULE (MANDATORY):
+   - If any required file is too large for a single preview/read, continue with direct disk chunked reads until full coverage is complete.
+   - Chunked reads must still come from the file on disk at `${CLAUDE_PLUGIN_ROOT}/...`.
+   - Cached/persisted command output is NOT a valid substitute for required reads.
    WRITE docs/whycode/audit/startup-check.json with:
    {
      "status": "pass|fail",
      "requiredReads": [...],
+     "readMode": "direct-disk|direct-disk-chunked",
      "checkedAt": "ISO"
    }
+   IF requiredReads mentions "persisted", "cached", or "memory": set status="fail"
    IF fail: STOP with "startup incomplete"
 
 0. DISPLAY VERSION AND CHECK FOR UPDATES

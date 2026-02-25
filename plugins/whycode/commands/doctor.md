@@ -16,6 +16,8 @@ Checks (in order):
    - `plugins/whycode/` in project root (must not exist for consumer projects)
 5. Check likely stale cache markers in `~/.claude/paste-cache` and `~/.claude/plugins/cache/whycode-marketplace/whycode/`.
 6. Check `docs/whycode/audit/startup-check.json` and `docs/whycode/audit/startup-audit.json` (if present) for path/version mismatches.
+   - Fail if `startup-check.json.requiredReads` contains markers like `persisted`, `cached`, or `memory`.
+   - Fail if `startup-check.json.readMode` is missing or not one of: `direct-disk`, `direct-disk-chunked`.
 6.6. Project root isolation check (if startup artifacts exist):
    - Resolve current project root from `git rev-parse --show-toplevel` (fallback: cwd).
    - Verify `docs/whycode/audit/startup-gate.json` contains:

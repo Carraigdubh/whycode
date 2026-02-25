@@ -137,6 +137,7 @@ On startup, WhyCode prompts for:
 - **Run name**: suggested, editable
 - Startup switches are mandatory interactive Q&A prompts (one decision at a time with explicit options); WhyCode must not batch these into a single "confirm choices" summary.
 - Startup also enforces project-root isolation: WhyCode binds to the current repo root and fails closed if run/state paths reference another project.
+- Required startup reads must come from direct disk; if files are too large for single preview, WhyCode must use chunked direct-disk reads (not persisted/cached output).
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
 Run selection supports paging controls so older runs can be chosen: `more` (next page), `all` (show all), `continue`.
