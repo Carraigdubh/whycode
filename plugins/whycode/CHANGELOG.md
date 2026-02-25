@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.6] - 2026-02-19
+
+### Fixed
+- Doctor specialist contract checks now explicitly target installed plugin files at `${CLAUDE_PLUGIN_ROOT}/agents/*.md` instead of project-local file assumptions.
+- Added bundled plugin validator script at `${CLAUDE_PLUGIN_ROOT}/scripts/validate-specialist-contracts.sh` for doctor check 9.
+- Doctor check 9 now fails if the bundled validator script is missing or reports violations (no silent SKIP for consumer projects).
+- Updated README doctor documentation for plugin-root specialist validation behavior.
+
 ## [3.0.5] - 2026-02-19
 
 ### Fixed

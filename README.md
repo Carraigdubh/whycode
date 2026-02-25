@@ -85,6 +85,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 - canonical `## WhyCode (MANDATORY)` block presence checks
 - required-line checks for mandatory plugin paths and startup-audit rules
 If drift is detected, doctor can offer to replace the section with the canonical block from this README.
+Doctor also validates specialist contracts from installed plugin files (`${CLAUDE_PLUGIN_ROOT}/agents/*.md`) and runs bundled validator `${CLAUDE_PLUGIN_ROOT}/scripts/validate-specialist-contracts.sh`.
 
 ## How WhyCode Works (v3)
 
