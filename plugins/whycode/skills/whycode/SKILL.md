@@ -205,6 +205,7 @@ This keeps the orchestrator's context clean for coordination.
    - If any required file is too large for a single preview/read, continue with direct disk chunked reads until full coverage is complete.
    - Chunked reads must still come from the file on disk at `${CLAUDE_PLUGIN_ROOT}/...`.
    - Cached/persisted command output is NOT a valid substitute for required reads.
+   - If startup narration states or implies persisted/cached/memory fallback for required reads, STOP immediately with "startup incomplete".
    WRITE docs/whycode/audit/startup-check.json with:
    {
      "status": "pass|fail",

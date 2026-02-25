@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.10] - 2026-02-25
+
+### Fixed
+- Added explicit fail-closed guard: if startup required-read flow mentions persisted/cached fallback, WhyCode must stop with `startup incomplete`.
+
 ## [3.0.9] - 2026-02-25
 
 ### Fixed
