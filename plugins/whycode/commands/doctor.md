@@ -24,6 +24,12 @@ Checks (in order):
      - `projectRoot` equal to current project root
      - `projectRootBound: true`
    - If startup artifacts reference another project path, mark `FAIL`.
+6.7. Request anchoring gate check (if startup artifacts exist):
+   - Verify `docs/whycode/audit/request-anchor.json` exists for latest run.
+   - Verify request-anchor status is `pass`.
+   - Verify `docs/whycode/audit/startup-gate.json` has:
+     - `requestAnchored: true` OR `greenfieldApproved: true`
+   - If missing/failed, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

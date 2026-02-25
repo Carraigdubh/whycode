@@ -375,6 +375,39 @@ This keeps the orchestrator's context clean for coordination.
    IF earlyCapabilityPlan.status == "gaps_found":
      SHOW earlyCapabilityPlan.gaps
 
+3.6 REQUEST ANCHORING GATE (MANDATORY, FAIL-CLOSED)
+   Determine whether the user's requested change is grounded in the current project.
+   Inputs for anchoring:
+   - current user request text (feature/fix description)
+   - docs/whycode/codebase/SUMMARY.md, STACK.md, ARCHITECTURE.md (if present)
+   - repository routes/screens/components/modules visible from current project root
+   - docs/whycode/capability-plan.json routing surfaces
+   Build:
+   - requestAnchors: key entities from request (for example: "admin screen", "reports", "user date")
+   - matchedAnchors: anchors that map to existing code/docs surfaces
+   - missingAnchors: anchors with no mapping in current project
+   WRITE docs/whycode/audit/request-anchor.json:
+   {
+     "status": "pass|fail",
+     "runId": "{runId}",
+     "requestText": "{userRequest}",
+     "requestAnchors": ["..."],
+     "matchedAnchors": ["..."],
+     "missingAnchors": ["..."],
+     "resolution": "anchored|greenfield-approved|cancelled",
+     "checkedAt": "ISO"
+   }
+   RULES:
+   - PASS only when request is anchored OR user explicitly approves greenfield scope.
+   - If no meaningful anchors are found, SHOW a blocking prompt with explicit options:
+     1) Clarify request to match current codebase
+     2) Proceed as greenfield addition (explicit approval)
+     3) Cancel
+   - If user selects clarify, remain blocked until clarified request produces at least one matched anchor.
+   - If user selects cancel, STOP with "startup incomplete".
+   - If runType == "fix" and request has no anchors, greenfield is NOT allowed; require clarify or cancel.
+   - Never continue to run-action/planning while request-anchor status is fail.
+
 4. RUN SELECTION (if prior runs exist)
    INTERACTION CONTRACT (MANDATORY FOR STARTUP STEPS 4-7):
    - Use interactive Q&A prompts only, one decision at a time.
@@ -822,7 +855,9 @@ This keeps the orchestrator's context clean for coordination.
     "status": "pass",
     "projectRoot": "{projectRoot}",
     "projectRootBound": true,
-     "runListed": true,
+    "requestAnchored": true,
+    "greenfieldApproved": false,
+    "runListed": true,
      "runActionSelected": true,
      "completionModeSelected": true,
      "maxIterationsSelected": true,
@@ -857,6 +892,7 @@ This keeps the orchestrator's context clean for coordination.
   VERIFY ALL:
   - startup-gate.json.projectRoot exists and is non-empty
   - startup-gate.json.projectRootBound == true
+  - startup-gate.json.requestAnchored == true OR startup-gate.json.greenfieldApproved == true
   - list-runs includes current runId
   - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"

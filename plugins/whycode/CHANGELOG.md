@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.11] - 2026-02-25
+
+### Fixed
+- Added mandatory request-anchoring startup gate to block ungrounded requests that do not map to current project surfaces.
+- Added explicit clarify/greenfield/cancel resolution flow for unanchored requests; fix runs now disallow greenfield fallback when anchors are missing.
+- Startup gate/auditor now require request anchoring (or explicit approved greenfield for non-fix flows).
+- Doctor now checks request-anchor artifacts and startup-gate anchoring fields.
+
 ## [3.0.10] - 2026-02-25
 
 ### Fixed

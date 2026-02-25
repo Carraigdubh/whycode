@@ -31,6 +31,7 @@ Hard execution rule:
   7. Startup auditor passed (`docs/whycode/audit/startup-audit.json`)
   8. If a Linear key is present, Linear is initialized with selected team (`linearEnabled=true`, `linearTeamId` set)
   9. Project root isolation is bound (`projectRootBound=true`) and no cross-project WhyCode paths are referenced
+  10. Request anchoring gate passed (`requestAnchored=true`) or explicit greenfield approval recorded (`greenfieldApproved=true`)
 - If a startup gate is missing, stop and report: `startup incomplete`.
 - For significant fixes (schema/data model changes, cross-platform changes, new core components, or >3 files changed), architecture design and user approval are mandatory before implementation.
 - `/whycode fix` additional mandatory gates:
