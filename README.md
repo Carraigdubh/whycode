@@ -135,6 +135,7 @@ On startup, WhyCode prompts for:
   - `issue` now attempts immediate GitHub issue creation via `gh issue create` (with fallback requirement logging if GitHub auth is missing)
 - **Convex mode confirmation** (when Convex is detected but ambiguous): `local-dev`, `cloud-dev`, or `cloud-live` (fail-closed)
 - **Run name**: suggested, editable
+- Startup switches are mandatory interactive Q&A prompts (one decision at a time with explicit options); WhyCode must not batch these into a single "confirm choices" summary.
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
 Run selection supports paging controls so older runs can be chosen: `more` (next page), `all` (show all), `continue`.

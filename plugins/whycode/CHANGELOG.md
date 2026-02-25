@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.7] - 2026-02-25
+
+### Fixed
+- Hardened startup interaction contract to require sequential interactive Q&A prompts for startup switches.
+- Explicitly forbids consolidated startup confirmation blocks (for example "Startup Decisions Needed ... confirm choices").
+- Updated README startup-switch documentation to reflect mandatory one-decision-at-a-time prompt behavior.
+
 ## [3.0.6] - 2026-02-19
 
 ### Fixed

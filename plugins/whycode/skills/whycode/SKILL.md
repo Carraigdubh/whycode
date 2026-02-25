@@ -357,6 +357,13 @@ This keeps the orchestrator's context clean for coordination.
      SHOW earlyCapabilityPlan.gaps
 
 4. RUN SELECTION (if prior runs exist)
+   INTERACTION CONTRACT (MANDATORY FOR STARTUP STEPS 4-7):
+   - Use interactive Q&A prompts only, one decision at a time.
+   - Each prompt must show explicit selectable options.
+   - Wait for a user selection before moving to the next decision.
+   - Do not batch multiple startup decisions into one message.
+   - Do not use a consolidated confirmation block such as:
+     "Startup Decisions Needed ... Please confirm or adjust these choices."
    ASK user:
      "Choose a startup action: resume | rerun | review | resolve | new"
    - resume: continue current in-progress run
@@ -409,19 +416,34 @@ This keeps the orchestrator's context clean for coordination.
      docs/whycode/runs/{runId}/summary.md before exiting the action.
 
 5. ASK user for completion mode (strict/partial)
+   Prompt as explicit options:
+   - strict: all verifications must pass
+   - partial: allows guarded progress when external setup is missing
+   Do not proceed until one option is selected.
    Store in whycode-state.json as completionMode
 
 6. ASK user for max iterations (20/30/50/custom)
+   Prompt as explicit options:
+   - 20
+   - 30
+   - 50
+   - custom (then ask for numeric value)
+   Do not proceed until one option is selected.
    Store in whycode-state.json as loopMaxIterations
 
 6.5 ASK user for execution speed mode
-   Prompt: "Execution speed mode? off | review-teams | turbo-teams"
+   Prompt as explicit options: "Execution speed mode? off | review-teams | turbo-teams"
    - off: Use current single-agent orchestration path
    - review-teams: Use Agent Teams for Phase 6 review only (experimental)
    - turbo-teams: Use Agent Teams lead/delegate in Phases 5/6/7 when available (experimental)
+   Do not proceed until one option is selected.
    Store as agentTeamsMode in whycode-state.json
 
 7. ASK user to confirm or edit run name (default: {suggestedRunName})
+   Prompt as explicit options:
+   - Accept suggested run name
+   - Enter custom run name
+   Do not proceed until one option is selected.
    Store in run meta
 
 8. ENSURE whycode reference directory exists

@@ -17,6 +17,8 @@ If the user provided "fix" as an argument, enter Fix and Learn mode as described
 
 Hard execution rule:
 - Do not implement or mutate product code before startup gates are complete.
+- Startup gate prompts must be interactive Q&A prompts (one decision at a time) using explicit selectable options.
+- Do not batch startup prompts into a single summary block (for example "Startup Decisions Needed ... Please confirm or adjust").
 - Startup gates are complete only after ALL of these are done:
   1. Previous runs were listed and shown to user
   2. User selected completion mode (`strict|partial`)
