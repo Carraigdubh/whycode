@@ -137,6 +137,7 @@ On startup, WhyCode prompts for:
 - **Run name**: suggested, editable
 - Startup switches are mandatory interactive Q&A prompts (one decision at a time with explicit options); WhyCode must not batch these into a single "confirm choices" summary.
 - Startup run-action selection (`new/resume/rerun/review/resolve`) must render as interactive choice UI, not plain text list output.
+  - Uses canonical prompt schema `choice-v1` (single question line, numbered options with one-line descriptions, no extra prose wrapper).
 - Startup also enforces project-root isolation: WhyCode binds to the current repo root and fails closed if run/state paths reference another project.
 - Required startup reads must come from direct disk; if files are too large for single preview, WhyCode must use chunked direct-disk reads (not persisted/cached output).
 - Startup enforces request anchoring: requested changes must map to current codebase/docs surfaces, otherwise WhyCode blocks for clarify/greenfield/cancel (and fix mode disallows greenfield fallback).
@@ -146,6 +147,7 @@ Run selection supports paging controls so older runs can be chosen: `more` (next
 Selection is blocking: it stays on run selection until a valid run index/runId is chosen.
 Run selection must include explicit options for `Show older runs` and `Show all runs` in the prompt UI.
 Fix target selection must render as interactive Q&A choice UI; plain text "step" output is invalid.
+  - Uses canonical prompt schema `choice-v1`.
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
 If Linear is configured, fix runs must also create/update Linear records (same as normal WhyCode runs).

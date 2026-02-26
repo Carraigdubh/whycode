@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.14] - 2026-02-25
+
+### Fixed
+- Standardized startup and fix selection prompts to canonical `choice-v1` schema.
+- Added `promptSchema` checks to run-action and fix-target gate artifacts.
+- Doctor now fails when selection gates are not recorded as `choice-v1`.
+
 ## [3.0.13] - 2026-02-25
 
 ### Fixed

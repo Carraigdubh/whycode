@@ -417,6 +417,11 @@ This keeps the orchestrator's context clean for coordination.
    - Do not use a consolidated confirmation block such as:
      "Startup Decisions Needed ... Please confirm or adjust these choices."
    - Startup action selection must be rendered as interactive choice UI, not plain text prose list.
+   - Use canonical choice-prompt schema:
+     - one question line only
+     - numbered options with short label line + one short description line
+     - no explanatory paragraph before or after the options
+     - wait for selection
    ASK user:
      "Choose a startup action: resume | rerun | review | resolve | new"
    - resume: continue current in-progress run
@@ -439,11 +444,13 @@ This keeps the orchestrator's context clean for coordination.
    {
      "status": "pass|fail",
      "runId": "{runId}",
+     "promptSchema": "choice-v1",
      "interactivePromptUsed": true|false,
      "selectionBlockedUntilValid": true|false,
      "checkedAt": "ISO"
    }
    status is pass only when:
+   - promptSchema == "choice-v1"
    - interactivePromptUsed == true
    - selectionBlockedUntilValid == true
    IF status != "pass": STOP with "startup incomplete"
@@ -1883,6 +1890,7 @@ Triggered by `/whycode fix` or on resume with errors.
        - Do NOT emit a standalone prose preface such as "Fix Mode - Step 4: Select the run to fix".
        - Present choices as selectable options and then WAIT for user input.
        - Do not continue until a valid selection is made.
+       - Use canonical choice-prompt schema `choice-v1` (question line, numbered short options, one-line descriptions, no extra prose wrapper).
      - Present explicit selectable controls:
        1) Pick run by index/runId
        2) Show older runs
@@ -1895,6 +1903,7 @@ Triggered by `/whycode fix` or on resume with errors.
            "status": "pass|fail",
            "runId": "{runId}",
            "totalRuns": totalRuns,
+           "promptSchema": "choice-v1",
            "interactivePromptUsed": true|false,
            "hasShowOlderRunsControl": true|false,
            "hasShowAllRunsControl": true|false,
@@ -1902,6 +1911,7 @@ Triggered by `/whycode fix` or on resume with errors.
            "checkedAt": "ISO"
          }
        - status is pass only when:
+         promptSchema == "choice-v1"
          interactivePromptUsed == true
          hasShowOlderRunsControl == true
          hasShowAllRunsControl == true

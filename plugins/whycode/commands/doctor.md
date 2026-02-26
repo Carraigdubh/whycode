@@ -34,6 +34,7 @@ Checks (in order):
    - Verify `docs/whycode/audit/fix-target-gate.json` exists.
    - Verify:
      - `status: pass`
+     - `promptSchema: choice-v1`
      - `interactivePromptUsed: true`
      - `hasShowOlderRunsControl: true`
      - `hasShowAllRunsControl: true`
@@ -43,6 +44,7 @@ Checks (in order):
    - Verify `docs/whycode/audit/run-action-gate.json` exists for latest run.
    - Verify:
      - `status: pass`
+     - `promptSchema: choice-v1`
      - `interactivePromptUsed: true`
      - `selectionBlockedUntilValid: true`
    - Verify `docs/whycode/audit/startup-gate.json` includes `runActionInteractive: true`.
