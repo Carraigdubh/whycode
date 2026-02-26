@@ -416,6 +416,7 @@ This keeps the orchestrator's context clean for coordination.
    - Do not batch multiple startup decisions into one message.
    - Do not use a consolidated confirmation block such as:
      "Startup Decisions Needed ... Please confirm or adjust these choices."
+   - Startup action selection must be rendered as interactive choice UI, not plain text prose list.
    ASK user:
      "Choose a startup action: resume | rerun | review | resolve | new"
    - resume: continue current in-progress run
@@ -434,6 +435,18 @@ This keeps the orchestrator's context clean for coordination.
        - if input matches a visible index or known runId: selectedRunId = resolved runId; BREAK
        - else: show "Invalid run selection" and re-prompt
      - do not proceed until selectedRunId is set
+   WRITE docs/whycode/audit/run-action-gate.json:
+   {
+     "status": "pass|fail",
+     "runId": "{runId}",
+     "interactivePromptUsed": true|false,
+     "selectionBlockedUntilValid": true|false,
+     "checkedAt": "ISO"
+   }
+   status is pass only when:
+   - interactivePromptUsed == true
+   - selectionBlockedUntilValid == true
+   IF status != "pass": STOP with "startup incomplete"
    IF Linear is disabled and selection is review/resolve: fallback to new with warning
    IF selection == review:
      ASK user: "Include docs sync in review? [Y/n]"
@@ -858,8 +871,9 @@ This keeps the orchestrator's context clean for coordination.
     "requestAnchored": true,
     "greenfieldApproved": false,
     "runListed": true,
-     "runActionSelected": true,
-     "completionModeSelected": true,
+    "runActionSelected": true,
+    "runActionInteractive": true,
+    "completionModeSelected": true,
      "maxIterationsSelected": true,
      "agentTeamsModeSelected": true,
      "agentTeamsMode": "{agentTeamsMode}",
@@ -893,6 +907,7 @@ This keeps the orchestrator's context clean for coordination.
   - startup-gate.json.projectRoot exists and is non-empty
   - startup-gate.json.projectRootBound == true
   - startup-gate.json.requestAnchored == true OR startup-gate.json.greenfieldApproved == true
+  - startup-gate.json.runActionInteractive == true
   - list-runs includes current runId
   - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"

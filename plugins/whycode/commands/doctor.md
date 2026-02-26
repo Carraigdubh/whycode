@@ -39,6 +39,14 @@ Checks (in order):
      - `hasShowAllRunsControl: true`
      - `selectionBlockedUntilValid: true`
    - If any are missing/false, mark `FAIL`.
+6.9. Startup run-action interaction gate check:
+   - Verify `docs/whycode/audit/run-action-gate.json` exists for latest run.
+   - Verify:
+     - `status: pass`
+     - `interactivePromptUsed: true`
+     - `selectionBlockedUntilValid: true`
+   - Verify `docs/whycode/audit/startup-gate.json` includes `runActionInteractive: true`.
+   - If any are missing/false, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

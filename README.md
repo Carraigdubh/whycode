@@ -136,6 +136,7 @@ On startup, WhyCode prompts for:
 - **Convex mode confirmation** (when Convex is detected but ambiguous): `local-dev`, `cloud-dev`, or `cloud-live` (fail-closed)
 - **Run name**: suggested, editable
 - Startup switches are mandatory interactive Q&A prompts (one decision at a time with explicit options); WhyCode must not batch these into a single "confirm choices" summary.
+- Startup run-action selection (`new/resume/rerun/review/resolve`) must render as interactive choice UI, not plain text list output.
 - Startup also enforces project-root isolation: WhyCode binds to the current repo root and fails closed if run/state paths reference another project.
 - Required startup reads must come from direct disk; if files are too large for single preview, WhyCode must use chunked direct-disk reads (not persisted/cached output).
 - Startup enforces request anchoring: requested changes must map to current codebase/docs surfaces, otherwise WhyCode blocks for clarify/greenfield/cancel (and fix mode disallows greenfield fallback).

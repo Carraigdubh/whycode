@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.13] - 2026-02-25
+
+### Fixed
+- Hardened normal startup run-action step to require interactive choice UI with blocking selection.
+- Added run-action gate artifact: `docs/whycode/audit/run-action-gate.json`.
+- Startup gate now requires `runActionInteractive: true`.
+- Doctor now validates startup run-action interaction gate fields.
+
 ## [3.0.12] - 2026-02-25
 
 ### Fixed
