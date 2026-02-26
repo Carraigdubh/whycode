@@ -30,6 +30,15 @@ Checks (in order):
    - Verify `docs/whycode/audit/startup-gate.json` has:
      - `requestAnchored: true` OR `greenfieldApproved: true`
    - If missing/failed, mark `FAIL`.
+6.8. Fix target interaction gate check (for fix runs):
+   - Verify `docs/whycode/audit/fix-target-gate.json` exists.
+   - Verify:
+     - `status: pass`
+     - `interactivePromptUsed: true`
+     - `hasShowOlderRunsControl: true`
+     - `hasShowAllRunsControl: true`
+     - `selectionBlockedUntilValid: true`
+   - If any are missing/false, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

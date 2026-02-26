@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.12] - 2026-02-25
+
+### Fixed
+- Hardened `/whycode fix` Step 4 to require interactive Q&A selection UI (not plain text step output).
+- Added stricter fix-target gate fields: `interactivePromptUsed` and `selectionBlockedUntilValid`.
+- Doctor now fails fix runs when fix-target interactive gate fields are missing/false.
+
 ## [3.0.11] - 2026-02-25
 
 ### Fixed

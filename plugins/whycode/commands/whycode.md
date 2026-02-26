@@ -36,5 +36,6 @@ Hard execution rule:
 - For significant fixes (schema/data model changes, cross-platform changes, new core components, or >3 files changed), architecture design and user approval are mandatory before implementation.
 - `/whycode fix` additional mandatory gates:
   - User selects which prior run to fix (parentRunId)
+  - Fix target selection must use interactive Q&A choice UI (not plain text step output)
   - User provides a problem description (from argument or prompt)
   - Fix mode must create a new `runType=fix` child run; it must not silently route to `resume`

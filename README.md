@@ -144,6 +144,7 @@ Fix runs (`/whycode fix`) must go through the same startup switches and run-sele
 Run selection supports paging controls so older runs can be chosen: `more` (next page), `all` (show all), `continue`.
 Selection is blocking: it stays on run selection until a valid run index/runId is chosen.
 Run selection must include explicit options for `Show older runs` and `Show all runs` in the prompt UI.
+Fix target selection must render as interactive Q&A choice UI; plain text "step" output is invalid.
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
 If Linear is configured, fix runs must also create/update Linear records (same as normal WhyCode runs).

@@ -1863,6 +1863,11 @@ Triggered by `/whycode fix` or on resume with errors.
    - Execute STARTUP steps 3,3.5,5,6,6.5,7,10,11,13,13.5.
    - Replace generic STARTUP step 4 with FIX-SPECIFIC selection:
      - ASK user to select the run to fix from previous runs (required)
+     - UI CONTRACT (MANDATORY):
+       - Render as an interactive selection prompt (Q&A choice UI), not a plain text status block.
+       - Do NOT emit a standalone prose preface such as "Fix Mode - Step 4: Select the run to fix".
+       - Present choices as selectable options and then WAIT for user input.
+       - Do not continue until a valid selection is made.
      - Present explicit selectable controls:
        1) Pick run by index/runId
        2) Show older runs
@@ -1875,10 +1880,17 @@ Triggered by `/whycode fix` or on resume with errors.
            "status": "pass|fail",
            "runId": "{runId}",
            "totalRuns": totalRuns,
+           "interactivePromptUsed": true|false,
            "hasShowOlderRunsControl": true|false,
            "hasShowAllRunsControl": true|false,
+           "selectionBlockedUntilValid": true|false,
            "checkedAt": "ISO"
          }
+       - status is pass only when:
+         interactivePromptUsed == true
+         hasShowOlderRunsControl == true
+         hasShowAllRunsControl == true
+         selectionBlockedUntilValid == true
        - IF status != "pass": STOP with "startup incomplete"
      - Stay on Fix target step until a valid runId/index is selected
      - Store selected run as parentRunId
