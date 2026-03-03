@@ -150,6 +150,10 @@ Fix target selection must render as interactive Q&A choice UI; plain text "step"
   - Uses canonical prompt schema `choice-v1`.
 Fix mode must ask which previous run to fix and what issues were found (unless included in `/whycode fix "desc"`).
 Fix mode must always create a new `fix` child run linked via `parentRunId`; it must not silently resume.
+Branch init safety:
+- WhyCode never uses `git stash` during branch init.
+- WhyCode never auto-commits user files during branch init.
+- If working tree is dirty, WhyCode creates the run branch from current HEAD and records `branchInitMode=current-head-dirty`.
 If Linear is configured, fix runs must also create/update Linear records (same as normal WhyCode runs).
 If a Linear key is detected at startup, WhyCode now fails closed unless Linear initializes successfully and a team is selected.
 If more than 5 runs exist, fix mode must show explicit `Show older runs` and `Show all runs` controls before Parent Run can continue.

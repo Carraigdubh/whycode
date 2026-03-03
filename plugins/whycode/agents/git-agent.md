@@ -49,9 +49,16 @@ Create and checkout a run branch from base.
 ```
 1. SLUGIFY runName (lowercase, spaces -> '-', remove non-alnum/-)
 2. branchName = "whycode/" + slug + "-" + runId
-3. RUN: git checkout {baseBranch}
-4. RUN: git checkout -b {branchName}
-5. RETURN branchName
+3. RUN: git status --porcelain
+4. IF working tree is clean:
+   a. RUN: git checkout {baseBranch}
+   b. RUN: git checkout -b {branchName}
+   c. RETURN { branchName, baseMode: "base-branch", dirtyTreeDetected: false, stashUsed: false }
+5. IF working tree is dirty (modified and/or untracked files):
+   a. NEVER use git stash
+   b. NEVER auto-commit user files
+   c. RUN: git checkout -b {branchName}
+   d. RETURN { branchName, baseMode: "current-head-dirty", dirtyTreeDetected: true, stashUsed: false, note: "Created from current HEAD because working tree is dirty." }
 ```
 
 ### push-branch

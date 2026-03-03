@@ -49,6 +49,11 @@ Checks (in order):
      - `selectionBlockedUntilValid: true`
    - Verify `docs/whycode/audit/startup-gate.json` includes `runActionInteractive: true`.
    - If any are missing/false, mark `FAIL`.
+6.10. Branch-init stash safety check:
+   - Verify `docs/whycode/audit/startup-gate.json` includes:
+     - `stashUsedDuringBranchInit: false`
+     - `branchInitMode: base-branch|current-head-dirty`
+   - If missing/invalid, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

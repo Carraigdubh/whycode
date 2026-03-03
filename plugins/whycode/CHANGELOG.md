@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.15] - 2026-03-03
+
+### Fixed
+- Reworked `git-agent` branch initialization safety:
+  - detects dirty tree via `git status --porcelain`
+  - never uses `git stash`
+  - never auto-commits user files
+  - clean tree: branch from base branch
+  - dirty tree: branch from current HEAD and record `baseMode=current-head-dirty`
+- Added startup stash-safety guard and startup-gate fields:
+  - `stashUsedDuringBranchInit`
+  - `branchInitMode`
+- Doctor now validates branch-init stash safety fields.
+
 ## [3.0.14] - 2026-02-25
 
 ### Fixed

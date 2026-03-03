@@ -33,6 +33,7 @@ Hard execution rule:
   9. Project root isolation is bound (`projectRootBound=true`) and no cross-project WhyCode paths are referenced
   10. Request anchoring gate passed (`requestAnchored=true`) or explicit greenfield approval recorded (`greenfieldApproved=true`)
   11. Startup action selection used interactive choice UI (`runActionInteractive=true`)
+  12. Branch-init stash safety passed (`stashUsedDuringBranchInit=false`)
 - If a startup gate is missing, stop and report: `startup incomplete`.
 - For significant fixes (schema/data model changes, cross-platform changes, new core components, or >3 files changed), architecture design and user approval are mandatory before implementation.
 - `/whycode fix` additional mandatory gates:
@@ -40,3 +41,7 @@ Hard execution rule:
   - Fix target selection must use interactive Q&A choice UI (not plain text step output)
   - User provides a problem description (from argument or prompt)
   - Fix mode must create a new `runType=fix` child run; it must not silently route to `resume`
+- Branch init safety rules:
+  - do not use `git stash` during branch init
+  - do not auto-commit user files during branch init
+  - if working tree is dirty, create run branch from current HEAD and record that mode

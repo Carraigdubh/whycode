@@ -599,18 +599,33 @@ This keeps the orchestrator's context clean for coordination.
      STOP with "startup incomplete"
 
 11. INIT RUN BRANCH (GitHub flow)
+   preInitStashCount = COUNT(`git stash list`)
    USE Task tool with subagent_type "whycode:git-agent":
      {
        "action": "init-branch",
        "data": { "runId": runId, "runName": runName, "baseBranch": "main" }
      }
+   branchInit = result from git-agent init-branch
+   postInitStashCount = COUNT(`git stash list`)
+   GUARD — stash safety (MANDATORY, FAIL-CLOSED):
+   - IF branchInit.stashUsed == true: STOP with "startup incomplete"
+   - IF postInitStashCount > preInitStashCount:
+     STOP with "startup incomplete" and report:
+     "git-agent created stash during branch init; restore with git stash pop before continuing."
+   - IF branchInit.baseMode is missing:
+     STOP with "startup incomplete"
    USE Task tool with subagent_type "whycode:state-agent":
      {
        "action": "update-run",
        "data": {
          "runId": runId,
          "targetDir": "docs/whycode/runs/{runId}",
-         "patch": { "branch": "{branchName}", "baseBranch": "main" }
+         "patch": {
+           "branch": "{branchName}",
+           "baseBranch": "main",
+           "branchInitMode": "{branchInit.baseMode}",
+           "branchInitDirtyTree": "{branchInit.dirtyTreeDetected}"
+         }
        }
      }
 
@@ -896,6 +911,8 @@ This keeps the orchestrator's context clean for coordination.
     "linearKeyDetected": linearKeyDetected,
     "linearInitialized": (linearEnabled == true AND linearTeamId is not empty),
     "branchInitialized": true,
+    "branchInitMode": "{branchInit.baseMode}",
+    "stashUsedDuringBranchInit": false,
     "checkedAt": "ISO"
   }
    HARD RULE:
@@ -915,6 +932,8 @@ This keeps the orchestrator's context clean for coordination.
   - startup-gate.json.projectRootBound == true
   - startup-gate.json.requestAnchored == true OR startup-gate.json.greenfieldApproved == true
   - startup-gate.json.runActionInteractive == true
+  - startup-gate.json.stashUsedDuringBranchInit == false
+  - startup-gate.json.branchInitMode in ["base-branch","current-head-dirty"]
   - list-runs includes current runId
   - run.json exists and contains: runId, name, runType, completionMode, startedAt
    - startup-gate.json has status="pass"
