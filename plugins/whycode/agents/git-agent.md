@@ -14,7 +14,7 @@ You handle git/GitHub operations for WhyCode. Keep output concise and structured
 
 ```json
 {
-  "action": "init-branch" | "push-branch" | "create-pr" | "create-issue" | "get-commit" | "list-commits",
+  "action": "init-branch" | "push-branch" | "create-pr" | "create-issue" | "get-commit" | "list-commits" | "check-lineage" | "worktree-info",
   "data": { ... }
 }
 ```
@@ -118,6 +118,30 @@ List recent commits for the current branch.
 ```
 1. RUN: git log --oneline -20
 2. RETURN list
+```
+
+### check-lineage
+Detect WhyCode branches that contain commits not in `origin/main`.
+
+**Workflow:**
+```
+1. RUN: git fetch origin
+2. RUN: git for-each-ref --format='%(refname:short)' refs/heads/whycode/
+3. FOR EACH branch:
+   a. RUN: git rev-list --count origin/main..{branch}
+   b. IF count > 0: add { branch, aheadCount } to blocking list
+4. RETURN { blockingBranches: [...], clean: blockingBranches.length == 0 }
+```
+
+### worktree-info
+Return current worktree topology for concurrency safety checks.
+
+**Workflow:**
+```
+1. RUN: pwd
+2. RUN: git rev-parse --abbrev-ref HEAD
+3. RUN: git worktree list --porcelain
+4. RETURN { cwd, currentBranch, worktreeListRaw }
 ```
 
 ## Output Format

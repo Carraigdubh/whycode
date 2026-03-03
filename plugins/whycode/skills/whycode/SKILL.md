@@ -244,6 +244,32 @@ This keeps the orchestrator's context clean for coordination.
    - If context, summaries, or startup content references a different project root path:
      STOP with "startup incomplete" and report "project isolation failed".
 
+0.3 CONCURRENCY + LINEAGE GATE (MANDATORY, FAIL-CLOSED)
+   USE Task tool with subagent_type "whycode:git-agent":
+     { "action": "worktree-info", "data": {} }
+     → Returns worktreeInfo
+   USE Task tool with subagent_type "whycode:git-agent":
+     { "action": "check-lineage", "data": {} }
+     → Returns lineageInfo
+   RULES:
+   - If lineageInfo.clean != true:
+     SHOW: "WhyCode startup blocked: unmerged WhyCode branches detected (commits ahead of origin/main)."
+     SHOW lineageInfo.blockingBranches
+     SHOW explicit recovery commands:
+       1) git fetch origin
+       2) git branch --list 'whycode/*'
+       3) git cherry -v origin/main <branch>
+       4) merge PR or cherry-pick to main, then retry
+     STOP with "startup incomplete"
+   - If worktreeInfo.worktreeListRaw indicates only one worktree:
+     SHOW: "Recommended: use dedicated git worktrees for concurrent WhyCode runs."
+     SHOW explicit setup commands:
+       1) git fetch origin
+       2) git worktree add ../wt-whycode-<run> -b whycode/<run> origin/main
+       3) cd ../wt-whycode-<run>
+     # advisory only; does not block single-run usage
+   - Never auto-merge or auto-cherry-pick as part of startup.
+
 1. MIGRATE legacy state (if present)
    IF exists docs/whycode-state.json:
      MOVE to docs/whycode/legacy/whycode-state.json
@@ -895,6 +921,9 @@ This keeps the orchestrator's context clean for coordination.
     "runListed": true,
     "runActionSelected": true,
     "runActionInteractive": true,
+    "lineageClean": true,
+    "blockingBranches": [],
+    "worktreeIsolationChecked": true,
     "completionModeSelected": true,
      "maxIterationsSelected": true,
      "agentTeamsModeSelected": true,
@@ -932,6 +961,8 @@ This keeps the orchestrator's context clean for coordination.
   - startup-gate.json.projectRootBound == true
   - startup-gate.json.requestAnchored == true OR startup-gate.json.greenfieldApproved == true
   - startup-gate.json.runActionInteractive == true
+  - startup-gate.json.lineageClean == true
+  - startup-gate.json.worktreeIsolationChecked == true
   - startup-gate.json.stashUsedDuringBranchInit == false
   - startup-gate.json.branchInitMode in ["base-branch","current-head-dirty"]
   - list-runs includes current runId

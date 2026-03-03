@@ -54,6 +54,11 @@ Checks (in order):
      - `stashUsedDuringBranchInit: false`
      - `branchInitMode: base-branch|current-head-dirty`
    - If missing/invalid, mark `FAIL`.
+6.11. Lineage + worktree safety check:
+   - Verify `docs/whycode/audit/startup-gate.json` includes:
+     - `lineageClean: true`
+     - `worktreeIsolationChecked: true`
+   - If `blockingBranches` exists and is non-empty, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

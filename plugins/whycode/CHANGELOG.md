@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.16] - 2026-03-03
+
+### Fixed
+- Added startup branch-lineage guard that blocks WhyCode runs when local `whycode/*` branches are ahead of `origin/main`.
+- Added `git-agent` actions:
+  - `check-lineage` (detect unmerged WhyCode branches)
+  - `worktree-info` (surface current worktree topology)
+- Added startup-gate fields:
+  - `lineageClean`
+  - `blockingBranches`
+  - `worktreeIsolationChecked`
+- Added doctor checks for lineage/worktree safety gate fields.
+- Documented explicit worktree-based multi-run workflow in README.
+
 ## [3.0.15] - 2026-03-03
 
 ### Fixed

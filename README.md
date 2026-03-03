@@ -141,6 +141,7 @@ On startup, WhyCode prompts for:
 - Startup also enforces project-root isolation: WhyCode binds to the current repo root and fails closed if run/state paths reference another project.
 - Required startup reads must come from direct disk; if files are too large for single preview, WhyCode must use chunked direct-disk reads (not persisted/cached output).
 - Startup enforces request anchoring: requested changes must map to current codebase/docs surfaces, otherwise WhyCode blocks for clarify/greenfield/cancel (and fix mode disallows greenfield fallback).
+- Startup enforces branch-lineage safety: WhyCode blocks when local `whycode/*` branches contain commits not yet in `origin/main`.
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
 Run selection supports paging controls so older runs can be chosen: `more` (next page), `all` (show all), `continue`.
@@ -154,6 +155,14 @@ Branch init safety:
 - WhyCode never uses `git stash` during branch init.
 - WhyCode never auto-commits user files during branch init.
 - If working tree is dirty, WhyCode creates the run branch from current HEAD and records `branchInitMode=current-head-dirty`.
+Concurrent-run recommendation (explicit):
+1. `git fetch origin`
+2. `git worktree add ../wt-whycode-<run> -b whycode/<run> origin/main`
+3. `cd ../wt-whycode-<run>`
+4. Run WhyCode in that worktree.
+Lineage preflight command:
+1. `git fetch origin`
+2. `for b in $(git for-each-ref --format='%(refname:short)' refs/heads/whycode/); do c=$(git rev-list --count origin/main..$b); if [ "$c" -gt 0 ]; then echo "$b has $c commits not in origin/main"; fi; done`
 If Linear is configured, fix runs must also create/update Linear records (same as normal WhyCode runs).
 If a Linear key is detected at startup, WhyCode now fails closed unless Linear initializes successfully and a team is selected.
 If more than 5 runs exist, fix mode must show explicit `Show older runs` and `Show all runs` controls before Parent Run can continue.
