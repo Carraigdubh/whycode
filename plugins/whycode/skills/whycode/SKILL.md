@@ -494,14 +494,21 @@ This keeps the orchestrator's context clean for coordination.
      - numbered options with short label line + one short description line
      - no explanatory paragraph before or after the options
      - wait for selection
-   ASK user:
-     "Choose a startup action: resume | rerun | review | resolve | linear-work-item | new"
-   - resume: continue current in-progress run
-   - rerun: start a new run based on selected runId (optionally revert prior changes)
-   - review: re-run tests + code review for selected runId
-   - resolve: check pending requirements and apply fixes for selected runId
-   - linear-work-item: resolve latest backlog work item (bug/issue/feature-mod/chore) from Linear
-   - new: start fresh
+   IF command argument is exactly `linear-work-item`:
+     - Render interactive confirmation prompt (choice-v1):
+       1) Continue with `linear-work-item`
+       2) Choose a different startup action
+     - If user selects option 1: selection = linear-work-item
+     - If user selects option 2: continue to generic startup action prompt below
+   IF selection is not set:
+     ASK user:
+       "Choose a startup action: resume | rerun | review | resolve | linear-work-item | new"
+     - resume: continue current in-progress run
+     - rerun: start a new run based on selected runId (optionally revert prior changes)
+     - review: re-run tests + code review for selected runId
+     - resolve: check pending requirements and apply fixes for selected runId
+     - linear-work-item: resolve latest backlog work item (bug/issue/feature-mod/chore) from Linear
+     - new: start fresh
    IF selection requires a runId:
      - LOOP until valid selection:
        - prompt user with explicit selectable options:
@@ -2045,7 +2052,7 @@ DISPLAY summary to user
 
 ## Linear Work Item Mode
 
-Triggered by STARTUP action `linear-work-item`.
+Triggered by STARTUP action `linear-work-item` or command argument `/whycode linear-work-item`.
 
 ```
 0. MODE ROUTING (MANDATORY)
@@ -2378,6 +2385,7 @@ project/
 | Command | Description |
 |---------|-------------|
 | `/whycode` | Start full workflow |
+| `/whycode linear-work-item` | Directly start Linear work-item mode |
 | `/whycode fix` | Fix and Learn mode |
 | `/whycode fix "desc"` | Fix with description |
 | `/whycode log` | Record a manual change (no orchestration) |

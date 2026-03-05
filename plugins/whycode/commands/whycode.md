@@ -1,6 +1,6 @@
 ---
 description: "Start WhyCode development orchestrator workflow"
-argument-hint: "[fix [description]]"
+argument-hint: "[linear-work-item | fix [description]]"
 ---
 
 # WhyCode Command
@@ -16,6 +16,7 @@ If required-read output says it will use persisted/cached output, STOP immediate
 Follow the instructions in the skill file above. This is the WhyCode development orchestrator.
 
 If the user provided "fix" as an argument, enter Fix and Learn mode as described in the skill.
+If the user provided "linear-work-item" as an argument, preselect startup action `linear-work-item` as described in the skill.
 
 Hard execution rule:
 - Do not implement or mutate product code before startup gates are complete.

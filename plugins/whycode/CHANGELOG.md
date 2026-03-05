@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 - Startup run-action choices now include `linear-work-item`.
+- Added direct command argument path: `/whycode linear-work-item`.
 - Run metadata/event docs now include `runType=linear-work-item`.
 - README now includes explicit marketplace lifecycle commands for:
   - usage

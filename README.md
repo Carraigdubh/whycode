@@ -94,6 +94,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 
 ```bash
 /whycode              # Start WhyCode, then choose startup action (new/resume/rerun/review/resolve/linear-work-item)
+/whycode linear-work-item  # Jump directly to Linear work-item startup path
 /whycode fix          # Fix and Learn mode
 /whycode fix "desc"   # Fix with description
 /whycode doctor       # Diagnose active plugin/version/path/cache issues
@@ -103,7 +104,7 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 
 ### Linear Work Item Flow
 
-When Linear is configured, start with `/whycode`, then choose `linear-work-item` at startup.
+When Linear is configured, use either `/whycode linear-work-item` or start `/whycode` and choose `linear-work-item` at startup.
 WhyCode will:
 1. List the latest backlog items (`Backlog`/`Todo`/`Triage`)
 2. Let you pick one issue/bug/feature-mod/chore
