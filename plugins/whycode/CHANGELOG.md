@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Added Linear work-item startup path inside WhyCode (`linear-work-item`) to handle backlog issue resolution without full feature-planning flow.
+- Added `whycode:linear-agent` action docs for:
+  - `list-work-items`
+  - `get-work-item`
+- Added `Linear Work Item Mode` orchestration contract in skill docs, including:
+  - interactive work-item selection and classification
+  - In Progress -> Done/Blocked state handling
+  - PR + verification evidence comment flow
+
+### Changed
+- Startup run-action choices now include `linear-work-item`.
+- Run metadata/event docs now include `runType=linear-work-item`.
+- README now includes explicit marketplace lifecycle commands for:
+  - usage
+  - update
+  - plugin uninstall
+  - marketplace removal
+
 ## [3.0.16] - 2026-03-03
 
 ### Fixed

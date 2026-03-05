@@ -379,7 +379,7 @@ Append a structured event to `docs/whycode/runs/{runId}/run.json`.
     "runId": "2026-01-25T14-33-05Z",
     "targetDir": "docs/whycode/runs/2026-01-25T14-33-05Z",
     "event": {
-      "type": "resume" | "rerun" | "review" | "resolve" | "fix" | "new",
+      "type": "resume" | "rerun" | "review" | "resolve" | "fix" | "new" | "linear-work-item",
       "timestamp": "ISO",
       "summary": "Resumed after interruption; phase 5 continued.",
       "meta": { "phase": 5, "plan": "04-01" }

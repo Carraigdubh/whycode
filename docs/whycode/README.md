@@ -14,5 +14,5 @@ Project documentation stays in `docs/project documentation/`.
 - Project documentation (`docs/project documentation/`)
 
 ## Run Records
-Every execution mode is recorded under `runs/` (full runs, fix, review, resolve, rerun, resume).
+Every execution mode is recorded under `runs/` (full runs, fix, review, resolve, rerun, resume, linear-work-item).
 Each run contains `run.json` and a short `summary.md`.

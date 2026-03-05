@@ -19,7 +19,7 @@ Offload Linear operations from the orchestrator. Execute API calls and return co
 You receive a task like:
 ```json
 {
-  "action": "list-teams" | "create-issue" | "update-issue" | "add-comment" | "create-batch",
+  "action": "list-teams" | "list-work-items" | "get-work-item" | "create-issue" | "update-issue" | "add-comment" | "create-batch",
   "data": { ... }
 }
 ```
@@ -62,6 +62,97 @@ If no key is found, return `status: "failed"` with proof.
   "status": "success",
   "teams": [{ "id": "UUID", "name": "Team Name", "key": "ABC" }],
   "proof": { "apiCalled": true, "teamCount": 1 }
+}
+```
+
+### list-work-items
+List recent work items for a team and workflow state set.
+
+```json
+{
+  "action": "list-work-items",
+  "data": {
+    "teamId": "TEAM-UUID",
+    "stateNames": ["Backlog", "Todo", "Triage"],
+    "limit": 10,
+    "orderBy": "updatedAt",
+    "orderDirection": "desc"
+  }
+}
+```
+
+**Workflow:**
+```
+1. BUILD GraphQL query for issues:
+   - filter by teamId
+   - optionally filter by stateNames when provided
+   - fetch: id, identifier, title, priority, createdAt, updatedAt, state.name, labels.nodes.name
+2. CALL API with variables (teamId, stateNames, limit)
+3. IF orderDirection == "desc": sort response nodes by orderBy descending before return
+4. VERIFY response has items array (can be empty) and every item has id + identifier
+5. RETURN compact item list + proof
+```
+
+**Output:**
+```json
+{
+  "status": "success",
+  "items": [
+    {
+      "id": "UUID",
+      "identifier": "ABC-123",
+      "title": "Fix checkout timeout",
+      "state": "Backlog",
+      "priority": 2,
+      "labels": ["bug", "payments"],
+      "updatedAt": "ISO",
+      "createdAt": "ISO"
+    }
+  ],
+  "proof": { "apiCalled": true, "count": 1, "sortedBy": "updatedAt:desc" }
+}
+```
+
+### get-work-item
+Fetch full details for a single Linear issue/work item.
+
+```json
+{
+  "action": "get-work-item",
+  "data": {
+    "issueId": "ISSUE-UUID"
+  }
+}
+```
+
+**Workflow:**
+```
+1. CALL GraphQL issue(id: issueId) query
+2. FETCH fields:
+   id, identifier, title, description, priority, createdAt, updatedAt,
+   state { id name }, labels { nodes { id name } }, team { id key name }, url
+3. VERIFY issue exists and response contains id + identifier
+4. RETURN item details + proof
+```
+
+**Output:**
+```json
+{
+  "status": "success",
+  "item": {
+    "id": "UUID",
+    "identifier": "ABC-123",
+    "title": "Fix checkout timeout",
+    "description": "...",
+    "state": { "id": "STATE-UUID", "name": "Backlog" },
+    "labels": ["bug", "payments"],
+    "team": { "id": "TEAM-UUID", "key": "ABC", "name": "Team" },
+    "priority": 2,
+    "url": "https://linear.app/team/issue/ABC-123",
+    "createdAt": "ISO",
+    "updatedAt": "ISO"
+  },
+  "proof": { "apiCalled": true, "issueIdReturned": "UUID", "issueIdentifier": "ABC-123" }
 }
 ```
 

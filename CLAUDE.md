@@ -124,6 +124,9 @@ When working in this repository, start by checking open WhyCode issues and agent
 The WhyCode orchestrator runs projects through 8 phases:
 0. Document Intake (Interactive) → 0.5. Codebase Mapping (Auto for brownfield) → 1. Discovery (Optional) → 2. Tech Stack Setup (Interactive) → 3. Specification (Semi-interactive) → 4. Architecture (Semi-interactive) → 5. Implementation (Autonomous) → 6. Quality Review (Autonomous) → 7. Documentation (Autonomous) → 8. Handoff (Autonomous)
 
+Additional startup action mode:
+- `linear-work-item`: resolve one selected Linear backlog item (bug/issue/feature-mod/chore) using WhyCode loop + verification + PR workflow.
+
 ### IMMUTABLE_DECISIONS
 User technology choices (package manager, framework, database, auth) are captured in Phase 2 and enforced throughout. Agents must NEVER substitute alternatives.
 

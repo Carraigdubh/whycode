@@ -49,6 +49,16 @@ Checks (in order):
      - `selectionBlockedUntilValid: true`
    - Verify `docs/whycode/audit/startup-gate.json` includes `runActionInteractive: true`.
    - If any are missing/false, mark `FAIL`.
+6.12. Linear work-item gate check (for `runType=linear-work-item`):
+   - Verify `docs/whycode/audit/work-item-gate.json` exists.
+   - Verify:
+     - `status: pass`
+     - `promptSchema: choice-v1`
+     - `interactivePromptUsed: true`
+     - `selectionBlockedUntilValid: true`
+     - `itemListShown: true`
+     - `selectedIssueId` is non-empty
+   - If any are missing/false, mark `FAIL`.
 6.10. Branch-init stash safety check:
    - Verify `docs/whycode/audit/startup-gate.json` includes:
      - `stashUsedDuringBranchInit: false`

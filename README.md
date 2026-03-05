@@ -44,6 +44,27 @@ claude plugin update whycode@whycode-marketplace --scope project
 claude plugin list
 ```
 
+### Marketplace Management (Update / Remove)
+
+Use these commands whenever you need to update or remove WhyCode marketplace installs.
+
+```bash
+# Update installed WhyCode plugin from marketplace
+claude plugin update whycode@whycode-marketplace --scope project
+claude plugin list
+```
+
+```bash
+# Remove WhyCode plugin from this project
+claude plugin uninstall whycode@whycode-marketplace --scope project
+claude plugin list
+```
+
+```bash
+# Remove the marketplace registration itself
+claude plugin marketplace remove whycode-marketplace
+```
+
 ### Known Issues
 
 **`/plugin install` returns conversational response instead of installing:**
@@ -72,13 +93,23 @@ This is a [known Claude Code bug](https://github.com/anthropics/claude-code/issu
 ## Usage
 
 ```bash
-/whycode              # Start full 8-phase workflow
+/whycode              # Start WhyCode, then choose startup action (new/resume/rerun/review/resolve/linear-work-item)
 /whycode fix          # Fix and Learn mode
 /whycode fix "desc"   # Fix with description
 /whycode doctor       # Diagnose active plugin/version/path/cache issues
 /whycode log          # Record a manual change (no orchestration)
 /whycode log "desc"   # Record a manual change with description
 ```
+
+### Linear Work Item Flow
+
+When Linear is configured, start with `/whycode`, then choose `linear-work-item` at startup.
+WhyCode will:
+1. List the latest backlog items (`Backlog`/`Todo`/`Triage`)
+2. Let you pick one issue/bug/feature-mod/chore
+3. Run implementation + verification loop
+4. Open PR and comment evidence in Linear
+5. Ask before moving the Linear item to `Done`
 
 `/whycode doctor` now performs strict `CLAUDE.md` validation:
 - path drift checks
@@ -136,7 +167,7 @@ On startup, WhyCode prompts for:
 - **Convex mode confirmation** (when Convex is detected but ambiguous): `local-dev`, `cloud-dev`, or `cloud-live` (fail-closed)
 - **Run name**: suggested, editable
 - Startup switches are mandatory interactive Q&A prompts (one decision at a time with explicit options); WhyCode must not batch these into a single "confirm choices" summary.
-- Startup run-action selection (`new/resume/rerun/review/resolve`) must render as interactive choice UI, not plain text list output.
+- Startup run-action selection (`new/resume/rerun/review/resolve/linear-work-item`) must render as interactive choice UI, not plain text list output.
   - Uses canonical prompt schema `choice-v1` (single question line, numbered options with one-line descriptions, no extra prose wrapper).
 - Startup also enforces project-root isolation: WhyCode binds to the current repo root and fails closed if run/state paths reference another project.
 - Required startup reads must come from direct disk; if files are too large for single preview, WhyCode must use chunked direct-disk reads (not persisted/cached output).

@@ -449,11 +449,12 @@ This keeps the orchestrator's context clean for coordination.
      - no explanatory paragraph before or after the options
      - wait for selection
    ASK user:
-     "Choose a startup action: resume | rerun | review | resolve | new"
+     "Choose a startup action: resume | rerun | review | resolve | linear-work-item | new"
    - resume: continue current in-progress run
    - rerun: start a new run based on selected runId (optionally revert prior changes)
    - review: re-run tests + code review for selected runId
    - resolve: check pending requirements and apply fixes for selected runId
+   - linear-work-item: resolve latest backlog work item (bug/issue/feature-mod/chore) from Linear
    - new: start fresh
    IF selection requires a runId:
      - LOOP until valid selection:
@@ -480,10 +481,69 @@ This keeps the orchestrator's context clean for coordination.
    - interactivePromptUsed == true
    - selectionBlockedUntilValid == true
    IF status != "pass": STOP with "startup incomplete"
-   IF Linear is disabled and selection is review/resolve: fallback to new with warning
+   IF Linear is disabled and selection is review/resolve/linear-work-item: fallback to new with warning
    IF selection == review:
      ASK user: "Include docs sync in review? [Y/n]"
      Store reviewDocsSync = true/false
+   IF selection == linear-work-item:
+     USE Task tool with subagent_type "whycode:linear-agent":
+       {
+         "action": "list-work-items",
+         "data": {
+           "teamId": "{linearTeamId}",
+           "stateNames": ["Backlog", "Todo", "Triage"],
+           "limit": 10,
+           "orderBy": "updatedAt",
+           "orderDirection": "desc"
+         }
+       }
+     SHOW compact list with:
+       - identifier
+       - title
+       - state
+       - priority
+       - labels
+       - updatedAt
+     ASK user to select one item (interactive choice UI only)
+     LOOP until selection matches a visible identifier/index
+     USE Task tool with subagent_type "whycode:linear-agent":
+       {
+         "action": "get-work-item",
+         "data": {
+           "issueId": "{selectedIssueId}"
+         }
+       }
+     CLASSIFY work item:
+       - infer from labels/title -> bug | issue | feature-mod | chore
+       - if ambiguous, ASK user to choose one classification
+     WRITE docs/whycode/decisions/selected-linear-work-item.json:
+       {
+         "teamId": "{linearTeamId}",
+         "issueId": "{selectedIssueId}",
+         "issueIdentifier": "{selectedIssueIdentifier}",
+         "title": "{selectedTitle}",
+         "state": "{selectedState}",
+         "classification": "{classification}",
+         "selectedAt": "ISO"
+       }
+     WRITE docs/whycode/audit/work-item-gate.json:
+       {
+         "status": "pass|fail",
+         "runId": "{runId}",
+         "promptSchema": "choice-v1",
+         "interactivePromptUsed": true|false,
+         "selectionBlockedUntilValid": true|false,
+         "itemListShown": true|false,
+         "selectedIssueId": "{selectedIssueId}",
+         "checkedAt": "ISO"
+       }
+     status is pass only when:
+       - promptSchema == "choice-v1"
+       - interactivePromptUsed == true
+       - selectionBlockedUntilValid == true
+       - itemListShown == true
+       - selectedIssueId is not empty
+     IF status != "pass": STOP with "startup incomplete"
 
    RUN RECORDING (MANDATORY FOR ALL ACTIONS):
    - resume:
@@ -509,8 +569,13 @@ This keeps the orchestrator's context clean for coordination.
    - new:
      - Use generated runId with runType="new".
      - Append run event: { type: "new", ... }
+   - linear-work-item:
+     - Create a new runId for the selected Linear work item.
+     - init-run meta must include:
+       { runType: "linear-work-item", name, completionMode, linearWorkItem: { issueId, issueIdentifier, classification } }
+     - Append run event: { type: "linear-work-item", ... }
    SUMMARY RULE:
-   - Every action (resume/rerun/review/resolve/fix/new) must write
+   - Every action (resume/rerun/review/resolve/fix/linear-work-item/new) must write
      docs/whycode/runs/{runId}/summary.md before exiting the action.
 
 5. ASK user for completion mode (strict/partial)
@@ -1924,6 +1989,85 @@ DISPLAY summary to user
 
 ---
 
+## Linear Work Item Mode
+
+Triggered by STARTUP action `linear-work-item`.
+
+```
+0. MODE ROUTING (MANDATORY)
+   IF runType == "linear-work-item":
+     - Skip Phases 0, 0.5, 1, 2, 3, 4, 6, 7
+     - Execute this mode only
+
+1. LOAD selected item metadata
+   READ docs/whycode/decisions/selected-linear-work-item.json
+   REQUIRE: teamId, issueId, issueIdentifier, title, classification
+   IF missing: STOP with "startup incomplete"
+
+2. MOVE item to In Progress (before implementation)
+   USE whycode:linear-agent:
+     { "action": "update-issue", "data": { "issueId": issueId, "stateName": "In Progress" } }
+
+3. INIT branch and state
+   - Set run name default: "{issueIdentifier} {title}"
+   - USE whycode:git-agent init-branch
+   - Record branch + selected work item in run metadata
+
+4. BUILD focused plan for one work item
+   WRITE docs/whycode/PLAN.md with:
+     - plan id: "linear-01"
+     - linear-id: {issueIdentifier}
+     - max 3 tasks only
+     - immutable decisions + pm-commands from existing startup/capability outputs
+     - final-verification checks: typecheck, lint, test, build, smoke
+
+5. EXECUTE implementation via whycode-loop
+   - Select agent based on classification/stack:
+     - bug/issue/chore -> backend/frontend/general-purpose routing from Phase 5 rules
+     - feature-mod -> same routing, but require preserving current contracts and behavior
+   - Run iterative loop with validation-agent after each PLAN_COMPLETE claim
+   - Do not mark complete until final verification passes
+
+6. OPEN PR and publish evidence
+   USE whycode:git-agent:
+     - push-branch
+     - create-pr (title must include {issueIdentifier})
+   USE whycode:linear-agent add-comment on selected issue:
+     - include PR URL
+     - include verification summary (typecheck/lint/test/build/smoke)
+     - include concise implementation notes
+
+7. CLOSE decision (interactive gate)
+   ASK user: "Checks passed and PR is open. Mark {issueIdentifier} as Done? [Y/n]"
+   IF yes:
+     USE whycode:linear-agent update-issue -> stateName "Done"
+   IF no:
+     keep state "In Progress"
+
+8. BLOCKED/FAILURE handling
+   IF blocked by env/requirements/unrelated failing suite:
+     - USE whycode:linear-agent update-issue -> stateName "Blocked"
+     - USE whycode:linear-agent add-comment with:
+       - blocker summary
+       - exact required next action
+     - Write run summary outcome as blocked
+   IF max iterations reached:
+     - Create checkpoint commit (same checkpoint rule as Phase 5)
+     - Add Linear comment with current status + remaining risk
+     - Keep In Progress or set Blocked based on blocker type
+
+9. WRITE run summary (mandatory)
+   WRITE docs/whycode/runs/{runId}/summary.md including:
+     - selected issue identifier + title + classification
+     - files changed
+     - verification results
+     - PR URL
+     - final Linear state transition
+   APPEND docs/whycode/audit/log.md
+```
+
+---
+
 ## Fix and Learn Mode
 
 Triggered by `/whycode fix` or on resume with errors.
@@ -2122,9 +2266,21 @@ IF env.LINEAR_API_KEY:
   # Store in whycode-state.json
 
 # Usage (all via whycode:linear-agent using direct GraphQL)
+- List backlog work items: whycode:linear-agent { "action": "list-work-items", ... }
+- Read selected work item: whycode:linear-agent { "action": "get-work-item", ... }
 - Issue creation: whycode:linear-agent { "action": "create-issue", ... }
 - Status updates: whycode:linear-agent { "action": "update-issue", ... }
 - Comments: whycode:linear-agent { "action": "add-comment", ... }
+
+# Selected work item stored in: docs/whycode/decisions/selected-linear-work-item.json
+{
+  "teamId": "TEAM-123",
+  "issueId": "UUID",
+  "issueIdentifier": "ABC-123",
+  "title": "Fix checkout timeout",
+  "classification": "bug",
+  "selectedAt": "ISO"
+}
 
 # Issue mapping stored in: docs/whycode/decisions/linear-mapping.json
 {
