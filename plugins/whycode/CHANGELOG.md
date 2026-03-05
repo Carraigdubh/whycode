@@ -25,6 +25,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - plugin uninstall
   - marketplace removal
 
+## [3.0.17] - 2026-03-05
+
+### Changed
+- Concurrency model updated from strict-serial to managed parallel mode:
+  - startup now distinguishes managed active blocking branches from unmanaged stale branches
+  - allows `lineageMode=parallel-active` when worktree isolation is valid
+  - blocks only unmanaged blocking branches
+- Added `git-agent` action `create-worktree` for automatic isolated workspace provisioning.
+- Startup now auto-provisions a worktree when concurrency is detected without isolation and writes `docs/whycode/audit/concurrency-handoff.json`.
+- Doctor updated to validate both strict-clean and parallel-active lineage paths.
+
 ## [3.0.16] - 2026-03-03
 
 ### Fixed

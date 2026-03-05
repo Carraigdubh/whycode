@@ -14,7 +14,7 @@ You handle git/GitHub operations for WhyCode. Keep output concise and structured
 
 ```json
 {
-  "action": "init-branch" | "push-branch" | "create-pr" | "create-issue" | "get-commit" | "list-commits" | "check-lineage" | "worktree-info",
+  "action": "init-branch" | "push-branch" | "create-pr" | "create-issue" | "get-commit" | "list-commits" | "check-lineage" | "worktree-info" | "create-worktree",
   "data": { ... }
 }
 ```
@@ -142,6 +142,35 @@ Return current worktree topology for concurrency safety checks.
 2. RUN: git rev-parse --abbrev-ref HEAD
 3. RUN: git worktree list --porcelain
 4. RETURN { cwd, currentBranch, worktreeListRaw }
+```
+
+### create-worktree
+Create an isolated worktree for a concurrent WhyCode run.
+
+**Input:**
+```json
+{
+  "action": "create-worktree",
+  "data": {
+    "runId": "2026-03-05T10-00-00Z",
+    "runName": "Run 2026-03-05 10:00",
+    "baseBranch": "main"
+  }
+}
+```
+
+**Workflow:**
+```
+1. SLUGIFY runName (lowercase, spaces -> '-', remove non-alnum/-)
+2. worktreeBranch = "whycode/" + slug + "-" + runId + "-parallel"
+3. worktreePath = "../wt-whycode-" + slug + "-" + runId
+4. RUN: git fetch origin
+5. RUN: git worktree add {worktreePath} -b {worktreeBranch} origin/{baseBranch}
+6. RETURN {
+   worktreePath,
+   worktreeBranch,
+   launchCommand: "cd " + worktreePath
+}
 ```
 
 ## Output Format

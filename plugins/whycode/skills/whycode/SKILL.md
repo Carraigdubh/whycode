@@ -251,10 +251,56 @@ This keeps the orchestrator's context clean for coordination.
    USE Task tool with subagent_type "whycode:git-agent":
      { "action": "check-lineage", "data": {} }
      → Returns lineageInfo
+   USE Task tool with subagent_type "whycode:state-agent":
+     { "action": "list-runs", "data": { "targetDir": "docs/whycode/runs" } }
+     → Returns runCatalog
+   worktreeCount = count entries in worktreeInfo.worktreeListRaw
+   activeRunBranches = branches from runCatalog where run status in ["in_progress", "initialized"]
+   managedBlockingBranches = intersection(lineageInfo.blockingBranches, activeRunBranches)
+   unmanagedBlockingBranches = lineageInfo.blockingBranches - managedBlockingBranches
+   lineageMode = "strict-clean"
+   parallelEligible = false
    RULES:
-   - If lineageInfo.clean != true:
-     SHOW: "WhyCode startup blocked: unmerged WhyCode branches detected (commits ahead of origin/main)."
-     SHOW lineageInfo.blockingBranches
+   - If lineageInfo.clean == true:
+     lineageMode = "strict-clean"
+     parallelEligible = false
+   - Else if unmanagedBlockingBranches is empty AND managedBlockingBranches is not empty:
+     # Concurrent WhyCode runs are allowed only with worktree isolation.
+     IF worktreeCount >= 2:
+       lineageMode = "parallel-active"
+       parallelEligible = true
+       SHOW: "Concurrent WhyCode mode enabled: active run branches detected."
+       SHOW managedBlockingBranches
+     ELSE:
+       SHOW: "Concurrent runs detected; creating isolated worktree automatically."
+       USE Task tool with subagent_type "whycode:git-agent":
+         {
+           "action": "create-worktree",
+           "data": { "runId": runId, "runName": suggestedRunName, "baseBranch": "main" }
+         }
+         → Returns worktreeProvision
+       USE Task tool with subagent_type "whycode:state-agent":
+         {
+           "action": "write-json",
+           "data": {
+             "target": "docs/whycode/audit/concurrency-handoff.json",
+             "json": {
+               "runId": "{runId}",
+               "mode": "auto-provisioned-worktree",
+               "worktreePath": "{worktreeProvision.worktreePath}",
+               "worktreeBranch": "{worktreeProvision.worktreeBranch}",
+               "launchCommand": "{worktreeProvision.launchCommand}",
+               "checkedAt": "ISO"
+             }
+           }
+         }
+       SHOW: "Isolated workspace prepared for this run."
+       SHOW: "Run the next WhyCode command from:"
+       SHOW worktreeProvision.launchCommand
+       STOP with "startup incomplete"
+   - Else:
+     SHOW: "WhyCode startup blocked: unmanaged unmerged WhyCode branches detected."
+     SHOW unmanagedBlockingBranches
      SHOW explicit recovery commands:
        1) git fetch origin
        2) git branch --list 'whycode/*'
@@ -986,8 +1032,12 @@ This keeps the orchestrator's context clean for coordination.
     "runListed": true,
     "runActionSelected": true,
     "runActionInteractive": true,
-    "lineageClean": true,
-    "blockingBranches": [],
+    "lineageClean": lineageInfo.clean,
+    "lineageMode": "{lineageMode}",
+    "parallelEligible": parallelEligible,
+    "blockingBranches": lineageInfo.blockingBranches,
+    "unmanagedBlockingBranches": unmanagedBlockingBranches,
+    "worktreeCount": worktreeCount,
     "worktreeIsolationChecked": true,
     "completionModeSelected": true,
      "maxIterationsSelected": true,
@@ -1026,7 +1076,11 @@ This keeps the orchestrator's context clean for coordination.
   - startup-gate.json.projectRootBound == true
   - startup-gate.json.requestAnchored == true OR startup-gate.json.greenfieldApproved == true
   - startup-gate.json.runActionInteractive == true
-  - startup-gate.json.lineageClean == true
+  - startup-gate.json.unmanagedBlockingBranches is empty
+  - startup-gate.json.lineageClean == true OR startup-gate.json.lineageMode == "parallel-active"
+  - if startup-gate.json.lineageMode == "parallel-active":
+    startup-gate.json.parallelEligible == true
+    startup-gate.json.worktreeCount >= 2
   - startup-gate.json.worktreeIsolationChecked == true
   - startup-gate.json.stashUsedDuringBranchInit == false
   - startup-gate.json.branchInitMode in ["base-branch","current-head-dirty"]

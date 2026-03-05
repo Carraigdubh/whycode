@@ -66,9 +66,13 @@ Checks (in order):
    - If missing/invalid, mark `FAIL`.
 6.11. Lineage + worktree safety check:
    - Verify `docs/whycode/audit/startup-gate.json` includes:
-     - `lineageClean: true`
+     - `lineageClean: true` OR `lineageMode: parallel-active`
      - `worktreeIsolationChecked: true`
-   - If `blockingBranches` exists and is non-empty, mark `FAIL`.
+   - Verify `unmanagedBlockingBranches` is empty.
+   - If `lineageMode` is `parallel-active`, verify:
+     - `parallelEligible: true`
+     - `worktreeCount >= 2`
+   - If checks fail, mark `FAIL`.
 6.5. Strict `CLAUDE.md` policy-block validation:
    - Verify section heading exists exactly: `## WhyCode (MANDATORY)`.
    - Verify required rule lines are present in that section:

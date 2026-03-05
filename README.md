@@ -172,7 +172,10 @@ On startup, WhyCode prompts for:
 - Startup also enforces project-root isolation: WhyCode binds to the current repo root and fails closed if run/state paths reference another project.
 - Required startup reads must come from direct disk; if files are too large for single preview, WhyCode must use chunked direct-disk reads (not persisted/cached output).
 - Startup enforces request anchoring: requested changes must map to current codebase/docs surfaces, otherwise WhyCode blocks for clarify/greenfield/cancel (and fix mode disallows greenfield fallback).
-- Startup enforces branch-lineage safety: WhyCode blocks when local `whycode/*` branches contain commits not yet in `origin/main`.
+- Startup enforces branch-lineage safety:
+  - Blocks unmanaged local `whycode/*` branches that are ahead of `origin/main`.
+  - Allows concurrent active runs with isolation (`lineageMode=parallel-active`).
+  - If concurrency is detected without isolation, WhyCode auto-creates a new worktree and gives a single handoff command.
 
 Fix runs (`/whycode fix`) must go through the same startup switches and run-selection gates before any implementation starts.
 Run selection supports paging controls so older runs can be chosen: `more` (next page), `all` (show all), `continue`.
@@ -186,11 +189,11 @@ Branch init safety:
 - WhyCode never uses `git stash` during branch init.
 - WhyCode never auto-commits user files during branch init.
 - If working tree is dirty, WhyCode creates the run branch from current HEAD and records `branchInitMode=current-head-dirty`.
-Concurrent-run recommendation (explicit):
-1. `git fetch origin`
-2. `git worktree add ../wt-whycode-<run> -b whycode/<run> origin/main`
-3. `cd ../wt-whycode-<run>`
-4. Run WhyCode in that worktree.
+Concurrent-run flow:
+1. Start WhyCode normally.
+2. If a concurrent run is detected, WhyCode auto-provisions an isolated worktree.
+3. Copy/run the single `cd <worktreePath>` handoff command it prints.
+4. Continue WhyCode from that workspace.
 Lineage preflight command:
 1. `git fetch origin`
 2. `for b in $(git for-each-ref --format='%(refname:short)' refs/heads/whycode/); do c=$(git rev-list --count origin/main..$b); if [ "$c" -gt 0 ]; then echo "$b has $c commits not in origin/main"; fi; done`

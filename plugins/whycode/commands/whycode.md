@@ -34,7 +34,7 @@ Hard execution rule:
   10. Request anchoring gate passed (`requestAnchored=true`) or explicit greenfield approval recorded (`greenfieldApproved=true`)
   11. Startup action selection used interactive choice UI (`runActionInteractive=true`)
   12. Branch-init stash safety passed (`stashUsedDuringBranchInit=false`)
-  13. Branch lineage is clean (`lineageClean=true`; no whycode/* branches ahead of origin/main)
+  13. Branch lineage gate passed (either `lineageClean=true` OR `lineageMode=parallel-active` with no unmanaged blocking branches)
 - If a startup gate is missing, stop and report: `startup incomplete`.
 - For significant fixes (schema/data model changes, cross-platform changes, new core components, or >3 files changed), architecture design and user approval are mandatory before implementation.
 - `/whycode fix` additional mandatory gates:
@@ -47,5 +47,6 @@ Hard execution rule:
   - do not auto-commit user files during branch init
   - if working tree is dirty, create run branch from current HEAD and record that mode
 - Concurrency/lineage rules:
-  - block startup when existing local `whycode/*` branches are ahead of `origin/main`
-  - recommend dedicated `git worktree` per active WhyCode run
+  - block startup only for unmanaged local `whycode/*` branches ahead of `origin/main`
+  - allow concurrent active runs in isolated worktrees (`lineageMode=parallel-active`)
+  - when concurrency is detected without isolation, auto-provision a new worktree and hand off
